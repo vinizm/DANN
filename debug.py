@@ -20,8 +20,10 @@ if __name__ == '__main__':
     num_class = 2
     output_stride = 8
     epochs = 20
-    batch_size = 1
+    batch_size = 4
     val_fraction = 0.15
+    num_images_train = None
+    num_images_test = None
     patience = 5
 
     folder_to_save = 'C:/Users/Vinicius Martins/Documents/CCOMP/Projeto/code/DANN/h5'
@@ -30,5 +32,5 @@ if __name__ == '__main__':
 
 
     run_case(train_dir = train_dir, test_dir = test_dir, patch_size = patch_size, channels = channels, num_class = num_class,
-            output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction,
-            patience = patience, path_to_save = path_to_save)
+            output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction, num_images_train = num_images_train,
+            num_images_test = num_images_test, patience = patience, path_to_save = path_to_save)
