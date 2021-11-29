@@ -12,6 +12,8 @@ import imutils
 import tensorflow as tf
 from scipy.stats import multivariate_normal
 
+from tensorflow.keras.utils import to_categorical
+
 
 def read_img(img_path):
 	img = io.imread(img_path)
@@ -121,7 +123,7 @@ def extract_patches(image: np.ndarray, patch_size: int, stride: int):
 	return image_patches
 
 
-def extract_patches_in_batches(images: list, patch_size: int, stride: int):
+def extract_patches_from_images(images: list, patch_size: int, stride: int):
 	image_patches = []
 	
 	for i in range(len(images)):
@@ -156,3 +158,35 @@ def load_array(full_file_name: str):
             print(f'Could not load file {full_file_name} successfuly.')
 
     return array
+
+
+def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.npy'):
+    if not os.path.exists(path_to_folder):
+        os.makedirs(path_to_folder)
+    else:
+        files_to_remove = os.listdir(path_to_folder)
+        [os.remove(os.path.join(path_to_folder, file)) for file in files_to_remove]
+
+    count = 0
+    for i in range(images.shape[0]):
+        img = images[i, :, :, :]
+        file_name = f'{i + 1:03}{suffix}{ext}'
+        full_file_name = os.path.join(path_to_folder, file_name)
+        
+        with open(full_file_name, 'wb') as file:
+            try:
+                np.save(file, img)
+                count += 1
+                print(f'Saved file {file_name} successfuly.')
+            except:
+                print(f'Could not save file {file_name}.')
+            
+    return count
+
+
+def convert_to_onehot_tensor(tensor: np.ndarray, num_class: int):
+    batch_size, n_rows, n_cols, _ = tensor.shape
+    vector = tensor.reshape(-1)
+    onehot_vector = to_categorical(vector, num_classes = num_class)
+    onehot_tensor = onehot_vector.reshape([batch_size, n_rows, n_cols, 2])
+    return onehot_tensor
