@@ -1,7 +1,7 @@
 from utils.utils import load_array, compute_metrics
 from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.layers import *
-from tensorflow.keras.optimizers import *
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import *
 from tensorflow.keras import backend as k
 from tensorflow.keras.utils import to_categorical
@@ -33,6 +33,8 @@ from scipy import ndimage
 
 def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, epochs: int, wait: int, path_to_save: str):
 	best_val_loss = 1.e8
+	history_train = []
+	history_val = []
 
 	print('Start training...')
 	for epoch in range(epochs):
@@ -84,22 +86,25 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 
 		loss_val = loss_val / num_batches_val
 
+		# show results
 		print('%d [Train loss: %f, Train acc.: %.2f%%][Val loss: %f, Val acc.:%.2f%%]' %(epoch, loss_train[0, 0], 100 * loss_train[0 , 1] , loss_val[0 , 0] , 100 * loss_val[0 , 1]))
+		history_train.append(loss_train)
+		history_val.append(loss_val)
+
 		if loss_val[0, 0] < best_val_loss:
 			print('[!] Saving best model...')
 			best_val_loss = loss_val[0, 0]
-			best_model = net
-			patience = 0
+			no_improvement_count = 0
+			net.save(path_to_save) # save model
 
 		else:
-			patience += 1
-			if  patience > wait:
+			no_improvement_count += 1
+			if  no_improvement_count > wait:
 				print('Performing early stopping!')
 				break
-
-	best_model.save(path_to_save)
 	
-	return net, best_model
+	history = [history_train, history_val]
+	return history
 
 
 def Predict(test_dir: str, num_images_test: int, path_to_load: str):
@@ -143,8 +148,9 @@ def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_
 						OS = output_stride,
 						alpha = 1.,
 						activation = 'sigmoid')
-						
-	net.compile(loss = 'binary_crossentropy', optimizer = 'adam')
+	
+	adam = Adam(learning_rate = 1e-4)
+	net.compile(loss = 'binary_crossentropy', optimizer = adam , metrics = ['accuracy'])
 	net.summary()
 	
 	# call train function
@@ -172,5 +178,3 @@ def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_
 # 	output_stride = sys.argv[7] # output stride
 # 	epoch = sys.argv[8] # epochs
 # 	patience = sys.argv[9] # patience
-
-
