@@ -31,7 +31,7 @@ from skimage.morphology import watershed
 from scipy import ndimage
 
 
-def Train(net, num_class: int, patches_dir: str, val_fraction: float, batch_size: int, epochs: int, wait: int, path_to_save: str):
+def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, epochs: int, wait: int, path_to_save: str):
 	best_val_loss = 1.e8
 
 	print('Start training...')
@@ -42,6 +42,7 @@ def Train(net, num_class: int, patches_dir: str, val_fraction: float, batch_size
 		# loading dataset
 		data_dirs = glob.glob(patches_dir + '/*.npy')
 		np.random.shuffle(data_dirs)
+		data_dirs = data_dirs[: num_images] # reduce dataset size
 
 		# define files for validation
 		num_val_samples = int(len(data_dirs) * val_fraction)
@@ -62,12 +63,8 @@ def Train(net, num_class: int, patches_dir: str, val_fraction: float, batch_size
 			x_train_batch = batch_images[ :, :, :, : 1]
 			y_train_batch = batch_images[ :, :, :, 1 :]
 			
-			a = net.train_on_batch(x_train_batch, y_train_batch)
-			print(a)
 			# train network
-			loss_train = loss_train + a
-
-			return
+			loss_train = loss_train + net.train_on_batch(x_train_batch, y_train_batch)
 			
 		loss_train = loss_train / num_batches
 
@@ -79,7 +76,7 @@ def Train(net, num_class: int, patches_dir: str, val_fraction: float, batch_size
 			batch_val_images = [load_array(batch_val_file) for batch_val_file in batch_val_files]
 			batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-			x_val_batch = batch_val_images[:, :, :, 0]
+			x_val_batch = batch_val_images[:, :, :, : 1]
 			y_val_batch = batch_val_images[:, :, :, 1 :]
 
 			# testing network
@@ -87,9 +84,9 @@ def Train(net, num_class: int, patches_dir: str, val_fraction: float, batch_size
 
 		loss_val = loss_val / num_batches_val
 
-		print("%d [Train loss: %f, Train acc.: %.2f%%][Val loss: %f, Val acc.:%.2f%%]" %(epoch, loss_train[0, 0], 100 * loss_train[0 , 1] , loss_val[0 , 0] , 100 * loss_val[0 , 1]))
+		print('%d [Train loss: %f, Train acc.: %.2f%%][Val loss: %f, Val acc.:%.2f%%]' %(epoch, loss_train[0, 0], 100 * loss_train[0 , 1] , loss_val[0 , 0] , 100 * loss_val[0 , 1]))
 		if loss_val[0, 0] < best_val_loss:
-			print("[!] Saving best model...")
+			print('[!] Saving best model...')
 			best_val_loss = loss_val[0, 0]
 			best_model = net
 			patience = 0
@@ -97,7 +94,7 @@ def Train(net, num_class: int, patches_dir: str, val_fraction: float, batch_size
 		else:
 			patience += 1
 			if  patience > wait:
-				print("Performing early stopping!")
+				print('Performing early stopping!')
 				break
 
 	best_model.save(path_to_save)
@@ -105,15 +102,18 @@ def Train(net, num_class: int, patches_dir: str, val_fraction: float, batch_size
 	return net, best_model
 
 
-def Predict(test_dir: str, model_name: str):
+def Predict(test_dir: str, num_images_test: int, path_to_load: str):
 	print("Start predicting...")
-	best_model = load_model(model_name)
+	best_model = load_model(path_to_load)
 	
 	test_data_dirs = glob.glob(test_dir + '/*.npy')
+	np.random.shuffle(test_data_dirs)
+	test_data_dirs = test_data_dirs[: num_images_test]
+
 	batch_images = [load_array(batch_file) for batch_file in test_data_dirs]
 
-	x_test_total = batch_images[ :, :, :, 0]
-	y_test_total = batch_images[ :, :, :, 1]
+	x_test_total = batch_images[ :, :, :, : 1]
+	y_test_total = batch_images[ :, :, :, 1 :]
 
 	y_pred_total = best_model.predict(x_test_total)
 
@@ -130,7 +130,8 @@ def Predict(test_dir: str, model_name: str):
 
 
 def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_class: int,
-			 output_stride: int, epochs: int, batch_size: int, val_fraction: float, patience: int, path_to_save: str):
+			 output_stride: int, epochs: int, batch_size: int, val_fraction: float, num_images_train: int,
+			 num_images_test: int, patience: int, path_to_save: str):
 
 	start = time.time()
 
@@ -147,16 +148,10 @@ def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_
 	net.summary()
 	
 	# call train function
-	Train(net = net,
-		  num_class = num_class,
-		  patches_dir = train_dir,
-		  val_fraction = val_fraction,
-		  batch_size = batch_size,
-		  epochs = epochs,
-		  wait = patience,
-		  path_to_save = path_to_save)
+	Train(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
+		  num_images = num_images_train, epochs = epochs, wait = patience, path_to_save = path_to_save)
 	
-	# Predict(test, model_name)
+	Predict(test_dir = test_dir, num_images_test = num_images_test, path_to_load = path_to_save)
 
 	end = time.time()
 	hours, rem = divmod(end - start, 3600)
