@@ -30,6 +30,6 @@ patches_train = np.concatenate((patches_rlm_train, patches_ref_train_onehot), ax
 patches_ref_test_onehot = convert_to_onehot_tensor(tensor = patches_ref_test, num_class = NUM_CLASS)
 patches_test = np.concatenate((patches_rlm_test, patches_ref_test_onehot), axis = 3)
 
-save_arrays(patches_train, f'./Processed/Fe19_stride512_Train/', suffix = '', ext = '.npy')
-save_arrays(patches_test, f'./Processed/Fe19_stride512_Test/', suffix = '', ext = '.npy')
+save_arrays(patches_train, f'./processed/Fe19_stride512_Train/', suffix = '', ext = '.npy')
+save_arrays(patches_test, f'./processed/Fe19_stride512_Test/', suffix = '', ext = '.npy')
 
