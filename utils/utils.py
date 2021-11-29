@@ -13,6 +13,7 @@ import tensorflow as tf
 from scipy.stats import multivariate_normal
 
 from tensorflow.keras.utils import to_categorical
+from tensorflow import one_hot
 
 
 def read_img(img_path):
@@ -185,8 +186,5 @@ def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.np
 
 
 def convert_to_onehot_tensor(tensor: np.ndarray, num_class: int):
-    batch_size, n_rows, n_cols, _ = tensor.shape
-    vector = tensor.reshape(-1)
-    onehot_vector = to_categorical(vector, num_classes = num_class)
-    onehot_tensor = onehot_vector.reshape([batch_size, n_rows, n_cols, 2])
-    return onehot_tensor
+    onehot_tensor = one_hot(tensor[:, :, :, 0], depth = num_class, axis = -1)
+    return np.asarray(onehot_tensor)
