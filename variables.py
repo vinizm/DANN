@@ -1,0 +1,15 @@
+
+
+BASE_FOLDER = 'C:/Users/Vinicius Martins/Documents/CCOMP/Projeto'
+DATASET_FOLDER = f'{BASE_FOLDER}/Datasets'
+PROCESSED_FOLDER = f'{BASE_FOLDER}/code/DANN/processed_images'
+
+PATH_TO_FE19_DATASET_RLM = f'{DATASET_FOLDER}/Fe19/Reflected_Light_Microscopy'
+PATH_TO_FE120_DATASET_RLM = f'{DATASET_FOLDER}/Fe120/Reflected_Light_Microscopy'
+PATH_TO_FEM_DATASET_RLM = f'{DATASET_FOLDER}/FeM/Reflected_Light_Microscopy'
+PATH_TO_CU_DATASET_RLM = f'{DATASET_FOLDER}/Cu/Reflected_Light_Microscopy'
+
+PATH_TO_FE19_DATASET_MASK = f'{DATASET_FOLDER}/Fe19/Reference_1'
+PATH_TO_FE120_DATASET_MASK = f'{DATASET_FOLDER}/Fe120/Reference'
+PATH_TO_FEM_DATASET_MASK = f'{DATASET_FOLDER}/FeM/Reference'
+PATH_TO_CU_DATASET_MASK = f'{DATASET_FOLDER}/Cu/Reference'
