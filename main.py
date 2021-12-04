@@ -55,8 +55,9 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 		num_batches = len(train_data_dirs) // batch_size
 		num_batches_val = len(val_data_dirs) // batch_size
 
-		for i in range(num_batches):
-			batch_files = train_data_dirs[i * batch_size : (i + 1) * batch_size]
+		for batch in range(num_batches):
+			print(f'Batch: {batch + 1}')
+			batch_files = train_data_dirs[batch * batch_size : (batch + 1) * batch_size]
 
 			# load images for training
 			batch_images = np.asarray( [load_array(batch_file) for batch_file in batch_files] )
@@ -72,6 +73,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 
 		# evaluating network
 		for batch in range(num_batches_val):
+			print(f'Batch: {batch + 1}')
 			batch_val_files = val_data_dirs[batch * batch_size : (batch + 1) * batch_size]
 
 			# load images for testing
