@@ -46,7 +46,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 		num_batches_val = len(val_data_dirs) // batch_size
 
 		for batch in range(num_batches):
-			print(f'Batch: {batch + 1}')
+			print(f'Batch {batch + 1} of epoch {epoch + 1}')
 			batch_files = train_data_dirs[batch * batch_size : (batch + 1) * batch_size]
 
 			# load images for training
@@ -58,12 +58,14 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			
 			# train network
 			loss_train = loss_train + net.train_on_batch(x_train_batch, y_train_batch)
+			print(f'val loss: {loss_train}')
 			
 		loss_train = loss_train / num_batches
+		print(f'final loss train: {loss_train}')
 
 		# evaluating network
 		for batch in range(num_batches_val):
-			print(f'Batch: {batch + 1}')
+			print(f'Batch {batch + 1} of epoch {epoch + 1}')
 			batch_val_files = val_data_dirs[batch * batch_size : (batch + 1) * batch_size]
 
 			# load images for testing
@@ -75,8 +77,10 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 
 			# testing network
 			loss_val = loss_val + net.test_on_batch(x_val_batch, y_val_batch)
+			print(f'val loss: {loss_val}')
 
 		loss_val = loss_val / num_batches_val
+		print(f'final loss val: {loss_val}')
 
 		# show results
 		print('%d [Train loss: %f, Train acc.: %.2f%%][Val loss: %f, Val acc.:%.2f%%]' %(epoch, loss_train[0, 0], 100 * loss_train[0 , 1] , loss_val[0 , 0] , 100 * loss_val[0 , 1]))
@@ -143,7 +147,7 @@ def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_
 	
 	adam = Adam(learning_rate = 1e-4)
 	net.compile(loss = 'binary_crossentropy', optimizer = adam, metrics = ['accuracy'])
-	net.summary()
+	#net.summary()
 	
 	# call train function
 	Train(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
