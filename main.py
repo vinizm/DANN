@@ -1,10 +1,7 @@
 from utils.utils import load_array, compute_metrics
-from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import *
-from tensorflow.keras import backend as k
-from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import load_model
 from tensorflow import keras
 import glob
@@ -16,19 +13,12 @@ import sys
 
 import numpy as np
 from skimage.transform import *
-from skimage import data, color
 from sklearn.utils import shuffle
-from sklearn.preprocessing import OneHotEncoder
-import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import time
 from model import Deeplabv3plus
 
 from tensorflow.keras.callbacks import EarlyStopping
-import scipy.io
-from skimage.feature import peak_local_max
-from skimage.morphology import watershed
-from scipy import ndimage
 
 
 def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, epochs: int, wait: int, path_to_save: str):

@@ -2,6 +2,8 @@ import os
 from main import run_case
 import tensorflow as tf
 
+from variables import *
+
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
@@ -13,8 +15,8 @@ import tensorflow as tf
 
 if __name__ == '__main__':
 
-    train_dir = 'C:/Users/Vinicius Martins/Documents/CCOMP/Projeto/code/DANN/processed_images/Fe19_stride512_Train'
-    test_dir = 'C:/Users/Vinicius Martins/Documents/CCOMP/Projeto/code/DANN/processed_images/Fe19_stride512_Test'
+    train_dir = f'{PROCESSED_FOLDER}/Fe19_stride512_Train'
+    test_dir = f'{PROCESSED_FOLDER}/Fe19_stride512_Test'
     patch_size = 512
     channels = 1
     num_class = 2
@@ -26,7 +28,7 @@ if __name__ == '__main__':
     num_images_test = None
     patience = 5
 
-    folder_to_save = 'C:/Users/Vinicius Martins/Documents/CCOMP/Projeto/code/DANN/h5'
+    folder_to_save = MODELS_FOLDER
     model_name = 'teste.h5'
     path_to_save = os.path.join(folder_to_save, model_name)
 
