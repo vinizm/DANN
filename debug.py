@@ -51,10 +51,10 @@ if __name__ == '__main__':
     model_name = 'teste.h5'
     path_to_save = os.path.join(folder_to_save, model_name)
 
-    print.info(f'train_dir: {train_dir}')
-    print.info(f'test_dir: {test_dir}')
-    print.warning(f'patch_size: {patch_size}')
-    print.debug(f'channels: {channels}')
+    print(f'train_dir: {train_dir}')
+    print(f'test_dir: {test_dir}')
+    print(f'patch_size: {patch_size}')
+    print(f'channels: {channels}')
     print(f'num_class: {num_class}')
     print(f'output_stride: {output_stride}')
     print(f'epochs: {epochs}')
