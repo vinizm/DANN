@@ -87,7 +87,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			best_val_loss = loss_val[0, 0]
 			no_improvement_count = 0
 			net.save(path_to_save) # save model
-			# model.save_weights(path_to_save) # save weights
+			# net.save_weights(path_to_save) # save weights
 
 		else:
 			no_improvement_count += 1
