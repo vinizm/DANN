@@ -42,8 +42,8 @@ if __name__ == '__main__':
     output_stride = 8
     epochs = 20
     batch_size = 4
-    val_fraction = 0.5
-    num_images_train = 8
+    val_fraction = 0.15
+    num_images_train = 30
     num_images_test = None
     patience = 5
 

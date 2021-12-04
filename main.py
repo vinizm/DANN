@@ -37,12 +37,13 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 	num_batches_val = len(val_data_dirs) // batch_size
 
 	for epoch in range(epochs):
+		print(f'Epoch {epoch + 1} of {epochs}')
 		loss_train = np.zeros((1 , 2))
 		loss_val = np.zeros((1 , 2))
 
 		for batch in range(num_batches):
 			print('Start training...')
-			print(f'Batch {batch + 1} of epoch {epoch + 1}')
+			print(f'Batch {batch + 1} of {num_batches}')
 			batch_files = train_data_dirs[batch * batch_size : (batch + 1) * batch_size]
 
 			# load images for training
@@ -61,7 +62,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 		# evaluating network
 		for batch in range(num_batches_val):
 			print('Start validation...')
-			print(f'Batch {batch + 1} of epoch {epoch + 1}')
+			print(f'Batch {batch + 1} of {num_batches_val}')
 			batch_val_files = val_data_dirs[batch * batch_size : (batch + 1) * batch_size]
 
 			# load images for testing
@@ -86,8 +87,8 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			print('[!] Saving best model...')
 			best_val_loss = loss_val[0, 0]
 			no_improvement_count = 0
-			net.save(path_to_save) # save model
-			# net.save_weights(path_to_save) # save weights
+			# net.save(path_to_save) # save model
+			net.save_weights(path_to_save) # save weights
 
 		else:
 			no_improvement_count += 1
@@ -141,7 +142,7 @@ def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_
 						alpha = 1.,
 						activation = 'sigmoid')
 	
-	adam = Adam(learning_rate = 1e-4)
+	adam = Adam(learning_rate = 5.e-4)
 	net.compile(loss = 'binary_crossentropy', optimizer = adam, metrics = ['accuracy'])
 	# net.summary()
 
