@@ -1,6 +1,6 @@
 
 
-BASE_FOLDER = '/root'
+BASE_FOLDER = '/content'
 PROCESSED_FOLDER = f'{BASE_FOLDER}/DANN/processed_images'
 MODELS_FOLDER = f'{BASE_FOLDER}/DANN/models'
 
