@@ -147,13 +147,13 @@ def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_
 	
 	adam = Adam(learning_rate = 1e-4)
 	net.compile(loss = 'binary_crossentropy', optimizer = adam, metrics = ['accuracy'])
-	#net.summary()
+	# net.summary()
 
 	# call train function
 	Train(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
 		  num_images = num_images_train, epochs = epochs, wait = patience, path_to_save = path_to_save)
 	
-	Predict(test_dir = test_dir, num_images_test = num_images_test, path_to_load = path_to_save)
+	# Predict(test_dir = test_dir, num_images_test = num_images_test, path_to_load = path_to_save)
 
 	end = time.time()
 	hours, rem = divmod(end - start, 3600)
