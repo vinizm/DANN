@@ -1,9 +1,28 @@
 import os
-from main import run_case
 import tensorflow as tf
+import logging
 
 from variables import *
+from main import run_case
 
+logging.basicConfig(filename = 'dann.log')
+
+# create logger
+logger = logging.getLogger('DANN')
+logger.setLevel(logging.DEBUG)
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
@@ -32,10 +51,10 @@ if __name__ == '__main__':
     model_name = 'teste.h5'
     path_to_save = os.path.join(folder_to_save, model_name)
 
-    print(f'train_dir: {train_dir}')
-    print(f'test_dir: {test_dir}')
-    print(f'patch_size: {patch_size}')
-    print(f'channels: {channels}')
+    print.info(f'train_dir: {train_dir}')
+    print.info(f'test_dir: {test_dir}')
+    print.warning(f'patch_size: {patch_size}')
+    print.debug(f'channels: {channels}')
     print(f'num_class: {num_class}')
     print(f'output_stride: {output_stride}')
     print(f'epochs: {epochs}')
