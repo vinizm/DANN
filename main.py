@@ -78,7 +78,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 		print(f'val loss: {loss_val[0, 0]}')
 
 		# show results
-		print('%d [Train loss: %f, Train acc.: %.2f%%][Val loss: %f, Val acc.:%.2f%%]' %(epoch, loss_train[0, 0], 100 * loss_train[0 , 1] , loss_val[0 , 0] , 100 * loss_val[0 , 1]))
+		print(f'[Train loss: {loss_train[0, 0]}, Train acc.: {loss_train[0 , 1]}][Val loss: {loss_val[0 , 0]}, Val acc.: {loss_val[0 , 1]}]')
 		history_train.append(loss_train)
 		history_val.append(loss_val)
 
@@ -87,7 +87,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			best_val_loss = loss_val[0, 0]
 			no_improvement_count = 0
 			net.save(path_to_save) # save model
-			# model.save_weights(path_to_save)
+			# model.save_weights(path_to_save) # save weights
 
 		else:
 			no_improvement_count += 1
