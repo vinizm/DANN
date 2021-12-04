@@ -1,22 +1,17 @@
-from utils.utils import load_array, compute_metrics
+import tensorflow as tf
 from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import *
 from tensorflow.keras.models import load_model
-from tensorflow import keras
 import glob
-import cv2
 import os
-import tensorflow as tf
 import sys
-
-
 import numpy as np
 from skimage.transform import *
-from sklearn.utils import shuffle
-import matplotlib.image as mpimg
 import time
+
 from model import Deeplabv3plus
+from utils.utils import load_array, compute_metrics
 
 from tensorflow.keras.callbacks import EarlyStopping
 
