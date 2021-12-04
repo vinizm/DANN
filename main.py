@@ -27,7 +27,6 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 	history_train = []
 	history_val = []
 
-	print('Start training...')
 	for epoch in range(epochs):
 		loss_train = np.zeros((1 , 2))
 		loss_val = np.zeros((1 , 2))
@@ -47,11 +46,12 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 		num_batches_val = len(val_data_dirs) // batch_size
 
 		for batch in range(num_batches):
+			print('Start training...')
 			print(f'Batch {batch + 1} of epoch {epoch + 1}')
 			batch_files = train_data_dirs[batch * batch_size : (batch + 1) * batch_size]
 
 			# load images for training
-			batch_images = np.asarray( [load_array(batch_file) for batch_file in batch_files] )
+			batch_images = np.asarray([load_array(batch_file) for batch_file in batch_files])
 			batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
 			x_train_batch = batch_images[ :, :, :, : 1]
@@ -61,15 +61,16 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			loss_train = loss_train + net.train_on_batch(x_train_batch, y_train_batch)
 			
 		loss_train = loss_train / num_batches
-		print(f'loss train: {loss_train[0, 0]}')
+		print(f'train loss: {loss_train[0, 0]}')
 
 		# evaluating network
 		for batch in range(num_batches_val):
+			print('Start validation...')
 			print(f'Batch {batch + 1} of epoch {epoch + 1}')
 			batch_val_files = val_data_dirs[batch * batch_size : (batch + 1) * batch_size]
 
 			# load images for testing
-			batch_val_images = [load_array(batch_val_file) for batch_val_file in batch_val_files]
+			batch_val_images = np.asarray([load_array(batch_val_file) for batch_val_file in batch_val_files])
 			batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
 			x_val_batch = batch_val_images[:, :, :, : 1]
@@ -79,7 +80,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			loss_val = loss_val + net.test_on_batch(x_val_batch, y_val_batch)
 
 		loss_val = loss_val / num_batches_val
-		print(f'loss val: {loss_val[0, 0]}')
+		print(f'val loss: {loss_val[0, 0]}')
 
 		# show results
 		print('%d [Train loss: %f, Train acc.: %.2f%%][Val loss: %f, Val acc.:%.2f%%]' %(epoch, loss_train[0, 0], 100 * loss_train[0 , 1] , loss_val[0 , 0] , 100 * loss_val[0 , 1]))
@@ -147,7 +148,7 @@ def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_
 	adam = Adam(learning_rate = 1e-4)
 	net.compile(loss = 'binary_crossentropy', optimizer = adam, metrics = ['accuracy'])
 	#net.summary()
-	
+
 	# call train function
 	Train(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
 		  num_images = num_images_train, epochs = epochs, wait = patience, path_to_save = path_to_save)
