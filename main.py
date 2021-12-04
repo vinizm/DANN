@@ -22,6 +22,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 
 
 def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, epochs: int, wait: int, path_to_save: str):
+	no_improvement_count = 0
 	best_val_loss = 1.e8
 	history_train = []
 	history_val = []
@@ -58,10 +59,9 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			
 			# train network
 			loss_train = loss_train + net.train_on_batch(x_train_batch, y_train_batch)
-			print(f'val loss: {loss_train}')
 			
 		loss_train = loss_train / num_batches
-		print(f'final loss train: {loss_train}')
+		print(f'loss train: {loss_train[0, 0]}')
 
 		# evaluating network
 		for batch in range(num_batches_val):
@@ -77,10 +77,9 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 
 			# testing network
 			loss_val = loss_val + net.test_on_batch(x_val_batch, y_val_batch)
-			print(f'val loss: {loss_val}')
 
 		loss_val = loss_val / num_batches_val
-		print(f'final loss val: {loss_val}')
+		print(f'loss val: {loss_val[0, 0]}')
 
 		# show results
 		print('%d [Train loss: %f, Train acc.: %.2f%%][Val loss: %f, Val acc.:%.2f%%]' %(epoch, loss_train[0, 0], 100 * loss_train[0 , 1] , loss_val[0 , 0] , 100 * loss_val[0 , 1]))
