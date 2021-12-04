@@ -23,14 +23,28 @@ if __name__ == '__main__':
     output_stride = 8
     epochs = 20
     batch_size = 4
-    val_fraction = 0.15
-    num_images_train = None
+    val_fraction = 0.5
+    num_images_train = 8
     num_images_test = None
     patience = 5
 
     folder_to_save = MODELS_FOLDER
     model_name = 'teste.h5'
     path_to_save = os.path.join(folder_to_save, model_name)
+
+    print(f'train_dir: {train_dir}')
+    print(f'test_dir: {test_dir}')
+    print(f'patch_size: {patch_size}')
+    print(f'channels: {channels}')
+    print(f'num_class: {num_class}')
+    print(f'output_stride: {output_stride}')
+    print(f'epochs: {epochs}')
+    print(f'batch_size: {batch_size}')
+    print(f'val_fraction: {val_fraction}')
+    print(f'num_images_train: {num_images_train}')
+    print(f'num_images_test: {num_images_test}')
+    print(f'patience: {patience}')
+    print(f'path_to_save: {path_to_save}')
 
 
     run_case(train_dir = train_dir, test_dir = test_dir, patch_size = patch_size, channels = channels, num_class = num_class,
