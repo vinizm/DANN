@@ -49,8 +49,8 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 		print(f'num. of batches for training: {num_batches}')
 		print(f'num. of batches for validation: {num_batches_val}')
 
+		print('Start training...')
 		for batch in range(num_batches):
-			print('Start training...')
 			print(f'Batch {batch + 1} of {num_batches}')
 			batch_files = train_data_dirs[batch * batch_size : (batch + 1) * batch_size]
 
@@ -68,8 +68,8 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 		print(f'train loss: {loss_train[0, 0]}')
 
 		# evaluating network
+		print('Start validation...')
 		for batch in range(num_batches_val):
-			print('Start validation...')
 			print(f'Batch {batch + 1} of {num_batches_val}')
 			batch_val_files = val_data_dirs[batch * batch_size : (batch + 1) * batch_size]
 
