@@ -139,7 +139,7 @@ def Predict(test_dir: str, num_images_test: int, path_to_load: str):
 	print(matrix)
 
 
-def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_class: int,
+def run_case(train_dir: str, test_dir: str, lr: float, patch_size: int, channels: int, num_class: int,
 			 output_stride: int, epochs: int, batch_size: int, val_fraction: float, num_images_train: int,
 			 num_images_test: int, patience: int, model_path: str, history_path: str):
 
@@ -154,7 +154,7 @@ def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_
 						alpha = 1.,
 						activation = 'sigmoid')
 	
-	adam = Adam(learning_rate = 5.e-4)
+	adam = Adam(learning_rate = lr)
 	net.compile(loss = 'binary_crossentropy', optimizer = adam, metrics = ['accuracy'])
 	# net.summary()
 

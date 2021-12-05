@@ -36,6 +36,7 @@ if __name__ == '__main__':
 
     train_dir = f'{PROCESSED_FOLDER}/Fe19_stride512_Train'
     test_dir = f'{PROCESSED_FOLDER}/Fe19_stride512_Test'
+    lr = 1.e-3
     patch_size = 512
     channels = 1
     num_class = 2
@@ -54,6 +55,7 @@ if __name__ == '__main__':
 
     print(f'train_dir: {train_dir}')
     print(f'test_dir: {test_dir}')
+    print(f'lr: {lr}')
     print(f'patch_size: {patch_size}')
     print(f'channels: {channels}')
     print(f'num_class: {num_class}')
@@ -70,4 +72,4 @@ if __name__ == '__main__':
 
     run_case(train_dir = train_dir, test_dir = test_dir, patch_size = patch_size, channels = channels, num_class = num_class,
             output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction, num_images_train = num_images_train,
-            num_images_test = num_images_test, patience = patience, model_path = model_path, history_path = history_path)
+            num_images_test = num_images_test, patience = patience, model_path = model_path, history_path = history_path, lr = lr)
