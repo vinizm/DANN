@@ -31,23 +31,22 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 
 	# define files for validation
 	num_val_samples = int(len(data_dirs) * val_fraction)
+	train_data_dirs = data_dirs[num_val_samples :]
+	val_data_dirs = data_dirs[: num_val_samples]
+
+	# compute number of batches
+	num_batches = len(train_data_dirs) // batch_size
+	num_batches_val = len(val_data_dirs) // batch_size
+	print(f'num. of batches for training: {num_batches}')
+	print(f'num. of batches for validation: {num_batches_val}')
 
 	for epoch in range(epochs):
 		print(f'Epoch {epoch + 1} of {epochs}')
 		loss_train = np.zeros((1 , 2))
 		loss_val = np.zeros((1 , 2))
 
-		np.random.shuffle(data_dirs)
-
-		train_data_dirs = data_dirs[num_val_samples :]
-		val_data_dirs = data_dirs[: num_val_samples]
-
-		# compute number of batches
-		num_batches = len(train_data_dirs) // batch_size
-		num_batches_val = len(val_data_dirs) // batch_size
-
-		print(f'num. of batches for training: {num_batches}')
-		print(f'num. of batches for validation: {num_batches_val}')
+		np.random.shuffle(train_data_dirs)
+		np.random.shuffle(val_data_dirs)
 
 		print('Start training...')
 		for batch in range(num_batches):
