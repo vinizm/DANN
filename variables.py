@@ -2,7 +2,7 @@
 
 BASE_FOLDER = '/content'
 PROCESSED_FOLDER = f'{BASE_FOLDER}/DANN/processed_images'
-MODELS_FOLDER = f'{BASE_FOLDER}/DANN/models'
+MODELS_FOLDER = f'{BASE_FOLDER}/DANN/results'
 
 PATH_TO_FE19_DATASET_RLM = f'{BASE_FOLDER}/Fe19/Reflected_Light_Microscopy'
 PATH_TO_FE120_DATASET_RLM = f'{BASE_FOLDER}/Fe120/Reflected_Light_Microscopy'
