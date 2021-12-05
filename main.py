@@ -105,6 +105,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 				print('Performing early stopping!')
 				break
 	
+	print('Saving metrics history.')
 	history = np.asarray([history_train, history_val])
 	save_json(history.tolist())
 	
