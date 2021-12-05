@@ -46,6 +46,9 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 		num_batches = len(train_data_dirs) // batch_size
 		num_batches_val = len(val_data_dirs) // batch_size
 
+		print(f'num. of batches for training: {num_batches}')
+		print(f'num. of batches for validation: {num_batches_val}')
+
 		for batch in range(num_batches):
 			print('Start training...')
 			print(f'Batch {batch + 1} of {num_batches}')
