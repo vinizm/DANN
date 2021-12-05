@@ -33,5 +33,8 @@ if __name__ == '__main__':
     patches_ref_test_onehot = convert_to_onehot_tensor(tensor = patches_ref_test, num_class = NUM_CLASS)
     patches_test = np.concatenate((patches_rlm_test, patches_ref_test_onehot), axis = 3)
 
+    print(f'train patches: {patches_train.shape}')
+    print(f'train patches: {patches_test.shape}')
+
     save_arrays(patches_train, f'./processed_images/Fe19_stride{PATCH_SIZE}_onechan{ONE_CHANNEL}_Train/', suffix = '', ext = '.npy')
     save_arrays(patches_test, f'./processed_images/Fe19_stride{PATCH_SIZE}_onechan{ONE_CHANNEL}_Test/', suffix = '', ext = '.npy')
