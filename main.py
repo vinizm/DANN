@@ -169,7 +169,6 @@ def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_
 
 
 
-
 # if __name__=='__main__':
 # 	train = sys.argv[1] # training patches directory
 # 	val = sys.argv[2] # validation patches directory
