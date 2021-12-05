@@ -13,10 +13,10 @@ PATCH_SIZE = 512
 STRIDE_TRAIN = 256
 STRIDE_TEST = 512
 NUM_CLASS = 2
+ONE_CHANNEL = True
 
-
-images_rlm = load_images(path_to_folder = PATH_TO_FE19_DATASET_RLM, normalize = True, one_channel = True)
-images_ref = load_images(path_to_folder = PATH_TO_FE19_DATASET_MASK, normalize = True, one_channel = True)
+images_rlm = load_images(path_to_folder = PATH_TO_FE19_DATASET_RLM, normalize = True, one_channel = ONE_CHANNEL)
+images_ref = load_images(path_to_folder = PATH_TO_FE19_DATASET_MASK, normalize = True, one_channel = ONE_CHANNEL)
 
 patches_rlm_train = extract_patches_from_images(images = images_rlm, patch_size = PATCH_SIZE, stride = STRIDE_TRAIN)
 patches_ref_train = extract_patches_from_images(images = images_ref, patch_size = PATCH_SIZE, stride = STRIDE_TRAIN)
@@ -30,6 +30,6 @@ patches_train = np.concatenate((patches_rlm_train, patches_ref_train_onehot), ax
 patches_ref_test_onehot = convert_to_onehot_tensor(tensor = patches_ref_test, num_class = NUM_CLASS)
 patches_test = np.concatenate((patches_rlm_test, patches_ref_test_onehot), axis = 3)
 
-save_arrays(patches_train, f'./processed_images/Fe19_stride512_Train/', suffix = '', ext = '.npy')
-save_arrays(patches_test, f'./processed_images/Fe19_stride512_Test/', suffix = '', ext = '.npy')
+save_arrays(patches_train, f'./processed_images/Fe19_stride{PATCH_SIZE}_onechan{ONE_CHANNEL}_Train/', suffix = '', ext = '.npy')
+save_arrays(patches_test, f'./processed_images/Fe19_stride{PATCH_SIZE}_onechan{ONE_CHANNEL}_Test/', suffix = '', ext = '.npy')
 
