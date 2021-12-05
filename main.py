@@ -17,8 +17,8 @@ from utils.utils import load_array, compute_metrics, save_json, load_json_as_arr
 from tensorflow.keras.callbacks import EarlyStopping
 
 
-def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, epochs: int, wait: int,
-		  model_path: str, history_path: str):
+def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, channels: int,
+		  epochs: int, wait: int, model_path: str, history_path: str):
 	no_improvement_count = 0
 	best_val_loss = 1.e8
 	history_train = []
@@ -58,8 +58,8 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			batch_images = np.asarray([load_array(batch_file) for batch_file in batch_files])
 			batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-			x_train_batch = batch_images[ :, :, :, : 1]
-			y_train_batch = batch_images[ :, :, :, 1 :]
+			x_train_batch = batch_images[ :, :, :, : channels]
+			y_train_batch = batch_images[ :, :, :, channels :]
 			
 			# train network
 			loss_train = loss_train + net.train_on_batch(x_train_batch, y_train_batch)
@@ -77,8 +77,8 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			batch_val_images = np.asarray([load_array(batch_val_file) for batch_val_file in batch_val_files])
 			batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-			x_val_batch = batch_val_images[:, :, :, : 1]
-			y_val_batch = batch_val_images[:, :, :, 1 :]
+			x_val_batch = batch_val_images[:, :, :, : channels]
+			y_val_batch = batch_val_images[:, :, :, channels :]
 
 			# testing network
 			loss_val = loss_val + net.test_on_batch(x_val_batch, y_val_batch)
@@ -112,7 +112,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 	return best_net, history
 
 
-def Predict(test_dir: str, num_images_test: int, path_to_load: str):
+def Predict(test_dir: str, num_images_test: int, path_to_load: str, channels: int):
 	print("Start predicting...")
 	best_model = load_model(path_to_load)
 	
@@ -122,8 +122,8 @@ def Predict(test_dir: str, num_images_test: int, path_to_load: str):
 
 	batch_images = [load_array(batch_file) for batch_file in test_data_dirs]
 
-	x_test_total = batch_images[ :, :, :, : 1]
-	y_test_total = batch_images[ :, :, :, 1 :]
+	x_test_total = batch_images[ :, :, :, : channels]
+	y_test_total = batch_images[ :, :, :, channels :]
 
 	y_pred_total = best_model.predict(x_test_total)
 
@@ -156,14 +156,14 @@ def run_case(train_dir: str, test_dir: str, lr: float, patch_size: int, channels
 	
 	adam = Adam(learning_rate = lr)
 	net.compile(loss = 'binary_crossentropy', optimizer = adam, metrics = ['accuracy'])
-	# net.summary()
+	net.summary()
 
 	# call train function
 	Train(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
 		  num_images = num_images_train, epochs = epochs, wait = patience, model_path = model_path,
-		  history_path = history_path)
+		  history_path = history_path, channels = channels)
 	
-	# Predict(test_dir = test_dir, num_images_test = num_images_test, path_to_load = path_to_save)
+	# Predict(test_dir = test_dir, num_images_test = num_images_test, path_to_load = path_to_save, channels = channels)
 
 	end = time.time()
 	hours, rem = divmod(end - start, 3600)
