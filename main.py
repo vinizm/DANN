@@ -9,6 +9,7 @@ import sys
 import numpy as np
 from skimage.transform import *
 import time
+import copy
 
 from model import Deeplabv3plus
 from utils.utils import load_array, compute_metrics
@@ -16,7 +17,8 @@ from utils.utils import load_array, compute_metrics
 from tensorflow.keras.callbacks import EarlyStopping
 
 
-def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, epochs: int, wait: int, path_to_save: str):
+def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, epochs: int, wait: int,
+		  model_path: str, history_path: str):
 	no_improvement_count = 0
 	best_val_loss = 1.e8
 	history_train = []
@@ -91,7 +93,8 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			best_val_loss = loss_val[0, 0]
 			no_improvement_count = 0
 			# net.save(path_to_save) # save model
-			net.save_weights(path_to_save) # save weights
+			net.save_weights(model_path) # save weights
+			best_net = copy.deepcopy(net)
 
 		else:
 			no_improvement_count += 1
@@ -100,7 +103,9 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 				break
 	
 	history = [history_train, history_val]
-	return history
+	
+
+	return best_net, history
 
 
 def Predict(test_dir: str, num_images_test: int, path_to_load: str):
@@ -132,7 +137,7 @@ def Predict(test_dir: str, num_images_test: int, path_to_load: str):
 
 def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_class: int,
 			 output_stride: int, epochs: int, batch_size: int, val_fraction: float, num_images_train: int,
-			 num_images_test: int, patience: int, path_to_save: str):
+			 num_images_test: int, patience: int, model_path: str, history_path: str):
 
 	start = time.time()
 
@@ -151,7 +156,8 @@ def run_case(train_dir: str, test_dir: str, patch_size: int, channels: int, num_
 
 	# call train function
 	Train(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
-		  num_images = num_images_train, epochs = epochs, wait = patience, path_to_save = path_to_save)
+		  num_images = num_images_train, epochs = epochs, wait = patience, model_path = model_path,
+		  history_path = history_path)
 	
 	# Predict(test_dir = test_dir, num_images_test = num_images_test, path_to_load = path_to_save)
 
