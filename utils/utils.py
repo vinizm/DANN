@@ -14,6 +14,7 @@ from scipy.stats import multivariate_normal
 
 from tensorflow.keras.utils import to_categorical
 from tensorflow import one_hot
+import json
 
 
 def read_img(img_path):
@@ -188,3 +189,14 @@ def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.np
 def convert_to_onehot_tensor(tensor: np.ndarray, num_class: int):
     onehot_tensor = one_hot(tensor[:, :, :, 0], depth = num_class, axis = -1)
     return np.asarray(onehot_tensor)
+
+
+def save_json(data, file_name: str):
+	with open(file_name, 'w') as file: # save history
+		json.dump(data, file)
+
+
+def load_json_as_array(file_name: str):
+	with open(file_name, 'r') as file: # load history
+		history = np.asarray(json.load(file))
+	return history
