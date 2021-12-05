@@ -107,9 +107,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 	
 	print('Saving metrics history.')
 	history = np.asarray([history_train, history_val])
-	print(history)
-	print(type(history))
-	save_json(history.tolist())
+	save_json(history.tolist(), history_path)
 	
 	return best_net, history
 
