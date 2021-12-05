@@ -11,7 +11,7 @@ from variables import PATH_TO_FE19_DATASET_RLM, PATH_TO_FE19_DATASET_MASK
 
 if __name__ == '__main__':
     ONE_CHANNEL = eval(sys.argv[1]) # one channel boolean
-    print(ONE_CHANNEL)
+    print(f'one_channel: {ONE_CHANNEL}')
 
     PATCH_SIZE = 512
     STRIDE_TRAIN = 256
