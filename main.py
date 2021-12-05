@@ -105,10 +105,10 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 				print('Performing early stopping!')
 				break
 	
-	history = [history_train.tolist(), history_val.tolist()]
-	save_json(history)
+	history = np.asarray([history_train, history_val])
+	save_json(history.tolist())
 	
-	return best_net, np.asarray(history)
+	return best_net, history
 
 
 def Predict(test_dir: str, num_images_test: int, path_to_load: str):
