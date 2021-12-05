@@ -48,8 +48,9 @@ if __name__ == '__main__':
     patience = 5
 
     folder_to_save = MODELS_FOLDER
-    model_name = 'teste.h5'
-    path_to_save = os.path.join(folder_to_save, model_name)
+    file_name = 'teste'
+    model_path = os.path.join(folder_to_save, f'{file_name}.h5')
+    history_path = os.path.join(folder_to_save, f'{file_name}.json')
 
     print(f'train_dir: {train_dir}')
     print(f'test_dir: {test_dir}')
@@ -63,9 +64,10 @@ if __name__ == '__main__':
     print(f'num_images_train: {num_images_train}')
     print(f'num_images_test: {num_images_test}')
     print(f'patience: {patience}')
-    print(f'path_to_save: {path_to_save}')
+    print(f'model_path: {model_path}')
+    print(f'history_path: {history_path}')
 
 
     run_case(train_dir = train_dir, test_dir = test_dir, patch_size = patch_size, channels = channels, num_class = num_class,
             output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction, num_images_train = num_images_train,
-            num_images_test = num_images_test, patience = patience, path_to_save = path_to_save)
+            num_images_test = num_images_test, patience = patience, model_path = model_path, history_path = history_path)
