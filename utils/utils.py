@@ -200,3 +200,7 @@ def load_json_as_array(file_name: str):
 	with open(file_name, 'r') as file: # load history
 		history = np.asarray(json.load(file))
 	return history
+
+
+def augment_images(image_files = list):
+	return

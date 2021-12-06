@@ -35,7 +35,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 	val_data_dirs = data_dirs[: num_val_samples]
 
 	# if augment:
-	# 	new_images = generate_augmented_images(image_files = train_data_dirs)
+	# 	new_images = augment_images(image_files = train_data_dirs)
 	# 	train_data_dirs += new_images
 	# 	np.random.shuffle(train_data_dirs)
 
