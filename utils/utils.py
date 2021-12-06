@@ -196,7 +196,7 @@ def save_json(data, file_name: str):
 		json.dump(data, file)
 
 
-def load_json_as_array(file_name: str):
+def load_json(file_name: str):
 	with open(file_name, 'r') as file: # load history
 		history = json.load(file)
 	return history
