@@ -36,5 +36,5 @@ if __name__ == '__main__':
     print(f'train patches: {patches_train.shape}')
     print(f'train patches: {patches_test.shape}')
 
-    save_arrays(patches_train, f'./processed_images/Fe19_stride{PATCH_SIZE}_onechan{ONE_CHANNEL}_Train/', suffix = '', ext = '.npy')
-    save_arrays(patches_test, f'./processed_images/Fe19_stride{PATCH_SIZE}_onechan{ONE_CHANNEL}_Test/', suffix = '', ext = '.npy')
+    save_arrays(patches_train, f'./processed_images/Fe19_stride{STRIDE_TRAIN}_onechannel{ONE_CHANNEL}_Train/', suffix = '', ext = '.npy')
+    save_arrays(patches_test, f'./processed_images/Fe19_stride{STRIDE_TEST}_onechannel{ONE_CHANNEL}_Test/', suffix = '', ext = '.npy')
