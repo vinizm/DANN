@@ -1,7 +1,8 @@
+import platform
 
+system = platform.system()
 
-BASE_FOLDER = '/content'
-# BASE_FOLDER = 'C:/Users/viniciusmartins/Documents/CCOMP/Projeto'
+BASE_FOLDER = '/content' if system == 'Linux' else 'C:/Users/viniciusmartins/Documents/CCOMP/Projeto'
 PROCESSED_FOLDER = f'{BASE_FOLDER}/DANN/processed_images'
 MODELS_FOLDER = f'{BASE_FOLDER}/DANN/results'
 
