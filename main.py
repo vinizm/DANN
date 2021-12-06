@@ -12,7 +12,7 @@ import time
 import copy
 
 from model import Deeplabv3plus
-from utils.utils import load_array, compute_metrics, save_json, load_json_as_array
+from utils.utils import load_array, compute_metrics, save_json
 
 from tensorflow.keras.callbacks import EarlyStopping
 
