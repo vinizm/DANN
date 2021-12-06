@@ -198,7 +198,7 @@ def save_json(data, file_name: str):
 
 def load_json_as_array(file_name: str):
 	with open(file_name, 'r') as file: # load history
-		history = np.asarray(json.load(file))
+		history = json.load(file)
 	return history
 
 
