@@ -46,6 +46,7 @@ if __name__ == '__main__':
     val_fraction = 0.15
     num_images_train = 30
     num_images_test = None
+    augment = False
     patience = 5
 
     folder_to_save = MODELS_FOLDER
@@ -65,6 +66,7 @@ if __name__ == '__main__':
     print(f'val_fraction: {val_fraction}')
     print(f'num_images_train: {num_images_train}')
     print(f'num_images_test: {num_images_test}')
+    print(f'augment: {augment}')
     print(f'patience: {patience}')
     print(f'model_path: {model_path}')
     print(f'history_path: {history_path}')

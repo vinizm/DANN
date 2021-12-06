@@ -18,7 +18,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 
 
 def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, channels: int,
-		  epochs: int, wait: int, model_path: str, history_path: str):
+		  epochs: int, wait: int, model_path: str, history_path: str, augment: bool):
 	no_improvement_count = 0
 	best_val_loss = 1.e8
 	history_train = []
@@ -33,6 +33,11 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 	num_val_samples = int(len(data_dirs) * val_fraction)
 	train_data_dirs = data_dirs[num_val_samples :]
 	val_data_dirs = data_dirs[: num_val_samples]
+
+	# if augment:
+	# 	new_images = generate_augmented_images(image_files = train_data_dirs)
+	# 	train_data_dirs += new_images
+	# 	np.random.shuffle(train_data_dirs)
 
 	# compute number of batches
 	num_batches = len(train_data_dirs) // batch_size
@@ -140,7 +145,7 @@ def Predict(test_dir: str, num_images_test: int, path_to_load: str, channels: in
 
 def run_case(train_dir: str, test_dir: str, lr: float, patch_size: int, channels: int, num_class: int,
 			 output_stride: int, epochs: int, batch_size: int, val_fraction: float, num_images_train: int,
-			 num_images_test: int, patience: int, model_path: str, history_path: str):
+			 num_images_test: int, patience: int, model_path: str, history_path: str, augment: bool):
 
 	start = time.time()
 
@@ -160,7 +165,7 @@ def run_case(train_dir: str, test_dir: str, lr: float, patch_size: int, channels
 	# call train function
 	Train(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
 		  num_images = num_images_train, epochs = epochs, wait = patience, model_path = model_path,
-		  history_path = history_path, channels = channels)
+		  history_path = history_path, channels = channels, augment = augment)
 	
 	# Predict(test_dir = test_dir, num_images_test = num_images_test, path_to_load = path_to_save, channels = channels)
 
