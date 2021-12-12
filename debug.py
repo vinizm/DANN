@@ -34,20 +34,22 @@ logger.addHandler(ch)
 
 if __name__ == '__main__':
 
-    train_dir = f'{PROCESSED_FOLDER}/Fe19_stride512_Train'
-    test_dir = f'{PROCESSED_FOLDER}/Fe19_stride512_Test'
-    lr = 1.e-3
+    one_channel = True
+
+    train_dir = f'{PROCESSED_FOLDER}/Fe19_stride256_onechannel{one_channel}_Train'
+    test_dir = f'{PROCESSED_FOLDER}/Fe19_stride256_onechannel{one_channel}_Test'
+    lr = 1.e-4
     patch_size = 512
-    channels = 1
+    channels = 3 if not one_channel else 1
     num_class = 2
     output_stride = 8
-    epochs = 20
-    batch_size = 4
-    val_fraction = 0.15
-    num_images_train = 30
+    epochs = 25
+    batch_size = 2
+    val_fraction = 0.2
+    num_images_train = None
     num_images_test = None
+    patience = 10
     augment = False
-    patience = 5
 
     folder_to_save = MODELS_FOLDER
     file_name = 'teste'
@@ -71,7 +73,7 @@ if __name__ == '__main__':
     print(f'model_path: {model_path}')
     print(f'history_path: {history_path}')
 
-
     run_case(train_dir = train_dir, test_dir = test_dir, patch_size = patch_size, channels = channels, num_class = num_class,
             output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction, num_images_train = num_images_train,
-            num_images_test = num_images_test, patience = patience, model_path = model_path, history_path = history_path, lr = lr)
+            num_images_test = num_images_test, patience = patience, model_path = model_path, history_path = history_path, lr = lr,
+            augment = True)
