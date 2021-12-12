@@ -1,10 +1,5 @@
 import sys
-import cv2
-import os
-
-import matplotlib.pyplot as plt
 import numpy as np
-from tensorflow.keras.utils import to_categorical
 
 from utils.utils import load_images, extract_patches_from_images, save_arrays, convert_to_onehot_tensor
 from variables import PATH_TO_FE19_DATASET_RLM, PATH_TO_FE19_DATASET_MASK
