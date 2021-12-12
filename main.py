@@ -177,24 +177,8 @@ def Train_Case(train_dir: str, test_dir: str, lr: float, patch_size: int, channe
 	Train(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
 		  num_images = num_images_train, epochs = epochs, wait = patience, model_path = model_path,
 		  history_path = history_path, channels = channels, augment = augment)
-	
-	# Predict(test_dir = test_dir, num_images_test = num_images_test, path_to_load = path_to_save, channels = channels)
 
 	end = time.time()
 	hours, rem = divmod(end - start, 3600)
 	minutes, seconds = divmod(rem, 60)
 	print('Tempo Total: ' + '{:0>2}:{:0>2}:{:05.2f}'.format(int(hours), int(minutes), seconds))
-
-
-
-
-# if __name__=='__main__':
-# 	train = sys.argv[1] # training patches directory
-# 	val = sys.argv[2] # validation patches directory
-# 	test = sys.argv[3] # test patches directory
-# 	patch_size = sys.argv[4] # patch size
-# 	channels = sys.argv[5] # channels
-# 	nclass= sys.argv[6] # number of classes
-# 	output_stride = sys.argv[7] # output stride
-# 	epoch = sys.argv[8] # epochs
-# 	patience = sys.argv[9] # patience
