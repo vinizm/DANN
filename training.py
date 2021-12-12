@@ -3,26 +3,8 @@ import tensorflow as tf
 import logging
 
 from variables import *
-from main import run_case
+from main import Train_Case
 
-logging.basicConfig(filename = 'dann.log')
-
-# create logger
-logger = logging.getLogger('DANN')
-logger.setLevel(logging.DEBUG)
-
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logger.addHandler(ch)
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
@@ -49,7 +31,7 @@ if __name__ == '__main__':
     num_images_train = None
     num_images_test = None
     patience = 10
-    augment = False
+    augment = True
 
     folder_to_save = MODELS_FOLDER
     file_name = 'teste'
@@ -73,7 +55,8 @@ if __name__ == '__main__':
     print(f'model_path: {model_path}')
     print(f'history_path: {history_path}')
 
-    run_case(train_dir = train_dir, test_dir = test_dir, patch_size = patch_size, channels = channels, num_class = num_class,
-            output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction, num_images_train = num_images_train,
-            num_images_test = num_images_test, patience = patience, model_path = model_path, history_path = history_path, lr = lr,
-            augment = True)
+
+    Train_Case(train_dir = train_dir, test_dir = test_dir, patch_size = patch_size, channels = channels, num_class = num_class,
+               output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction,
+               num_images_train = num_images_train, num_images_test = num_images_test, patience = patience, model_path = model_path,
+               history_path = history_path, lr = lr, augment = augment)
