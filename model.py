@@ -22,26 +22,6 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
-
-# from tensorflow.python.keras.models import Model
-# from tensorflow.python.keras import layers
-# from tensorflow.python.keras.layers import Input
-# from tensorflow.python.keras.layers import Lambda
-# from tensorflow.python.keras.layers import Activation
-# from tensorflow.python.keras.layers import Concatenate
-# from tensorflow.python.keras.layers import Add
-# from tensorflow.python.keras.layers import Dropout
-# from tensorflow.python.keras.layers import BatchNormalization
-# from tensorflow.python.keras.layers import Conv2D
-# from tensorflow.python.keras.layers import DepthwiseConv2D
-# from tensorflow.python.keras.layers import ZeroPadding2D
-# from tensorflow.python.keras.layers import GlobalAveragePooling2D
-# from tensorflow.python.keras.utils.layer_utils import get_source_inputs
-# from tensorflow.python.keras.utils.data_utils import get_file
-# from tensorflow.python.keras import backend as K
-# from tensorflow.python.keras.activations import relu
-# from tensorflow.python.keras.applications.imagenet_utils import preprocess_input
-
 from tensorflow.keras.models import Model
 from tensorflow.keras import layers
 from tensorflow.keras.layers import Input
