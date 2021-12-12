@@ -12,7 +12,7 @@ import time
 import copy
 
 from model import Deeplabv3plus
-from utils.utils import load_array, compute_metrics, save_json
+from utils.utils import load_array, compute_metrics, save_json, augment_images
 
 from tensorflow.keras.callbacks import EarlyStopping
 
@@ -34,15 +34,15 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 	train_data_dirs = data_dirs[num_val_samples :]
 	val_data_dirs = data_dirs[: num_val_samples]
 
-	# if augment:
-	# 	augmented_train = augment_images(image_files = train_data_dirs)
-	# 	train_data_dirs += augmented_train
-	#
-	# 	augmented_val = augment_images(image_files = val_data_dirs)
-	# 	train_data_dirs += augmented_val
-	#
-	# 	np.random.shuffle(train_data_dirs)
-	#	np.random.shuffle(val_data_dirs)
+	if augment:
+		augmented_train = augment_images(image_files = train_data_dirs, angles = [90, 180, 270])
+		train_data_dirs += augmented_train
+
+		augmented_val = augment_images(image_files = val_data_dirs, angles = [90, 180, 270])
+		train_data_dirs += augmented_val
+
+		np.random.shuffle(train_data_dirs)
+		np.random.shuffle(val_data_dirs)
 
 	# compute number of batches
 	num_batches = len(train_data_dirs) // batch_size

@@ -6,10 +6,9 @@ from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_
 from sklearn.feature_extraction.image import *
 import cv2
 import imutils
-from scipy.stats import multivariate_normal
 
 from tensorflow import one_hot
-from tensorflow.image import rot90
+import tensorflow as tf
 import json
 
 
@@ -212,7 +211,7 @@ def augment_images(image_files: list, angles: list):
         for image_file in image_files:
             print(f'Rotating {image_file} by {angle}.') 
             array = load_array(image_file)
-            array_rot = np.asarray(rot90(array, k = int(angle / 90.)))
+            array_rot = np.asarray(tf.image.rot90(array, k = int(angle / 90.)))
             
             file_path, ext = os.path.splitext(image_file)
             file_name = f'{file_path}_rotation{angle}{ext}'
