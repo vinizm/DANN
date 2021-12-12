@@ -133,7 +133,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 
 def Train_Case(train_dir: str, test_dir: str, lr: float, patch_size: int, channels: int, num_class: int,
 			 output_stride: int, epochs: int, batch_size: int, val_fraction: float, num_images_train: int,
-			 num_images_test: int, patience: int, model_path: str, history_path: str, augment: bool):
+			 patience: int, model_path: str, history_path: str, augment: bool):
 
 	start = time.time()
 
