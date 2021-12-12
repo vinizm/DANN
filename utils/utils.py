@@ -85,6 +85,9 @@ def compute_metrics(true_labels, predicted_labels):
 	return np.rot90(matrix, 2), accuracy, avg_accuracy, f1score, recall, prescision
 
 
+# ============================== NEW FUNCTIONS ==============================
+
+
 def load_images(path_to_folder: str, normalize: bool = False, one_channel: bool = False, conversor: int = cv2.COLOR_RGB2GRAY):
 	files = os.listdir(path_to_folder)
 	files.sort()
@@ -130,14 +133,13 @@ def extract_patches_from_images(images: list, patch_size: int, stride: int):
 	return np.array(image_patches)
 
 
-# ============================== NEW FUNCTIONS ==============================
-
 
 def load_arrays(path_to_folder: str):
 	if not os.path.exists(path_to_folder):
 		print('Folder does not exist.')
 	
 	file_names = os.listdir(path_to_folder)
+	file_names.sort()
 	content = []
 	for file_name in file_names:
 		full_file_name = os.path.join(path_to_folder, file_name)
@@ -206,16 +208,17 @@ def load_json(file_name: str):
 
 
 def augment_images(image_files: list, angles: list):
-    augmented_files = []
-    for angle in angles:
-        for image_file in image_files:
-            print(f'Rotating {image_file} by {angle}.') 
-            array = load_array(image_file)
-            array_rot = np.asarray(tf.image.rot90(array, k = int(angle / 90.)))
-            
-            file_path, ext = os.path.splitext(image_file)
-            file_name = f'{file_path}_rotation{angle}{ext}'
-            save_array(file_name = file_name, array = array_rot)
-            augmented_files.append(file_name)
-                                         
-    return augmented_files
+	augmented_files = []
+	for image_file in image_files:
+		array = load_array(image_file)
+		file_path, ext = os.path.splitext(image_file)
+		
+		for angle in angles:
+			print(f'Rotating {image_file} by {angle}.') 
+			array_rot = np.asarray(tf.image.rot90(array, k = int(angle / 90.)))
+			
+			file_name = f'{file_path}_rotation{angle}{ext}'
+			save_array(file_name = file_name, array = array_rot)
+			augmented_files.append(file_name)
+										 
+	return augmented_files
