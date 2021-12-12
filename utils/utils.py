@@ -12,14 +12,6 @@ import tensorflow as tf
 import json
 
 
-def load_data(RGBLabel_patches_path_npy):
-	RGBLabels = np.load(RGBLabel_patches_path_npy)
-	rgb_patch = RGBLabels[:, :, : 3]
-	label_patch = RGBLabels[:, :, 3]
-	label_patch = np.expand_dims(label_patch,axis=2)
-	return np.concatenate((rgb_patch, label_patch), axis = 2)
-
-
 def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, cmap=plt.cm.Blues):
 	"""
 	This function prints and plots the confusion matrix.
