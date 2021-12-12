@@ -12,20 +12,6 @@ import tensorflow as tf
 import json
 
 
-def read_img(img_path):
-	img = io.imread(img_path)
-	return img
-
-
-def save_img(img_path, np_array):
-	io.imsave(img_path, np_array)
-
-
-def data_aug(patches, angle):
-	rotated = [imutils.rotate(patches[i], angle) for i in range(0, len(patches))]
-	rotated = np.array(rotated, np.float32)
-	return rotated
-
 def load_data(RGBLabel_patches_path_npy):
 	RGBLabels = np.load(RGBLabel_patches_path_npy)
 	rgb_patch = RGBLabels[:, :, : 3]
@@ -212,7 +198,7 @@ def augment_images(image_files: list, angles: list):
 	for image_file in image_files:
 		array = load_array(image_file)
 		file_path, ext = os.path.splitext(image_file)
-		
+
 		for angle in angles:
 			print(f'Rotating {image_file} by {angle}.') 
 			array_rot = np.asarray(tf.image.rot90(array, k = int(angle / 90.)))
