@@ -39,7 +39,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 		train_data_dirs += augmented_train
 
 		augmented_val = augment_images(image_files = val_data_dirs, angles = [90, 180, 270])
-		train_data_dirs += augmented_val
+		val_data_dirs += augmented_val
 
 		np.random.shuffle(train_data_dirs)
 		np.random.shuffle(val_data_dirs)
