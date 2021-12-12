@@ -4,9 +4,7 @@ import glob
 import time
 import copy
 
-from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.models import *
 
 from model import Deeplabv3plus
 from utils.utils import load_array, save_json, augment_images
