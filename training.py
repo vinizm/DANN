@@ -135,14 +135,9 @@ def Train_Case(train_dir: str, test_dir: str, lr: float, patch_size: int, channe
 
 	start = time.time()
 
-	net = Deeplabv3plus(weights = None,
-						input_tensor = None,
-						input_shape = (patch_size, patch_size, channels),
-						classes = num_class,
-						backbone = 'xception',
-						OS = output_stride,
-						alpha = 1.,
-						activation = 'sigmoid')
+	net = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
+						classes = num_class, backbone = 'xception', OS = output_stride,
+						alpha = 1., activation = 'sigmoid')
 	
 	adam = Adam(learning_rate = lr)
 	net.compile(loss = 'binary_crossentropy', optimizer = adam, metrics = ['accuracy'])
