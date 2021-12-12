@@ -21,6 +21,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 		  epochs: int, wait: int, model_path: str, history_path: str, augment: bool):
 	no_improvement_count = 0
 	best_val_loss = 1.e8
+	best_net = None
 	history_train = []
 	history_val = []
 
