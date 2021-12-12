@@ -154,7 +154,7 @@ def Predict(test_dir: str, num_images_test: int, path_to_load: str, channels: in
 	print(matrix)
 
 
-def run_case(train_dir: str, test_dir: str, lr: float, patch_size: int, channels: int, num_class: int,
+def Train_Case(train_dir: str, test_dir: str, lr: float, patch_size: int, channels: int, num_class: int,
 			 output_stride: int, epochs: int, batch_size: int, val_fraction: float, num_images_train: int,
 			 num_images_test: int, patience: int, model_path: str, history_path: str, augment: bool):
 
