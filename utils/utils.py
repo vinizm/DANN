@@ -140,7 +140,7 @@ def extract_patches_from_images(images: list, patch_size: int, stride: int):
 
 def load_arrays(path_to_folder: str):
 	if not os.path.exists(path_to_folder):
-		return 'Folder does not exist.'
+		print('Folder does not exist.')
 	
 	file_names = os.listdir(path_to_folder)
 	content = []
@@ -172,12 +172,12 @@ def save_array(file_name: str, array: np.ndarray):
 			print(f'Could not save file {file_name}.')
 			status = False
 	return status
-	
 
-def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.npy'):
+
+def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.npy', clean_all: bool = True):
 	if not os.path.exists(path_to_folder):
 		os.makedirs(path_to_folder)
-	else:
+	elif clean_all:
 		files_to_remove = os.listdir(path_to_folder)
 		[os.remove(os.path.join(path_to_folder, file)) for file in files_to_remove]
 
