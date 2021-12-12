@@ -3,17 +3,13 @@ import skimage.io as io
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score, accuracy_score, average_precision_score
-from sklearn.utils.multiclass import unique_labels
 from sklearn.feature_extraction.image import *
-import skimage
 import cv2
-import glob
 import imutils
-import tensorflow as tf
 from scipy.stats import multivariate_normal
 
-from tensorflow.keras.utils import to_categorical
 from tensorflow import one_hot
+from tensorflow.image import rot90
 import json
 
 
@@ -210,5 +206,17 @@ def load_json(file_name: str):
 	return history
 
 
-def augment_images(image_files = list):
-	return
+def augment_images(image_files: list, angles: list):
+    augmented_files = []
+    for angle in angles:
+        for image_file in image_files:
+            print(f'Rotating {image_file} by {angle}.') 
+            array = load_array(image_file)
+            array_rot = np.asarray(rot90(array, k = int(angle / 90.)))
+            
+            file_path, ext = os.path.splitext(image_file)
+            file_name = f'{file_path}_rotation{angle}{ext}'
+            save_array(file_name = file_name, array = array_rot)
+            augmented_files.append(file_name)
+                                         
+    return augmented_files
