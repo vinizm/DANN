@@ -139,56 +139,64 @@ def extract_patches_from_images(images: list, patch_size: int, stride: int):
 
 
 def load_arrays(path_to_folder: str):
-    if not os.path.exists(path_to_folder):
-        return 'Folder does not exist.'
-    
-    file_names = os.listdir(path_to_folder)
-    content = []
-    for file_name in file_names:
-        full_file_name = os.path.join(path_to_folder, file_name)
-        content.append(load_array(full_file_name))
+	if not os.path.exists(path_to_folder):
+		return 'Folder does not exist.'
+	
+	file_names = os.listdir(path_to_folder)
+	content = []
+	for file_name in file_names:
+		full_file_name = os.path.join(path_to_folder, file_name)
+		content.append(load_array(full_file_name))
 
-    return np.asarray(content)
+	return np.asarray(content)
 
 
 def load_array(full_file_name: str):
-    with open(full_file_name, 'rb') as file:
-        try:
-            array = np.load(file)
-            print(f'Loaded file {full_file_name} successfuly.')
-        except:
-            print(f'Could not load file {full_file_name} successfuly.')
+	with open(full_file_name, 'rb') as file:
+		try:
+			array = np.load(file)
+			print(f'Loaded file {full_file_name} successfuly.')
+		except:
+			print(f'Could not load file {full_file_name} successfuly.')
 
-    return array
+	return array
 
+
+def save_array(file_name: str, array: np.ndarray):
+	with open(file_name, 'wb') as file:
+		try:
+			np.save(file, array)
+			print(f'Saved file {file_name} successfuly.')
+			status = True
+		except:
+			print(f'Could not save file {file_name}.')
+			status = False
+	return status
+	
 
 def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.npy'):
-    if not os.path.exists(path_to_folder):
-        os.makedirs(path_to_folder)
-    else:
-        files_to_remove = os.listdir(path_to_folder)
-        [os.remove(os.path.join(path_to_folder, file)) for file in files_to_remove]
+	if not os.path.exists(path_to_folder):
+		os.makedirs(path_to_folder)
+	else:
+		files_to_remove = os.listdir(path_to_folder)
+		[os.remove(os.path.join(path_to_folder, file)) for file in files_to_remove]
 
-    count = 0
-    for i in range(images.shape[0]):
-        img = images[i, :, :, :]
-        file_name = f'{i + 1:03}{suffix}{ext}'
-        full_file_name = os.path.join(path_to_folder, file_name)
-        
-        with open(full_file_name, 'wb') as file:
-            try:
-                np.save(file, img)
-                count += 1
-                print(f'Saved file {file_name} successfuly.')
-            except:
-                print(f'Could not save file {file_name}.')
-            
-    return count
+	count = 0
+	for i in range(images.shape[0]):
+		img = images[i, :, :, :]
+		file_name = f'{i + 1:03}{suffix}{ext}'
+		full_file_name = os.path.join(path_to_folder, file_name)
+		
+		status = save_array(file_name = full_file_name, array = img)
+		if status:
+			count += 1
+			
+	return count
 
 
 def convert_to_onehot_tensor(tensor: np.ndarray, num_class: int):
-    onehot_tensor = one_hot(tensor[:, :, :, 0], depth = num_class, axis = -1)
-    return np.asarray(onehot_tensor)
+	onehot_tensor = one_hot(tensor[:, :, :, 0], depth = num_class, axis = -1)
+	return np.asarray(onehot_tensor)
 
 
 def save_json(data, file_name: str):
