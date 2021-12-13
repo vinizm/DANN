@@ -24,24 +24,26 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 	print('Predicting...')
 	y_pred_total = model.predict(x_test_total)
 
-	metrics = compute_metrics(y_test_total.reshape(-1), np.round(y_pred_total).reshape(-1))
+	return y_test_total, y_pred_total
 
-	accuracy = metrics.get('accuracy')
-	print(f'Overall accuracy (number of correctly predicted items/total of item to predict): {accuracy}')
+	# metrics = compute_metrics(y_test_total.reshape(-1), np.round(y_pred_total).reshape(-1))
 
-	avg_precision = metrics.get('average_precision')
-	print(f'Average accuracy (the average of each accuracy per class(sum of accuracy for each class predicted/number of class)): {avg_precision}')
+	# accuracy = metrics.get('accuracy')
+	# print(f'Overall accuracy (number of correctly predicted items/total of item to predict): {accuracy}')
 
-	precision = metrics.get('precision')
-	print(f'Precision (how many of them are actual positive): {precision}')
+	# avg_precision = metrics.get('average_precision')
+	# print(f'Average accuracy (the average of each accuracy per class(sum of accuracy for each class predicted/number of class)): {avg_precision}')
 
-	recall = metrics.get('recall')
-	print(f'Recall (how many of the actual Positives our model capture through labeling it as Positive (True Positive)): {recall}')
+	# precision = metrics.get('precision')
+	# print(f'Precision (how many of them are actual positive): {precision}')
 
-	f1 = metrics.get('f1_score')
-	print(f'F1 score: {f1}')
+	# recall = metrics.get('recall')
+	# print(f'Recall (how many of the actual Positives our model capture through labeling it as Positive (True Positive)): {recall}')
 
-	save_json(metrics, path_to_metrics)
+	# f1 = metrics.get('f1_score')
+	# print(f'F1 score: {f1}')
+
+	# save_json(metrics, path_to_metrics)
 
 
 def Test_Case(test_dir: str, num_images_test: int, path_to_metrics: str, channels: int, is_model: bool = False,
