@@ -24,9 +24,7 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 	print('Predicting...')
 	y_pred_total = model.predict(x_test_total)
 
-	return y_pred_total, y_test_total
-
-	metrics = compute_metrics(y_test_total.flatten(), y_pred_total.flatten())
+	metrics = compute_metrics(y_test_total.reshape(-1), np.round(y_pred_total).reshape(-1))
 
 	accuracy = metrics.get('accuracy')
 	print(f'Overall accuracy (number of correctly predicted items/total of item to predict): {accuracy}')
