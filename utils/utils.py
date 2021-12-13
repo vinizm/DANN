@@ -53,17 +53,27 @@ def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, 
 	fig.tight_layout()
 	return ax
 
-def compute_metrics(true_labels, predicted_labels):
-	matrix = confusion_matrix(true_labels, predicted_labels)
-	accuracy = 100*accuracy_score(true_labels, predicted_labels)
-	avg_accuracy = 100*average_precision_score(true_labels, predicted_labels)
-	f1score = 100*f1_score(true_labels, predicted_labels)
-	recall = 100*recall_score(true_labels, predicted_labels)
-	prescision = 100*precision_score(true_labels, predicted_labels)
-	return np.rot90(matrix, 2), accuracy, avg_accuracy, f1score, recall, prescision
-
 
 # ============================== NEW FUNCTIONS ==============================
+
+
+def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
+	matrix = confusion_matrix(true_labels, predicted_labels)
+	accuracy = accuracy_score(true_labels, predicted_labels)
+	avg_precision = average_precision_score(true_labels, predicted_labels)
+	f1 = f1_score(true_labels, predicted_labels)
+	recall = recall_score(true_labels, predicted_labels)
+	precision = precision_score(true_labels, predicted_labels)
+	
+	metrics = {
+				'matrix': matrix.tolist(),
+				'accuracy': accuracy,
+				'average_precision': avg_precision,
+				'f1_score': f1,
+				'recall': recall,
+				'precision': precision
+	}
+	return metrics
 
 
 def load_images(path_to_folder: str, normalize: bool = False, one_channel: bool = False, conversor: int = cv2.COLOR_RGB2GRAY):
