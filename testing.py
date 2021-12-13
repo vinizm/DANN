@@ -26,24 +26,24 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 	print(y_pred_total.shape)
 	return y_pred_total, y_test_total
 
-	metrics = compute_metrics(y_test_total.flatten(), y_pred_total.flatten())
+	# metrics = compute_metrics(y_test_total.flatten(), y_pred_total.flatten())
 
-	accuracy = metrics.get('accuracy')
-	print(f'Overall accuracy (number of correctly predicted items/total of item to predict): {accuracy}')
+	# accuracy = metrics.get('accuracy')
+	# print(f'Overall accuracy (number of correctly predicted items/total of item to predict): {accuracy}')
 
-	avg_precision = metrics.get('average_precision')
-	print(f'Average accuracy (the average of each accuracy per class(sum of accuracy for each class predicted/number of class)): {avg_precision}')
+	# avg_precision = metrics.get('average_precision')
+	# print(f'Average accuracy (the average of each accuracy per class(sum of accuracy for each class predicted/number of class)): {avg_precision}')
 
-	precision = metrics.get('precision')
-	print(f'Precision (how many of them are actual positive): {precision}')
+	# precision = metrics.get('precision')
+	# print(f'Precision (how many of them are actual positive): {precision}')
 
-	recall = metrics.get('recall')
-	print(f'Recall (how many of the actual Positives our model capture through labeling it as Positive (True Positive)): {recall}')
+	# recall = metrics.get('recall')
+	# print(f'Recall (how many of the actual Positives our model capture through labeling it as Positive (True Positive)): {recall}')
 
-	f1 = metrics.get('f1_score')
-	print(f'F1 score: {f1}')
+	# f1 = metrics.get('f1_score')
+	# print(f'F1 score: {f1}')
 
-	save_json(metrics, path_to_metrics)
+	# save_json(metrics, path_to_metrics)
 
 
 def Test_Case(test_dir: str, num_images_test: int, path_to_metrics: str, channels: int, is_model: bool = False,
