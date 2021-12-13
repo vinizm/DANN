@@ -44,6 +44,22 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 	save_json(metrics, path_to_metrics)
 
 
+def Test_Case(test_dir: str, num_images_test: int, path_to_metrics: str, channels: int):
+
+	if is_model: # load model
+		print('Loading model.')
+		model = load_model(path_to_load)
+
+	else: # load weights
+		print('Loading weights.')
+		model = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
+							  classes = num_class, backbone = 'xception', OS = output_stride,
+							  alpha = 1., activation = 'sigmoid')
+		model.load_weights(path_to_load)
+
+	Test(model = model, test_dir = test_dir, num_images_test = num_images_test, path_to_metrics = path_to_metrics, channels = channels)
+
+
 if __name__ == '__main__':
 
 	one_channel = True
@@ -58,13 +74,4 @@ if __name__ == '__main__':
 	output_stride = 8
 	num_images_test = None
 
-	if is_model: # load model
-		model = load_model(path_to_load)
-
-	else: # load weights
-		model = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
-							  classes = num_class, backbone = 'xception', OS = output_stride,
-							  alpha = 1., activation = 'sigmoid')
-		model.load_weights(path_to_load)
-
-	Test(model = model, test_dir = test_dir, num_images_test = num_images_test, path_to_metrics = path_to_metrics, channels = channels)
+	Test_Case(test_dir = test_dir, num_images_test = num_images_test, path_to_metrics = path_to_metrics, channels = channels)
