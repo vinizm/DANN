@@ -1,14 +1,24 @@
 import numpy as np
 import glob
 
-from utils.utils import load_array
+from tensorflow.keras.models import load_model
+
+from utils.utils import load_array, compute_metrics, save_json
+from model import Deeplabv3plus
 
 
-def Test(test_dir: str, num_images_test: int, path_to_load: str, channels: int, is_model: bool = False):
+def Test(test_dir: str, num_images_test: int, path_to_metrics: str, path_to_load: str, channels: int, is_model: bool = True,
+		 patch_size: int = None, num_class: int = None, output_stride: int = None):
 	print('Start testing...')
 
+	if is_model: # load model
+		model = load_model(path_to_load)
 
-	weights = load_model(path_to_load)
+	else: # load weights
+		model = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
+							  classes = num_class, backbone = 'xception', OS = output_stride,
+							  alpha = 1., activation = 'sigmoid')
+		model.load_weights(path_to_load)
 	
 	test_data_dirs = glob.glob(test_dir + '/*.npy')
 	np.random.shuffle(test_data_dirs)
@@ -20,15 +30,23 @@ def Test(test_dir: str, num_images_test: int, path_to_load: str, channels: int, 
 	x_test_total = batch_images[ :, :, :, : channels]
 	y_test_total = batch_images[ :, :, :, channels :]
 
-	y_pred_total = best_model.predict(x_test_total)
+	y_pred_total = model.predict(x_test_total)
 
-	matrix, accuracy, avg_accuracy, f1score, recall, prescision = compute_metrics(y_test_total.flatten(), y_pred_total.flatten())
-	print('Overall accuracy (number of correctly predicted items/total of item to predict):', accuracy)
-	print('Average accuracy (the average of each accuracy per class(sum of accuracy for each class predicted/number of class)):', avg_accuracy)
-	print('Precision (how many of them are actual positive):', prescision)
-	print('Recall (how many of the actual Positives our model capture through labeling it as Positive (True Positive)):', recall)
-	print('F1 score:', f1score)
+	metrics = compute_metrics(y_test_total.flatten()), y_pred_total.flatten())
 
-	matrix = matrix.astype('float') / matrix.sum(axis=1)[:, np.newaxis]
-	print('Confusion matrix:')
-	print(matrix)
+	accuracy = metrics.get('accuracy')
+	print(f'Overall accuracy (number of correctly predicted items/total of item to predict): {accuracy}')
+
+	avg_precision = metrics.get('average_precision')
+	print(f'Average accuracy (the average of each accuracy per class(sum of accuracy for each class predicted/number of class)): {avg_precision}')
+
+	precision = metrics.get('precision')
+	print(f'Precision (how many of them are actual positive): {precision}')
+
+	recall = metrics.get('recall')
+	print(f'Recall (how many of the actual Positives our model capture through labeling it as Positive (True Positive)): {recall}')
+
+	f1 = metrics.get('f1_score')
+	print(f'F1 score: {f1}')
+
+	save_json(metrics, path_to_metrics)
