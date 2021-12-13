@@ -21,7 +21,9 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 	x_test_total = batch_images[ :, :, :, : channels]
 	y_test_total = batch_images[ :, :, :, channels :]
 
+	print('Predicting...')
 	y_pred_total = model.predict(x_test_total)
+	print(y_pred_total.shape)
 	return y_pred_total, y_test_total
 
 	metrics = compute_metrics(y_test_total.flatten(), y_pred_total.flatten())
