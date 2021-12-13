@@ -1,16 +1,21 @@
 import numpy as np
 import glob
 
+from utils.utils import load_array
 
-def Test(test_dir: str, num_images_test: int, path_to_load: str, channels: int):
+
+def Test(test_dir: str, num_images_test: int, path_to_load: str, channels: int, is_model: bool = False):
 	print('Start testing...')
+
+
 	weights = load_model(path_to_load)
 	
 	test_data_dirs = glob.glob(test_dir + '/*.npy')
 	np.random.shuffle(test_data_dirs)
 	test_data_dirs = test_data_dirs[: num_images_test]
 
-	batch_images = [load_array(batch_file) for batch_file in test_data_dirs]
+	batch_images = np.asarray([load_array(batch_file) for batch_file in test_data_dirs])
+	batch_images = np.float32(batch_images) # set np.float32 to reduce memory usage
 
 	x_test_total = batch_images[ :, :, :, : channels]
 	y_test_total = batch_images[ :, :, :, channels :]
