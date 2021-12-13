@@ -8,7 +8,7 @@ from model import Deeplabv3plus
 from variables import *
 
 
-def Test(test_dir: str, num_images_test: int, path_to_metrics: str, channels: int):
+def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, channels: int):
 	print('Start testing...')
 	
 	test_data_dirs = glob.glob(test_dir + '/*.npy')
@@ -22,7 +22,7 @@ def Test(test_dir: str, num_images_test: int, path_to_metrics: str, channels: in
 	y_test_total = batch_images[ :, :, :, channels :]
 
 	y_pred_total = model.predict(x_test_total)
-	return y_pred_total
+	return y_pred_total, y_test_total
 
 	metrics = compute_metrics(y_test_total.flatten(), y_pred_total.flatten())
 
@@ -67,4 +67,4 @@ if __name__ == '__main__':
 							  alpha = 1., activation = 'sigmoid')
 		model.load_weights(path_to_load)
 
-	Test(test_dir = test_dir, num_images_test = num_images_test, path_to_metrics = path_to_metrics, channels = channels)
+	Test(model = model, test_dir = test_dir, num_images_test = num_images_test, path_to_metrics = path_to_metrics, channels = channels)
