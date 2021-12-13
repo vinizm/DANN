@@ -5,20 +5,11 @@ from tensorflow.keras.models import load_model
 
 from utils.utils import load_array, compute_metrics, save_json
 from model import Deeplabv3plus
+from variables import *
 
 
-def Test(test_dir: str, num_images_test: int, path_to_metrics: str, path_to_load: str, channels: int, is_model: bool = True,
-		 patch_size: int = None, num_class: int = None, output_stride: int = None):
+def Test(test_dir: str, num_images_test: int, path_to_metrics: str, channels: int):
 	print('Start testing...')
-
-	if is_model: # load model
-		model = load_model(path_to_load)
-
-	else: # load weights
-		model = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
-							  classes = num_class, backbone = 'xception', OS = output_stride,
-							  alpha = 1., activation = 'sigmoid')
-		model.load_weights(path_to_load)
 	
 	test_data_dirs = glob.glob(test_dir + '/*.npy')
 	np.random.shuffle(test_data_dirs)
@@ -31,8 +22,9 @@ def Test(test_dir: str, num_images_test: int, path_to_metrics: str, path_to_load
 	y_test_total = batch_images[ :, :, :, channels :]
 
 	y_pred_total = model.predict(x_test_total)
+	return y_pred_total
 
-	metrics = compute_metrics(y_test_total.flatten()), y_pred_total.flatten())
+	metrics = compute_metrics(y_test_total.flatten(), y_pred_total.flatten())
 
 	accuracy = metrics.get('accuracy')
 	print(f'Overall accuracy (number of correctly predicted items/total of item to predict): {accuracy}')
@@ -50,3 +42,29 @@ def Test(test_dir: str, num_images_test: int, path_to_metrics: str, path_to_load
 	print(f'F1 score: {f1}')
 
 	save_json(metrics, path_to_metrics)
+
+
+if __name__ == '__main__':
+
+	one_channel = True
+	
+	is_model = False
+	path_to_load = f'{MODELS_FOLDER}/DL_8_2_weights.h5'
+	test_dir = f'{PROCESSED_FOLDER}/Fe19_stride512_onechannel{one_channel}_Test'
+	path_to_metrics = f'{MODELS_FOLDER}/DL_8_2_metrics.json'
+	channels = 3 if not one_channel else 1
+	patch_size = 512
+	num_class = 2
+	output_stride = 8
+	num_images_test = None
+
+	if is_model: # load model
+		model = load_model(path_to_load)
+
+	else: # load weights
+		model = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
+							  classes = num_class, backbone = 'xception', OS = output_stride,
+							  alpha = 1., activation = 'sigmoid')
+		model.load_weights(path_to_load)
+
+	Test(test_dir = test_dir, num_images_test = num_images_test, path_to_metrics = path_to_metrics, channels = channels)

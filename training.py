@@ -159,7 +159,6 @@ if __name__ == '__main__':
     one_channel = True
 
     train_dir = f'{PROCESSED_FOLDER}/Fe19_stride256_onechannel{one_channel}_Train'
-    test_dir = f'{PROCESSED_FOLDER}/Fe19_stride256_onechannel{one_channel}_Test'
     lr = 1.e-4
     patch_size = 512
     channels = 3 if not one_channel else 1
@@ -169,7 +168,6 @@ if __name__ == '__main__':
     batch_size = 2
     val_fraction = 0.2
     num_images_train = None
-    num_images_test = None
     patience = 10
     augment = True
 
