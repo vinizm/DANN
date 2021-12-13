@@ -44,7 +44,7 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 	save_json(metrics, path_to_metrics)
 
 
-def Test_Case(test_dir: str, num_images_test: int, path_to_metrics: str, channels: int):
+def Test_Case(test_dir: str, num_images_test: int, path_to_metrics: str, channels: int, is_model: bool = False):
 
 	if is_model: # load model
 		print('Loading model.')
@@ -74,4 +74,5 @@ if __name__ == '__main__':
 	output_stride = 8
 	num_images_test = None
 
-	Test_Case(test_dir = test_dir, num_images_test = num_images_test, path_to_metrics = path_to_metrics, channels = channels)
+	Test_Case(test_dir = test_dir, num_images_test = num_images_test, path_to_metrics = path_to_metrics,
+			  channels = channels, is_model = is_model)
