@@ -45,7 +45,7 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 
 
 def Test_Case(test_dir: str, num_images_test: int, path_to_metrics: str, channels: int, is_model: bool = False,
-			  patch_size: int = None, num_class: int = None, output_stride: int = None):
+			  patch_size: int = None, num_class: int = None, output_stride: int = None, path_to_load: str = None):
 
 	if is_model: # load model
 		print('Loading model.')
@@ -77,4 +77,4 @@ if __name__ == '__main__':
 
 	Test_Case(test_dir = test_dir, num_images_test = num_images_test, path_to_metrics = path_to_metrics,
 			  channels = channels, is_model = is_model, patch_size = patch_size, num_class = num_class,
-			  output_stride = output_stride)
+			  output_stride = output_stride, path_to_load = None)
