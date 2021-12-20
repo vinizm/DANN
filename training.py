@@ -129,7 +129,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 	return best_net, history
 
 
-def Train_Case(train_dir: str, test_dir: str, lr: float, patch_size: int, channels: int, num_class: int,
+def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_class: int,
 			 output_stride: int, epochs: int, batch_size: int, val_fraction: float, num_images_train: int,
 			 patience: int, model_path: str, history_path: str, augment: bool):
 
@@ -177,7 +177,6 @@ if __name__ == '__main__':
     history_path = os.path.join(folder_to_save, f'{file_name}.json')
 
     print(f'train_dir: {train_dir}')
-    print(f'test_dir: {test_dir}')
     print(f'lr: {lr}')
     print(f'patch_size: {patch_size}')
     print(f'channels: {channels}')
@@ -187,14 +186,13 @@ if __name__ == '__main__':
     print(f'batch_size: {batch_size}')
     print(f'val_fraction: {val_fraction}')
     print(f'num_images_train: {num_images_train}')
-    print(f'num_images_test: {num_images_test}')
     print(f'augment: {augment}')
     print(f'patience: {patience}')
     print(f'model_path: {model_path}')
     print(f'history_path: {history_path}')
 
 
-    Train_Case(train_dir = train_dir, test_dir = test_dir, patch_size = patch_size, channels = channels, num_class = num_class,
+    Train_Case(train_dir = train_dir, patch_size = patch_size, channels = channels, num_class = num_class,
                output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction,
-               num_images_train = num_images_train, num_images_test = num_images_test, patience = patience, model_path = model_path,
+               num_images_train = num_images_train, patience = patience, model_path = model_path,
                history_path = history_path, lr = lr, augment = augment)

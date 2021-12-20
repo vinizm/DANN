@@ -29,16 +29,16 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 	# metrics = compute_metrics(y_test_total.reshape(-1), np.round(y_pred_total).reshape(-1))
 
 	# accuracy = metrics.get('accuracy')
-	# print(f'Overall accuracy (number of correctly predicted items/total of item to predict): {accuracy}')
+	# print(f'Overall accuracy: {accuracy}')
 
 	# avg_precision = metrics.get('average_precision')
-	# print(f'Average accuracy (the average of each accuracy per class(sum of accuracy for each class predicted/number of class)): {avg_precision}')
+	# print(f'Average precision: {avg_precision}')
 
 	# precision = metrics.get('precision')
-	# print(f'Precision (how many of them are actual positive): {precision}')
+	# print(f'Precision: {precision}')
 
 	# recall = metrics.get('recall')
-	# print(f'Recall (how many of the actual Positives our model capture through labeling it as Positive (True Positive)): {recall}')
+	# print(f'Recall: {recall}')
 
 	# f1 = metrics.get('f1_score')
 	# print(f'F1 score: {f1}')
