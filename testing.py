@@ -36,7 +36,7 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 		final_test.append(y_test_total)
 		final_pred.append(y_pred_total)
 
-	return np.asarray(final_test), np.asarray(final_pred)
+	return np.concatenate(final_test), np.concatenate(final_pred)
 
 	# metrics = compute_metrics(y_test_total.reshape(-1), np.round(y_pred_total).reshape(-1))
 
