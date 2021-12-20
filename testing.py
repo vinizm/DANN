@@ -20,6 +20,7 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 
 	final_test = []
 	final_pred = []
+	final_original = []
 	for batch in range(num_batches):
 		print(f'Batch {batch + 1} of {num_batches}')
 		batch_files = test_data_dirs[batch * batch_size : (batch + 1) * batch_size]
@@ -35,8 +36,9 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 
 		final_test.append(y_test_total)
 		final_pred.append(y_pred_total)
+		final_original.append(x_test_total)
 
-	return np.concatenate(final_test), np.concatenate(final_pred)
+	return np.concatenate(final_test), np.concatenate(final_pred), np.concatenate(x_test_total)
 
 	# metrics = compute_metrics(y_test_total.reshape(-1), np.round(y_pred_total).reshape(-1))
 
