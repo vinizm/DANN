@@ -38,6 +38,7 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 		final_pred.append(y_pred_total)
 		final_original.append(x_test_total)
 
+	print('Prediction finished!')
 	return np.concatenate(final_test), np.concatenate(final_pred), np.concatenate(x_test_total)
 
 	# metrics = compute_metrics(y_test_total.reshape(-1), np.round(y_pred_total).reshape(-1))
