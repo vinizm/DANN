@@ -162,7 +162,8 @@ def save_array(file_name: str, array: np.ndarray):
 def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.npy', clean_all: bool = True):
 	if not os.path.exists(path_to_folder):
 		os.makedirs(path_to_folder)
-	elif clean_all:
+		
+	if clean_all:
 		files_to_remove = os.listdir(path_to_folder)
 		[os.remove(os.path.join(path_to_folder, file)) for file in files_to_remove]
 
