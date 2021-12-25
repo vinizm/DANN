@@ -137,12 +137,13 @@ def load_arrays(path_to_folder: str):
 
 
 def load_array(full_file_name: str):
+	file_name = os.path.basename(full_file_name)
 	with open(full_file_name, 'rb') as file:
 		try:
 			array = np.load(file)
-			print(f'Loaded file {full_file_name} successfuly.')
+			print(f'Loaded file {file_name} successfuly.')
 		except:
-			print(f'Could not load file {full_file_name} successfuly.')
+			print(f'Could not load file {file_name} successfuly.')
 
 	return array
 
