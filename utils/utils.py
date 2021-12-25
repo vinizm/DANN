@@ -200,11 +200,13 @@ def load_json(file_name: str):
 def augment_images(image_files: list, angles: list):
 	augmented_files = []
 	for image_file in image_files:
+		file_id = os.path.basename(image_file)
+
 		array = load_array(image_file)
 		file_path, ext = os.path.splitext(image_file)
 
 		for angle in angles:
-			print(f'Rotating {image_file} by {angle}.') 
+			print(f'Rotating {file_id} by {angle}.') 
 			array_rot = np.asarray(tf.image.rot90(array, k = int(angle / 90.)))
 			
 			file_name = f'{file_path}_rotation{angle}{ext}'
