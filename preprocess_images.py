@@ -9,13 +9,16 @@ if __name__ == '__main__':
     ONE_CHANNEL = eval(sys.argv[1])
     DATASET = sys.argv[2]
     TEST_INDEX = eval(sys.argv[3])
+    RESAMPLE = eval(sys.argv[4])
 
     # ONE_CHANNEL = True
     # DATASET = 'Fe120'
     # TEST_INDEX = [1, 5, 11, 17]
+    # RESAMPLE = True
     print(f'one_channel: {ONE_CHANNEL}')
     print(f'dataset: {DATASET}')
     print(f'test_index: {TEST_INDEX}')
+    print(f'resample: {RESAMPLE}')
 
     PATCH_SIZE = 512
     STRIDE_TRAIN = 256
@@ -28,7 +31,10 @@ if __name__ == '__main__':
     images_rlm = load_images(path_to_folder = path_to_dataset_rlm, normalize = True, one_channel = ONE_CHANNEL)
     images_ref = load_images(path_to_folder = path_to_dataset_mask, normalize = True, one_channel = ONE_CHANNEL)
 
-    train_index = [i for i in range(len(images_ref)) if i not in TEST_INDEX]
+    if RESAMPLE:
+        train_index = [i for i in range(len(images_ref))]
+    else:
+        train_index = [i for i in range(len(images_ref)) if i not in TEST_INDEX]
 
     images_rlm_train = [images_rlm[i] for i in train_index]
     images_ref_train = [images_ref[i] for i in train_index]
