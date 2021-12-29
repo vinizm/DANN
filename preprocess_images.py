@@ -54,8 +54,8 @@ if __name__ == '__main__':
     
     # convert 3 channels to 1 channel if needed
     if ONE_CHANNEL:
-        patches_rlm_train = [cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) for img in patches_rlm_train]
-        patches_rlm_test = [cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) for img in patches_rlm_test]
+        patches_rlm_train = [cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) for img in patches_rlm_train]
+        patches_rlm_test = [cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) for img in patches_rlm_test]
 
         patches_rlm_train = np.asarray([img.reshape((PATCH_SIZE, PATCH_SIZE, 1)) for img in patches_rlm_train])
         patches_rlm_test = np.asarray([img.reshape((PATCH_SIZE, PATCH_SIZE, 1)) for img in patches_rlm_test])
