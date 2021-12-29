@@ -161,6 +161,8 @@ def save_array(file_name: str, array: np.ndarray):
 
 
 def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.npy', clean_all: bool = True):
+	_saviors = {'.npy': save_array, '.tif': cv2.imwrite}
+
 	if not os.path.exists(path_to_folder):
 		os.makedirs(path_to_folder)
 		
@@ -174,7 +176,9 @@ def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.np
 		file_name = f'{i + 1:03}{suffix}{ext}'
 		full_file_name = os.path.join(path_to_folder, file_name)
 		
-		status = save_array(file_name = full_file_name, array = img)
+		savior = _saviors.get(ext)
+		status = savior(full_file_name, img)
+		
 		if status:
 			count += 1
 			
