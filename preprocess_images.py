@@ -7,15 +7,15 @@ from utils.utils import load_images, extract_patches_from_images, save_arrays, c
 from variables import PATH_TO_FOLDER
 
 if __name__ == '__main__':
-    # ONE_CHANNEL = eval(sys.argv[1])
-    # DATASET = sys.argv[2]
-    # TEST_INDEX = eval(sys.argv[3])
-    # RESAMPLE = eval(sys.argv[4])
+    ONE_CHANNEL = eval(sys.argv[1])
+    DATASET = sys.argv[2]
+    TEST_INDEX = eval(sys.argv[3])
+    RESAMPLE = eval(sys.argv[4])
 
-    ONE_CHANNEL = True
-    DATASET = 'Fe19'
-    TEST_INDEX = [1, 5, 11, 17]
-    RESAMPLE = True
+    # ONE_CHANNEL = True
+    # DATASET = 'Fe19'
+    # TEST_INDEX = [1, 5, 11, 17]
+    # RESAMPLE = True
     print(f'one_channel: {ONE_CHANNEL}')
     print(f'dataset: {DATASET}')
     print(f'test_index: {TEST_INDEX}')
