@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # ONE_CHANNEL = True
     # DATASET = 'Fe19'
     # TEST_INDEX = [1, 5, 11, 17]
-    # RESAMPLE = True
+    # RESAMPLE = False
     print(f'one_channel: {ONE_CHANNEL}')
     print(f'dataset: {DATASET}')
     print(f'test_index: {TEST_INDEX}')
