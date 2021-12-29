@@ -148,7 +148,7 @@ def load_array(full_file_name: str):
 	return array
 
 
-def save_array(file_name: str, array: np.ndarray):
+def save_np_array(file_name: str, array: np.ndarray):
 	with open(file_name, 'wb') as file:
 		try:
 			np.save(file, array)
@@ -160,8 +160,19 @@ def save_array(file_name: str, array: np.ndarray):
 	return status
 
 
+def save_image(file_name: str, array: np.ndarray):
+	try:
+		cv2.imwrite(file_name, array)
+		print(f'Saved file {file_name} successfuly.')
+		status = True
+	except:
+		print(f'Could not save file {file_name}.')
+		status = False
+	return status
+
+
 def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.npy', clean_all: bool = True):
-	_saviors = {'.npy': save_array, '.tif': cv2.imwrite}
+	_saviors = {'.npy': save_np_array, '.tif': save_image}
 
 	if not os.path.exists(path_to_folder):
 		os.makedirs(path_to_folder)
@@ -214,7 +225,7 @@ def augment_images(image_files: list, angles: list):
 			array_rot = np.asarray(tf.image.rot90(array, k = int(angle / 90.)))
 			
 			file_name = f'{file_path}_rotation{angle}{ext}'
-			save_array(file_name = file_name, array = array_rot)
+			save_np_array(file_name = file_name, array = array_rot)
 			augmented_files.append(file_name)
 										 
 	return augmented_files
