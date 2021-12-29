@@ -12,7 +12,8 @@ def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, chann
 	print('Start testing...')
 	
 	test_data_dirs = glob.glob(test_dir + '/*.npy')
-	# np.random.shuffle(test_data_dirs)
+	print(test_data_dirs)
+	# test_data_dirs.sort()
 	test_data_dirs = test_data_dirs[: num_images_test]
 
 	# compute number of batches
