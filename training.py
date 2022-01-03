@@ -20,7 +20,7 @@ from variables import *
 
 
 def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, channels: int,
-		  epochs: int, wait: int, model_path: str, history_path: str, augment: bool):
+		  epochs: int, wait: int, model_path: str, history_path: str, rotate: bool, flip: bool):
 	no_improvement_count = 0
 	best_val_loss = 1.e8
 	best_net = None
@@ -37,7 +37,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 	train_data_dirs = data_dirs[num_val_samples :]
 	val_data_dirs = data_dirs[: num_val_samples]
 
-	if augment:
+	if rotate or flip:
 		augmented_train = augment_images(image_files = train_data_dirs, angles = [90, 180, 270], rotate = True, flip = False)
 		train_data_dirs += augmented_train
 
@@ -131,7 +131,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 
 def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_class: int,
 			 output_stride: int, epochs: int, batch_size: int, val_fraction: float, num_images_train: int,
-			 patience: int, model_path: str, history_path: str, augment: bool):
+			 patience: int, model_path: str, history_path: str, rotate: bool, flip: bool):
 
 	start = time.time()
 
@@ -146,7 +146,7 @@ def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_cl
 	# call train function
 	Train(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
 		  num_images = num_images_train, epochs = epochs, wait = patience, model_path = model_path,
-		  history_path = history_path, channels = channels, augment = augment)
+		  history_path = history_path, channels = channels, rotate = rotate, flip = flip)
 
 	end = time.time()
 	hours, rem = divmod(end - start, 3600)
@@ -156,43 +156,45 @@ def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_cl
 
 if __name__ == '__main__':
 
-    one_channel = True
+	one_channel = True
 
-    train_dir = f'{PROCESSED_FOLDER}/Fe19_stride256_onechannel{one_channel}_Train'
-    lr = 1.e-4
-    patch_size = 512
-    channels = 3 if not one_channel else 1
-    num_class = 2
-    output_stride = 8
-    epochs = 25
-    batch_size = 2
-    val_fraction = 0.2
-    num_images_train = None
-    patience = 10
-    augment = True
+	train_dir = f'{PROCESSED_FOLDER}/Fe19_stride256_onechannel{one_channel}_Train'
+	lr = 1.e-4
+	patch_size = 512
+	channels = 3 if not one_channel else 1
+	num_class = 2
+	output_stride = 8
+	epochs = 25
+	batch_size = 2
+	val_fraction = 0.2
+	num_images_train = None
+	patience = 10
+	rotate = True
+	flip = False
 
-    folder_to_save = MODELS_FOLDER
-    file_name = 'teste'
-    model_path = os.path.join(folder_to_save, f'{file_name}.h5')
-    history_path = os.path.join(folder_to_save, f'{file_name}.json')
+	folder_to_save = MODELS_FOLDER
+	file_name = 'teste'
+	model_path = os.path.join(folder_to_save, f'{file_name}.h5')
+	history_path = os.path.join(folder_to_save, f'{file_name}.json')
 
-    print(f'train_dir: {train_dir}')
-    print(f'lr: {lr}')
-    print(f'patch_size: {patch_size}')
-    print(f'channels: {channels}')
-    print(f'num_class: {num_class}')
-    print(f'output_stride: {output_stride}')
-    print(f'epochs: {epochs}')
-    print(f'batch_size: {batch_size}')
-    print(f'val_fraction: {val_fraction}')
-    print(f'num_images_train: {num_images_train}')
-    print(f'augment: {augment}')
-    print(f'patience: {patience}')
-    print(f'model_path: {model_path}')
-    print(f'history_path: {history_path}')
+	print(f'train_dir: {train_dir}')
+	print(f'lr: {lr}')
+	print(f'patch_size: {patch_size}')
+	print(f'channels: {channels}')
+	print(f'num_class: {num_class}')
+	print(f'output_stride: {output_stride}')
+	print(f'epochs: {epochs}')
+	print(f'batch_size: {batch_size}')
+	print(f'val_fraction: {val_fraction}')
+	print(f'num_images_train: {num_images_train}')
+	print(f'rotate: {rotate}')
+	print(f'flip: {flip}')
+	print(f'patience: {patience}')
+	print(f'model_path: {model_path}')
+	print(f'history_path: {history_path}')
 
 
-    Train_Case(train_dir = train_dir, patch_size = patch_size, channels = channels, num_class = num_class,
-               output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction,
-               num_images_train = num_images_train, patience = patience, model_path = model_path,
-               history_path = history_path, lr = lr, augment = augment)
+	Train_Case(train_dir = train_dir, patch_size = patch_size, channels = channels, num_class = num_class,
+			   output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction,
+			   num_images_train = num_images_train, patience = patience, model_path = model_path,
+			   history_path = history_path, lr = lr, rotate = rotate, flip = flip)
