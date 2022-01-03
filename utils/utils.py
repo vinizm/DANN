@@ -187,15 +187,15 @@ def augment_images(image_files: list, angles: list, rotate: bool, flip: bool):
 		
 		if flip:
 			print(f'Flipping {file_id} vertically.')
-			array_flip = tf.image.flip_left_right(array)
+			array_flip = np.asarray(tf.image.flip_left_right(array))
 			file_name = f'{file_path}_flip_y{ext}'
 			save_np_array(file_name = file_name, array = array_flip)
 			augmented_files.append(file_name)
 
 			print(f'Flipping {file_id} horizontally.')
-			array_flip = tf.image.flip_up_down(array)
+			array_flip = np.asarray(tf.image.flip_up_down(array))
 			file_name = f'{file_path}_flip_x{ext}'
 			save_np_array(file_name = file_name, array = array_flip)
 			augmented_files.append(file_name)
-											
+
 	return augmented_files
