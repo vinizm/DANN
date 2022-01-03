@@ -29,3 +29,9 @@ PATH_TO_FOLDER = {
     'Cu':{
         'RLM': PATH_TO_CU_DATASET_RLM,
         'MASK': PATH_TO_CU_DATASET_MASK}}
+
+NUM_IMAGES = {
+    'Fe19': 19,
+    'Fe120':120,
+    'FeM':81,
+    'Cu':121}
