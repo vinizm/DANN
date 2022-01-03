@@ -12,51 +12,6 @@ import tensorflow as tf
 import json
 
 
-def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, cmap=plt.cm.Blues):
-	"""
-	This function prints and plots the confusion matrix.
-	Normalization can be applied by setting `normalize=True`.
-	"""
-	if not title:
-		if normalize:
-			title = 'Normalized confusion matrix'
-		else:
-			title = 'Confusion matrix, without normalization'
-
-	# Compute confusion matrix
-	cm = confusion_matrix(y_true, y_pred)
-	# Only use the labels that appear in the data
-	classes = [0,1]##classes[unique_labels(y_true, y_pred)]
-	if normalize:
-		cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-		print("Normalized confusion matrix")
-	else:
-		print('Confusion matrix, without normalization')
-
-	print(cm)
-
-	fig, ax = plt.subplots()
-	im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
-	ax.figure.colorbar(im, ax=ax)
-	# We want to show all ticks...
-	ax.set(xticks=np.arange(cm.shape[1]), yticks=np.arange(cm.shape[0]), xticklabels=classes, yticklabels=classes, title=title, ylabel='True label', xlabel='Predicted label')
-
-	# Rotate the tick labels and set their alignment.
-	plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
-
-	# Loop over data dimensions and create text annotations.
-	fmt = '.2f' if normalize else 'd'
-	thresh = cm.max() / 2.
-	for i in range(cm.shape[0]):
-		for j in range(cm.shape[1]):
-			ax.text(j, i, format(cm[i, j], fmt), ha="center", va="center", color="white" if cm[i, j] > thresh else "black")
-	fig.tight_layout()
-	return ax
-
-
-# ============================== NEW FUNCTIONS ==============================
-
-
 def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
 	matrix = confusion_matrix(true_labels, predicted_labels)
 	accuracy = accuracy_score(true_labels, predicted_labels)
@@ -212,20 +167,35 @@ def load_json(file_name: str):
 	return history
 
 
-def augment_images(image_files: list, angles: list):
+def augment_images(image_files: list, angles: list, rotate: bool, flip: bool):
 	augmented_files = []
+
 	for image_file in image_files:
 		file_id = os.path.basename(image_file)
 
 		array = load_array(image_file)
 		file_path, ext = os.path.splitext(image_file)
 
-		for angle in angles:
-			print(f'Rotating {file_id} by {angle}.') 
-			array_rot = np.asarray(tf.image.rot90(array, k = int(angle / 90.)))
-			
-			file_name = f'{file_path}_rotation{angle}{ext}'
-			save_np_array(file_name = file_name, array = array_rot)
+		if rotate:
+			for angle in angles:
+				print(f'Rotating {file_id} by {angle}.') 
+				array_rot = np.asarray(tf.image.rot90(array, k = int(angle / 90.)))
+				
+				file_name = f'{file_path}_rotation{angle}{ext}'
+				save_np_array(file_name = file_name, array = array_rot)
+				augmented_files.append(file_name)
+		
+		if flip:
+			print(f'Flipping {file_id} vertically.')
+			array_flip = tf.image.flip_left_right(array)
+			file_name = f'{file_path}_flip_y{ext}'
+			save_np_array(file_name = file_name, array = array_flip)
 			augmented_files.append(file_name)
-										 
+
+			print(f'Flipping {file_id} horizontally.')
+			array_flip = tf.image.flip_up_down(array)
+			file_name = f'{file_path}_flip_x{ext}'
+			save_np_array(file_name = file_name, array = array_flip)
+			augmented_files.append(file_name)
+											
 	return augmented_files
