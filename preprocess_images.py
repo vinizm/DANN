@@ -13,7 +13,8 @@ _STRIDE_TEST = 512
 _NUM_CLASS = 2
 
 
-def preprocess_images(dataset: str, test_index: list, resample: bool = False, one_channel: bool = True):
+def preprocess_images(dataset: str, test_index: list = None, resample: bool = False, one_channel: bool = True,
+                      stride_train: int = _STRIDE_TRAIN, stride_test: int = _STRIDE_TEST):
 
     path_to_dataset_rlm = PATH_TO_FOLDER.get(dataset).get('RLM')
     path_to_dataset_mask = PATH_TO_FOLDER.get(dataset).get('MASK')
@@ -21,8 +22,12 @@ def preprocess_images(dataset: str, test_index: list, resample: bool = False, on
     images_rlm = load_images(path_to_folder = path_to_dataset_rlm, normalize = False, one_channel = False)
     images_ref = load_images(path_to_folder = path_to_dataset_mask, normalize = True, one_channel = one_channel)
 
+    if test_index is None:
+        resample = True
+        test_index = list(range(len(images_rlm)))
+
     if resample:
-        train_index = [i for i in range(len(images_ref))]
+        train_index = list(range(len(images_ref)))
     else:
         train_index = [i for i in range(len(images_ref)) if i not in test_index]
 
@@ -32,13 +37,13 @@ def preprocess_images(dataset: str, test_index: list, resample: bool = False, on
     images_rlm_test = [images_rlm[i] for i in test_index]
     images_ref_test = [images_ref[i] for i in test_index]
 
-    patches_rlm_train = extract_patches_from_images(images = images_rlm_train, patch_size = _PATCH_SIZE, stride = _STRIDE_TRAIN)
-    patches_ref_train = extract_patches_from_images(images = images_ref_train, patch_size = _PATCH_SIZE, stride = _STRIDE_TRAIN)
+    patches_rlm_train = extract_patches_from_images(images = images_rlm_train, patch_size = _PATCH_SIZE, stride = stride_train)
+    patches_ref_train = extract_patches_from_images(images = images_ref_train, patch_size = _PATCH_SIZE, stride = stride_train)
 
-    patches_rlm_test = extract_patches_from_images(images = images_rlm_test, patch_size = _PATCH_SIZE, stride = _STRIDE_TEST)
-    patches_ref_test = extract_patches_from_images(images = images_ref_test, patch_size = _PATCH_SIZE, stride = _STRIDE_TEST)
+    patches_rlm_test = extract_patches_from_images(images = images_rlm_test, patch_size = _PATCH_SIZE, stride = stride_test)
+    patches_ref_test = extract_patches_from_images(images = images_ref_test, patch_size = _PATCH_SIZE, stride = stride_test)
 
-    save_arrays(patches_rlm_test, f'./processed_images/{dataset}_stride{_STRIDE_TEST}_RGB_Test/',
+    save_arrays(patches_rlm_test, f'./processed_images/{dataset}_stride{stride_test}_RGB_Test/',
                 suffix = '', ext = '.tif', clean_all = True)
     
     # convert 3 channels to 1 channel if needed
@@ -62,9 +67,9 @@ def preprocess_images(dataset: str, test_index: list, resample: bool = False, on
     print(f'train patches: {patches_train.shape}')
     print(f'train patches: {patches_test.shape}')
 
-    save_arrays(patches_train, f'./processed_images/{dataset}_stride{_STRIDE_TRAIN}_Train/',
+    save_arrays(patches_train, f'./processed_images/{dataset}_stride{stride_train}_Train/',
                 suffix = '', ext = '.npy', clean_all = True)
-    save_arrays(patches_test, f'./processed_images/{dataset}_stride{_STRIDE_TEST}_Test/',
+    save_arrays(patches_test, f'./processed_images/{dataset}_stride{stride_test}_Test/',
                 suffix = '', ext = '.npy', clean_all = True)
 
 
