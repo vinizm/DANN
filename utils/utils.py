@@ -31,7 +31,7 @@ def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
 	return metrics
 
 
-def load_images(path_to_folder: str, normalize: bool = False, one_channel: bool = False, conversor: int = cv2.COLOR_BGR2GRAY):
+def load_images(path_to_folder: str, normalize: bool = False, one_channel: bool = False, conversor = cv2.COLOR_BGR2GRAY):
 	files = os.listdir(path_to_folder)
 	files.sort()
 	images = []
