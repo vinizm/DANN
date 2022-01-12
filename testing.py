@@ -4,7 +4,7 @@ import glob
 from tensorflow.keras.models import load_model
 
 from utils.utils import load_array, compute_metrics, save_json
-from model import Deeplabv3plus
+from architectures import Deeplabv3plus
 from variables import *
 
 
