@@ -5,6 +5,7 @@ import time
 import copy
 
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import save_model
 
 from architectures import Deeplabv3plus
 from utils.utils import load_array, save_json, augment_images
@@ -108,7 +109,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			print('[!] Saving best model...')
 			best_val_loss = loss_val[0, 0]
 			no_improvement_count = 0
-			net.save(model_path) # save model
+			save_model(net, model_path) # save model
 			# net.save_weights(model_path) # save weights
 			best_net = copy.deepcopy(net)
 
