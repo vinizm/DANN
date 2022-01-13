@@ -141,7 +141,7 @@ def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_cl
 						alpha = 1., activation = 'sigmoid')
 	
 	adam = Adam(learning_rate = lr)
-	net.compile(loss = pixel_wise_d1_weighted_loss, optimizer = adam, metrics = ['accuracy'], run_eagerly = True)
+	net.compile(loss = binary_crossentropy, optimizer = adam, metrics = ['accuracy'], run_eagerly = True)
 	net.summary()
 
 	# call train function
