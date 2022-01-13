@@ -200,7 +200,7 @@ def augment_images(image_files: list, angles: list, rotate: bool, flip: bool):
 
 	return augmented_files
 
-def generate_weight_maps(y_true: np.ndarray, epsilon: float):
+def generate_weight_maps(y_true, epsilon: float):
     y_true = y_true.numpy()
     y_true = y_true.astype('uint8')
 
