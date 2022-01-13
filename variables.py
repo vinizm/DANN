@@ -44,3 +44,5 @@ NUM_IMAGES = {
     'Fe120':120,
     'FeM':81,
     'Cu':121}
+
+EPSILON = 0.2
