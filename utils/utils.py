@@ -199,3 +199,20 @@ def augment_images(image_files: list, angles: list, rotate: bool, flip: bool):
 			augmented_files.append(file_name)
 
 	return augmented_files
+
+def generate_weight_maps(y_true: np.ndarray, epsilon: float):
+    y_true = y_true.numpy()
+    y_true = y_true.astype('uint8')
+
+    wmaps = []
+    for i in range(len(y_true)):
+        mask = y_true[i, :, :, 1]
+        map_d1 = cv2.distanceTransform(mask, cv2.DIST_L2, 5)
+
+        nonzero = np.argwhere(map_d1 != 0.)
+        d1_std = np.std(map_d1[nonzero[:, 0], nonzero[:, 1]])
+        wmap = epsilon + (1 - epsilon) * np.exp(- 0.5 * (map_d1 / d1_std) ** 2)
+        wmaps.append(wmap)
+
+    wmaps = tf.convert_to_tensor(np.asarray(wmaps), dtype = tf.float32)
+    return wmaps
