@@ -11,7 +11,7 @@ def binary_crossentropy(y_true, y_pred):
 
     tmp = tf.math.multiply(y_true, y_pred)
     tmp = tf.reduce_sum(tmp, axis = -1)
-    loss = -1. * tf.math.multiply(wmaps, tf.math.log(tmp))
+    loss = -1000. * tf.math.multiply(wmaps, tf.math.log(tmp))
     return loss
 
 
