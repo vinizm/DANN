@@ -10,7 +10,7 @@ from tensorflow.keras.models import save_model
 from architectures import Deeplabv3plus
 from utils.utils import load_array, save_json, augment_images
 from variables import *
-from utils.loss_functions import binary_crossentropy, binary_crossentropy_x
+from utils.loss_functions import binary_crossentropy, binary_crossentropy_x, WeightedD1BinaryCrossEntropy
 
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
@@ -141,7 +141,7 @@ def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_cl
 						alpha = 1., activation = 'sigmoid')
 	
 	adam = Adam(learning_rate = lr)
-	net.compile(loss = binary_crossentropy, optimizer = adam, metrics = ['accuracy'], run_eagerly = True)
+	net.compile(loss = WeightedD1BinaryCrossEntropy().call, optimizer = adam, metrics = ['accuracy'], run_eagerly = True)
 	net.summary()
 
 	# call train function
