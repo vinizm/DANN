@@ -6,7 +6,7 @@ from variables import EPSILON
 from utils.utils import generate_weight_maps
 
 
-def pixel_wise_d1_weighted_loss(y_true, y_pred):
+def binary_crossentropy(y_true, y_pred):
     wmaps = generate_weight_maps(y_true, EPSILON)
 
     tmp = tf.math.multiply(y_true, y_pred)
