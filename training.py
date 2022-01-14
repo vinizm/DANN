@@ -40,10 +40,10 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 	val_data_dirs = data_dirs[: num_val_samples]
 
 	if rotate or flip:
-		augmented_train = augment_images(image_files = train_data_dirs, angles = [90, 180, 270], rotate = True, flip = False)
+		augmented_train = augment_images(image_files = train_data_dirs, angles = [90, 180, 270], rotate = rotate, flip = flip)
 		train_data_dirs += augmented_train
 
-		augmented_val = augment_images(image_files = val_data_dirs, angles = [90, 180, 270], rotate = True, flip = False)
+		augmented_val = augment_images(image_files = val_data_dirs, angles = [90, 180, 270], rotate = rotate, flip = flip)
 		val_data_dirs += augmented_val
 
 		np.random.shuffle(train_data_dirs)
