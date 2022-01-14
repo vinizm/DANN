@@ -10,7 +10,7 @@ from tensorflow.keras.models import save_model
 from architectures import Deeplabv3plus
 from utils.utils import load_array, save_json, augment_images
 from variables import *
-from utils.loss_functions import binary_crossentropy, binary_crossentropy_x, WeightedD1BinaryCrossEntropy
+from utils.loss_functions import WeightedD1BinaryCrossEntropy
 
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
