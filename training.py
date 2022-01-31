@@ -132,7 +132,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 
 def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_class: int,
 			 output_stride: int, epochs: int, batch_size: int, val_fraction: float, num_images_train: int,
-			 patience: int, model_path: str, history_path: str, rotate: bool, flip: bool):
+			 patience: int, model_path: str, history_path: str, rotate: bool, flip: bool, epsilon: float):
 
 	start = time.time()
 
@@ -172,6 +172,7 @@ if __name__ == '__main__':
 	patience = 10
 	rotate = True
 	flip = False
+	epsilon = 0.5
 
 	folder_to_save = MODELS_FOLDER
 	file_name = 'teste'
@@ -190,6 +191,7 @@ if __name__ == '__main__':
 	print(f'num_images_train: {num_images_train}')
 	print(f'rotate: {rotate}')
 	print(f'flip: {flip}')
+	print(f'flip: {epsilon}')
 	print(f'patience: {patience}')
 	print(f'model_path: {model_path}')
 	print(f'history_path: {history_path}')
@@ -198,4 +200,4 @@ if __name__ == '__main__':
 	Train_Case(train_dir = train_dir, patch_size = patch_size, channels = channels, num_class = num_class,
 			   output_stride = output_stride, epochs = epochs, batch_size = batch_size, val_fraction = val_fraction,
 			   num_images_train = num_images_train, patience = patience, model_path = model_path,
-			   history_path = history_path, lr = lr, rotate = rotate, flip = flip)
+			   history_path = history_path, lr = lr, rotate = rotate, flip = flip, epsilon = epsilon)
