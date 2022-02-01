@@ -45,4 +45,4 @@ NUM_IMAGES = {
     'FeM':81,
     'Cu':121}
 
-EPSILON = 0.5
+EPSILON = 0.8
