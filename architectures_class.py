@@ -31,11 +31,13 @@ class _conv2d_same(Model):
     def call(self, inputs):
 
         if self.stride == 1:
-            return self.conv(inputs)
+            x = self.conv(inputs)
 
         else:
             x = self.zero_padding(inputs)
-            return self.conv(x)
+            x = self.conv(x)
+
+        return x
 
 
 class SepConv_BN(Model):
