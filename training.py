@@ -7,7 +7,8 @@ import copy
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import save_model
 
-from architectures import Deeplabv3plus
+# from architectures import Deeplabv3plus
+from architectures_functional import Deeplabv3plus
 from utils.utils import load_array, save_json, augment_images
 from variables import *
 from utils.loss_functions import binary_crossentropy
@@ -109,7 +110,7 @@ def Train(net, patches_dir: str, val_fraction: float, batch_size: int, num_image
 			print('[!] Saving best model...')
 			best_val_loss = loss_val[0, 0]
 			no_improvement_count = 0
-			save_model(net, model_path) # save model
+			net.save_weights(model_path) # save weights
 			best_net = copy.deepcopy(net)
 
 		else:
@@ -136,9 +137,11 @@ def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_cl
 
 	start = time.time()
 
-	net = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
-						classes = num_class, backbone = 'xception', OS = output_stride,
-						alpha = 1., activation = 'sigmoid')
+	# net = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
+	# 					classes = num_class, backbone = 'xception', OS = output_stride,
+	# 					alpha = 1., activation = 'sigmoid')
+	net = Deeplabv3plus(input_shape = (patch_size, patch_size, channels), classes = num_class,
+					 	OS = output_stride, activation = 'softmax')
 	
 	adam = Adam(learning_rate = lr)
 	net.compile(loss = binary_crossentropy, optimizer = adam, metrics = ['accuracy'], run_eagerly = True)
@@ -171,7 +174,7 @@ if __name__ == '__main__':
 	num_images_train = None
 	patience = 10
 	rotate = True
-	flip = False
+	flip = True
 	epsilon = 0.5
 
 	folder_to_save = MODELS_FOLDER
