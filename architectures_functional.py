@@ -231,11 +231,11 @@ def Deeplabv3plus(input_shape = (512, 512, 3), classes = 2, OS = 16, activation 
                         depth_activation = True)
 
     # end of feature extractor
-    # branching for Atrous Spatial Pyramid Pooling
-    # image Feature branch
+    # branching for Atrous Spatial Pyramid Pooling (ASPP)
+    # image feature branch
     b4 = GlobalAveragePooling2D()(x)
 
-    # from (b_size, channels) -> (b_size, 1, 1, channels)
+    # from (batch_size, channels) -> (batch_size, 1, 1, channels)
     b4 = ExpandDimensions()(b4)
     b4 = ExpandDimensions()(b4)
 
