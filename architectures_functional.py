@@ -192,12 +192,12 @@ def Deeplabv3plus(input_shape = (512, 512, 3), classes = 2, OS = 16, activation 
     x = BatchNormalization(name = 'entry_flow_conv1_2_BN')(x)
     x = Activation('relu')(x)
 
-    x, skip0 = _xception_block(x, [128, 128, 128], 'entry_flow_block1',
+    x, skip_0 = _xception_block(x, [128, 128, 128], 'entry_flow_block1',
                                skip_connection_type = 'conv', stride = 2,
                                depth_activation = False, return_skip = True)
     
     # new skip connection
-    x, skip1 = _xception_block(x, [256, 256, 256], 'entry_flow_block2',
+    x, skip_1 = _xception_block(x, [256, 256, 256], 'entry_flow_block2',
                                skip_connection_type = 'conv', stride = 2,
                                depth_activation = False, return_skip  =True)
 
@@ -248,7 +248,7 @@ def Deeplabv3plus(input_shape = (512, 512, 3), classes = 2, OS = 16, activation 
     # rate = 18 (36)
     b3 = SepConv_BN(x, 256, 'aspp3', rate = atrous_rates[2], depth_activation = True, epsilon = 1e-5)
 
-    # concatenate ASPP branches & project
+    # concatenate ASPP branches and project
     x = Concatenate()([b4, b0, b1, b2, b3])
 
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
@@ -261,26 +261,24 @@ def Deeplabv3plus(input_shape = (512, 512, 3), classes = 2, OS = 16, activation 
     size_before_2 = K.int_shape(x)
     x = ReshapeTensor(size_before_2[1:3], factor = OS // 4, method = 'bilinear', align_corners = True)(x)
 
-    dec_skip1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip1)
-    dec_skip1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-5)(dec_skip1)
-    dec_skip1 = Activation('relu')(dec_skip1)
+    dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
+    dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-5)(dec_skip_1)
+    dec_skip_1 = Activation('relu')(dec_skip_1)
+    x = Concatenate()([x, dec_skip_1])
 
-    x = Concatenate()([x, dec_skip1])
     x = SepConv_BN(x, 256, 'decoder_conv2', depth_activation = True, epsilon = 1e-5)
     x = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1e-5)
 
     x = ReshapeTensor(size_before_2[1:3], factor = OS // 2, method = 'bilinear', align_corners = True)(x)
 
-    dec_skip0 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection0')(skip0)
-    dec_skip0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1e-5)(dec_skip0)
-    dec_skip0 = Activation('relu')(dec_skip0)
+    dec_skip_0 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection0')(skip_0)
+    dec_skip_0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1e-5)(dec_skip_0)
+    dec_skip_0 = Activation('relu')(dec_skip_0)
+    x = Concatenate()([x, dec_skip_0])
 
-    x = Concatenate()([x, dec_skip0])
     x = SepConv_BN(x, 128, 'decoder_conv0', depth_activation = True, epsilon = 1e-5)
     x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1e-5)
-
-    last_layer_name = 'custom_logits_semantic'
-    x = Conv2D(classes, (1, 1), padding = 'same', name = last_layer_name)(x)
+    x = Conv2D(classes, (1, 1), padding = 'same', name = 'custom_logits_semantic')(x)
 
     size_before_3 = tf.keras.backend.int_shape(img_input)
     x = ReshapeTensor(size_before_3[1:3], factor = 1, method = 'bilinear', align_corners = True)(x)
