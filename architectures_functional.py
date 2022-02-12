@@ -52,7 +52,7 @@ class ExpandDimensions(Layer):
     def __init__(self, **kwargs):
         super(ExpandDimensions, self).__init__(**kwargs)
     
-    def call(inputs):
+    def call(self, inputs):
         expanded = K.expand_dims(inputs, 1)
         return expanded
 
