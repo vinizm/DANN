@@ -13,14 +13,17 @@ def binary_crossentropy(y_true, y_pred):
 
     tmp = tf.math.multiply(y_true, y_pred)
     tmp = tf.reduce_sum(tmp, axis = -1)
-    loss = -1. * tf.math.multiply(wmaps, tf.math.log(tmp))
+    tmp = tf.math.log(tmp)
+    tmp = tf.math.multiply(wmaps, tmp)
+    loss = tf.multiply(-1., tmp)
     return loss
 
 
 def binary_crossentropy_x(y_true, y_pred):
     tmp = tf.math.multiply(y_true, y_pred)
     tmp = tf.reduce_sum(tmp, axis = -1)
-    loss = tf.multiply(-1., tf.math.log(tmp))
+    tmp = tf.math.log(tmp)
+    loss = tf.multiply(-1., tmp)
     return loss
 
 
@@ -35,5 +38,6 @@ class weighted_d1_binary_crossentropy(Loss):
 
         tmp = tf.math.multiply(y_true, y_pred)
         tmp = tf.reduce_sum(tmp, axis = -1)
-        loss = -1. * tf.math.multiply(wmaps, tf.math.log(tmp))
+        tmp =  tf.math.multiply(wmaps, tf.math.log(tmp))
+        loss = tf.multiply(-1., tmp)
         return loss
