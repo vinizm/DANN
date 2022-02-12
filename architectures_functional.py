@@ -250,7 +250,7 @@ def Deeplabv3plus(input_shape = (512, 512, 3), classes = 2, OS = 16, activation 
     b4 = Activation('relu')(b4)
 
     # upsample; have to use compat because of the option align_corners
-    size_before = tf.keras.backend.int_shape(x)
+    size_before = K.int_shape(x)
     b4 = ReshapeTensor(size_before[1:3], factor = 1, method = 'bilinear', align_corners = True)(b4)
     
     # simple 1x1
@@ -300,7 +300,7 @@ def Deeplabv3plus(input_shape = (512, 512, 3), classes = 2, OS = 16, activation 
     x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1e-5)
     x = Conv2D(classes, (1, 1), padding = 'same', name = 'custom_logits_semantic')(x)
 
-    size_before_3 = tf.keras.backend.int_shape(img_input)
+    size_before_3 = K.int_shape(img_input)
     x = ReshapeTensor(size_before_3[1:3], factor = 1, method = 'bilinear', align_corners = True)(x)
 
     if activation in ['softmax', 'sigmoid']:
