@@ -144,7 +144,7 @@ def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_cl
 					 	OS = output_stride, activation = 'softmax')
 	
 	adam = Adam(learning_rate = lr)
-	net.compile(loss = binary_crossentropy, optimizer = adam, metrics = ['accuracy'], run_eagerly = True)
+	net.compile(loss = 'binary_crossentropy', optimizer = adam, metrics = ['accuracy'], run_eagerly = True)
 	net.summary()
 
 	# call train function
@@ -160,12 +160,11 @@ def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_cl
 
 if __name__ == '__main__':
 
-	one_channel = True
 
-	train_dir = f'{PROCESSED_FOLDER}/Fe19_stride256_onechannel{one_channel}_Train'
+	train_dir = f'{PROCESSED_FOLDER}/Fe19_stride256_Train'
 	lr = 1.e-4
 	patch_size = 512
-	channels = 3 if not one_channel else 1
+	channels = 1
 	num_class = 2
 	output_stride = 8
 	epochs = 25
