@@ -48,6 +48,20 @@ class ReshapeTensor(Layer):
         return config
 
 
+class ExpandDimensions(Layer):
+
+    def __init__(self, **kwargs):
+        super(ExpandDimensions, self).__init__(**kwargs)
+    
+    def call(inputs):
+        expanded = K.expand_dims(inputs, 1)
+        return expanded
+
+    def get_config(self):
+        config = super(ExpandDimensions, self).get_config()
+        return config
+
+
 def SepConv_BN(x, filters, prefix, stride = 1, kernel_size = 3, rate = 1, depth_activation = False, epsilon = 1e-3):
     """ SepConv with BN between depthwise & pointwise. Optionally add activation after BN
         Implements right "same" padding for even kernel sizes
@@ -222,8 +236,9 @@ def Deeplabv3plus(input_shape = (512, 512, 3), classes = 2, OS = 16, activation 
     # image Feature branch
     b4 = GlobalAveragePooling2D()(x)
 
-    b4 = Lambda(lambda x: K.expand_dims(x, 1))(b4)
-    b4 = Lambda(lambda x: K.expand_dims(x, 1))(b4)
+    # from (b_size, channels) -> (b_size, 1, 1, channels)
+    b4 = ExpandDimensions()(b4)
+    b4 = ExpandDimensions()(b4)
 
     b4 = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'image_pooling')(b4)
     b4 = BatchNormalization(name = 'image_pooling_BN', epsilon = 1e-5)(b4)
