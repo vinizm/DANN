@@ -46,6 +46,9 @@ class ReshapeTensor(Layer):
                        'align_corners': self.align_corners})
         return config
 
+    def from_config(cls, config):
+        return cls(**config)
+
 
 class ExpandDimensions(Layer):
 
@@ -59,6 +62,9 @@ class ExpandDimensions(Layer):
     def get_config(self):
         config = super(ExpandDimensions, self).get_config()
         return config
+
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def SepConv_BN(x, filters, prefix, stride = 1, kernel_size = 3, rate = 1, depth_activation = False, epsilon = 1e-3):
