@@ -338,9 +338,10 @@ def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int 
     if activation in ['softmax', 'sigmoid']:
         outputs = tf.keras.layers.Activation(activation)(x)
 
-    classifier_spots = [classifier_spot_1, classifier_spot_2, classifier_spot_3]
     if classifier_position is not None:
+        classifier_spots = [classifier_spot_1, classifier_spot_2, classifier_spot_3]
         classifier_input = classifier_spots[classifier_position]
+        
         classifier_output = DomainRegressor(units = 1024)(classifier_input)
         outputs = [outputs, classifier_output]
 
