@@ -4,14 +4,12 @@ import glob
 import time
 import copy
 
+import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.models import save_model
 
-# from architectures import Deeplabv3plus
-from architectures_functional import Deeplabv3plus
+from architectures import Deeplabv3plus
 from utils.utils import load_array, save_json, augment_images
 from variables import *
-from utils.loss_functions import binary_crossentropy
 
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
@@ -137,11 +135,9 @@ def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_cl
 
 	start = time.time()
 
-	# net = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
-	# 					classes = num_class, backbone = 'xception', OS = output_stride,
-	# 					alpha = 1., activation = 'sigmoid')
-	net = Deeplabv3plus(input_shape = (patch_size, patch_size, channels), classes = num_class,
-					 	OS = output_stride, activation = 'softmax')
+	net = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
+						classes = num_class, backbone = 'xception', OS = output_stride,
+						alpha = 1., activation = 'sigmoid')
 	
 	adam = Adam(learning_rate = lr)
 	net.compile(loss = 'binary_crossentropy', optimizer = adam, metrics = ['accuracy'], run_eagerly = True)
@@ -159,7 +155,6 @@ def Train_Case(train_dir: str, lr: float, patch_size: int, channels: int, num_cl
 
 
 if __name__ == '__main__':
-
 
 	train_dir = f'{PROCESSED_FOLDER}/Fe19_stride256_Train'
 	lr = 1.e-4
