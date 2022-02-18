@@ -97,6 +97,9 @@ class DomainRegressor(Model):
         config.update({'units': self.units})
         return config
 
+    def from_config(cls, config):
+        return cls(**config)
+
 
 def SepConv_BN(x, filters, prefix, stride = 1, kernel_size = 3, rate = 1, depth_activation = False, epsilon = 1e-3):
     """ SepConv with BN between depthwise & pointwise. Optionally add activation after BN
