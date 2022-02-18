@@ -18,6 +18,8 @@ from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import DepthwiseConv2D
 from tensorflow.keras.layers import ZeroPadding2D
 from tensorflow.keras.layers import GlobalAveragePooling2D
+from tensorflow.keras.layers import Flatten
+from tensorflow.keras.layers import Dense
 from tensorflow.keras import backend as K
 
 
@@ -33,7 +35,6 @@ class ReshapeTensor(Layer):
         self.align_corners = align_corners
 
     def call(self, inputs):
-
         reshaped = tf.compat.v1.image.resize(inputs, self.shape * tf.constant(self.factor), method = self.method,
                                              align_corners = self.align_corners)
         return reshaped
@@ -61,6 +62,39 @@ class ExpandDimensions(Layer):
 
     def get_config(self):
         config = super(ExpandDimensions, self).get_config()
+        return config
+
+    def from_config(cls, config):
+        return cls(**config)
+
+
+class DomainRegressor(Model):
+
+    def __init__(self, units: int, **kwargs):
+        super(DomainRegressor, self).__init__(**kwargs)
+        self.units = units
+
+        self.flat = Flatten()
+        self.dense_1 = Dense(units = units)
+        self.activ_1 = Activation('relu')
+        self.dense_2 = Dense(units = units)
+        self.activ_2 = Activation('relu')
+        self.proba = Activation('softmax')
+
+    def call(self, inputs):
+
+        x = self.flat(inputs)
+        x = self.dense_1(x)
+        x = self.activ_1(x)
+        x = self.dense_2(x)
+        x = self.activ_2(x)
+        x = self.proba(x)
+
+        return x
+
+    def get_config(self):
+        config = super(DomainRegressor, self).get_config()
+        config.update({'units': self.units})
         return config
 
     def from_config(cls, config):
@@ -164,17 +198,15 @@ def _xception_block(inputs, depth_list, prefix, skip_connection_type, stride,
         return outputs
 
 
-def Deeplabv3plus(input_shape = (512, 512, 3), classes = 2, OS = 16, activation = None):
+def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int = 16, activation: str = None,
+                  dr_localization: str = None):
     """ Instantiates the Deeplabv3+ architecture
 
     Optionally loads weights pre-trained
     on PASCAL VOC or Cityscapes. This model is available for TensorFlow only.
     # Arguments
         input_shape: shape of input image. format HxWxC
-            PASCAL VOC model was trained on (512,512,3) images. None is allowed as shape/width
-        classes: number of desired classes. PASCAL VOC has 21 classes, Cityscapes has 19 classes.
-            If number of classes not aligned with the weights used, last layer is initialized randomly
-        backbone: backbone to use. one of {'xception','mobilenetv2'}
+        classes: number of desired classes.
         activation: optional activation to add to the top of the network.
             One of 'softmax', 'sigmoid' or None
         OS: determines input_shape/feature_extractor_output ratio. One of {8,16}.
