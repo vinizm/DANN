@@ -196,7 +196,7 @@ def _xception_block(inputs, depth_list, prefix, skip_connection_type, stride,
 
 
 def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int = 16, activation: str = None,
-                  dr_localization: str = None):
+                  classifier_position: str = None):
     """ Instantiates the Deeplabv3+ architecture
 
     Optionally loads weights pre-trained
@@ -261,14 +261,14 @@ def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int 
     x = _xception_block(x, [728, 1024, 1024], 'exit_flow_block1',
                         skip_connection_type = 'conv', stride = 1, rate  =exit_block_rates[0],
                         depth_activation = False)
-    x = _xception_block(x, [1536, 1536, 2048], 'exit_flow_block2',
+    classifier_spot_1 = _xception_block(x, [1536, 1536, 2048], 'exit_flow_block2',
                         skip_connection_type = 'none', stride = 1, rate = exit_block_rates[1],
                         depth_activation = True)
 
     # end of feature extractor
     # branching for Atrous Spatial Pyramid Pooling (ASPP)
     # image feature branch
-    b4 = GlobalAveragePooling2D()(x)
+    b4 = GlobalAveragePooling2D()(classifier_spot_1)
 
     # from (batch_size, channels) -> (batch_size, 1, 1, channels)
     b4 = ExpandDimensions()(b4)
@@ -303,12 +303,12 @@ def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int 
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
     x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1e-5)(x)
     x = Activation('relu')(x)
-    x = Dropout(0.1)(x)
+    classifier_spot_2 = Dropout(0.1)(x)
 
     # DeepLabv3+ decoder
     # feature projection
-    size_before_2 = K.int_shape(x)
-    x = ReshapeTensor(size_before_2[1:3], factor = OS // 4, method = 'bilinear', align_corners = True)(x)
+    size_before_2 = K.int_shape(classifier_spot_2)
+    x = ReshapeTensor(size_before_2[1:3], factor = OS // 4, method = 'bilinear', align_corners = True)(classifier_spot_2)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
     dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-5)(dec_skip_1)
@@ -316,9 +316,9 @@ def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int 
     x = Concatenate()([x, dec_skip_1])
 
     x = SepConv_BN(x, 256, 'decoder_conv2', depth_activation = True, epsilon = 1e-5)
-    x = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1e-5)
+    classifier_spot_3 = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1e-5)
 
-    x = ReshapeTensor(size_before_2[1:3], factor = OS // 2, method = 'bilinear', align_corners = True)(x)
+    x = ReshapeTensor(size_before_2[1:3], factor = OS // 2, method = 'bilinear', align_corners = True)(classifier_spot_3)
 
     dec_skip_0 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection0')(skip_0)
     dec_skip_0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1e-5)(dec_skip_0)
@@ -333,8 +333,14 @@ def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int 
     x = ReshapeTensor(size_before_3[1:3], factor = 1, method = 'bilinear', align_corners = True)(x)
 
     if activation in ['softmax', 'sigmoid']:
-        x = tf.keras.layers.Activation(activation)(x)
+        outputs = tf.keras.layers.Activation(activation)(x)
+
+    classifier_spots = [classifier_spot_1, classifier_spot_2, classifier_spot_3]
+    if classifier_position is not None:
+        classifier_input = classifier_spots[classifier_position]
+        classifier_output = DomainRegressor(units = 1024)(classifier_input)
+        outputs = [outputs, classifier_output]
 
     inputs = img_input
-    model = Model(inputs, x, name = 'deeplabv3plus')
+    model = Model(inputs = inputs, outputs = outputs, name = 'deeplabv3plus')
     return model
