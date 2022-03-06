@@ -135,7 +135,7 @@ def Train(train_dir: str, learning_rate: float, patch_size: int, channels: int, 
 	start = time.time()
 
 	net = Deeplabv3plus(input_shape = (patch_size, patch_size, channels), classes = num_class,
-						output_stride = output_stride, alpha = 1., activation = 'softmax', classifier_position = None)
+						output_stride = output_stride, activation = 'softmax', classifier_position = None)
 	net.summary()
 
 	optimizer = Adam(learning_rate = learning_rate)
