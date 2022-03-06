@@ -135,7 +135,7 @@ def Train(train_dir: str, learning_rate: float, patch_size: int, channels: int, 
 	start = time.time()
 
 	net = Deeplabv3plus(weights = None, input_tensor = None, input_shape = (patch_size, patch_size, channels),
-						classes = num_class, backbone = 'xception', OS = output_stride,
+						classes = num_class, backbone = 'xception', output_stride = output_stride,
 						alpha = 1., activation = 'softmax')
 	net.summary()
 

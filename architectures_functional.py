@@ -198,7 +198,7 @@ def _xception_block(inputs, depth_list, prefix, skip_connection_type, stride,
         return outputs
 
 
-def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int = 16, activation: str = None,
+def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, output_stride: int = 16, activation: str = None,
                   classifier_position: str = None):
     """ Instantiates the Deeplabv3+ architecture
 
@@ -223,13 +223,13 @@ def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int 
     """
     img_input = Input(shape = input_shape)
 
-    if OS == 8:
+    if output_stride == 8:
         entry_block3_stride = 1
         middle_block_rate = 2 # not mentioned in paper; but required
         exit_block_rates = (2, 4)
         atrous_rates = (12, 24, 36)
 
-    elif OS != 8:
+    elif output_stride != 8:
         entry_block3_stride = 2
         middle_block_rate = 1
         exit_block_rates = (1, 2)
@@ -311,7 +311,7 @@ def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int 
     # DeepLabv3+ decoder
     # feature projection
     size_before_2 = K.int_shape(classifier_spot_2)
-    x = ReshapeTensor(size_before_2[1:3], factor = OS // 4, method = 'bilinear', align_corners = True)(classifier_spot_2)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(classifier_spot_2)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
     dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-5)(dec_skip_1)
@@ -321,7 +321,7 @@ def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, OS: int 
     x = SepConv_BN(x, 256, 'decoder_conv2', depth_activation = True, epsilon = 1e-5)
     classifier_spot_3 = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1e-5)
 
-    x = ReshapeTensor(size_before_2[1:3], factor = OS // 2, method = 'bilinear', align_corners = True)(classifier_spot_3)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 2, method = 'bilinear', align_corners = True)(classifier_spot_3)
 
     dec_skip_0 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection0')(skip_0)
     dec_skip_0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1e-5)(dec_skip_0)
