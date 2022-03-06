@@ -145,7 +145,7 @@ def Train(train_dir: str, learning_rate: float, patch_size: int, channels: int, 
 	run_training(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
 				 num_images = num_images_train, epochs = epochs, wait = patience, model_path = model_path,
 				 history_path = history_path, channels = channels, rotate = rotate, flip = flip,
-				 loss_function = loss_function, optimmizer = optimizer)
+				 loss_function = loss_function, optimizer = optimizer)
 
 	end = time.time()
 	hours, rem = divmod(end - start, 3600)
