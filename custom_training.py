@@ -6,13 +6,14 @@ import numpy as np
 
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy
+from tensorflow.keras.metrics import Accuracy
 import tensorflow as tf
 
 from utils.utils import load_array, save_json, augment_images
 from architectures_functional import Deeplabv3plus
 
 
-def run_training(net, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, channels: int,
+def run_training(model, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, channels: int,
 				 epochs: int, wait: int, model_path: str, history_path: str, rotate: bool, flip: bool,
 				 loss_function, optimizer):
 	no_improvement_count = 0
@@ -21,6 +22,10 @@ def run_training(net, patches_dir: str, val_fraction: float, batch_size: int, nu
 
 	loss_train_history = []
 	loss_val_history = []
+
+	acc_train_history = []
+	acc_val_history = []
+	acc_function = Accuracy(name = 'accuracy', dtype = None)
 
 	# loading dataset
 	data_dirs = glob.glob(patches_dir + '/*.npy')
@@ -53,6 +58,9 @@ def run_training(net, patches_dir: str, val_fraction: float, batch_size: int, nu
 		loss_train_value = 0.
 		loss_val_value = 0.
 
+		acc_train_value = 0.
+		acc_val_value = 0.
+
 		np.random.shuffle(train_data_dirs)
 		np.random.shuffle(val_data_dirs)
 
@@ -71,17 +79,25 @@ def run_training(net, patches_dir: str, val_fraction: float, batch_size: int, nu
 			
 			# train network
 			with tf.GradientTape() as tape:
-				pred_train_batch = net(x_train_batch)
+				pred_train_batch = model(x_train_batch)
 				loss_train = loss_function(y_train_batch, pred_train_batch)
 			
-			gradients = tape.gradient(loss_train, net.trainable_weights)
-			optimizer.apply_gradients(zip(gradients, net.trainable_weights))
+			gradients = tape.gradient(loss_train, model.trainable_weights)
+			optimizer.apply_gradients(zip(gradients, model.trainable_weights))
 
 			loss_train_value += float(loss_train) # convert loss_train to float and sum
+			
+			binary_prediction = tf.math.round(pred_train_batch)
+			acc_train_value += acc_function(y_train_batch, binary_prediction)
 
-		loss_train_value = loss_train_value / num_batches_train
+		loss_train_value /= num_batches_train
 		loss_train_history.append(loss_train_value)
+
+		acc_train_value /= num_batches_train
+		acc_train_history.append(acc_train_value)
+
 		print(f'Training Loss: {loss_train_value}')
+		print(f'Training Accuracy: {acc_train_value}')
 
 		# evaluating network
 		print('Start validation...')
@@ -96,21 +112,29 @@ def run_training(net, patches_dir: str, val_fraction: float, batch_size: int, nu
 			x_val_batch = batch_val_images[:, :, :, : channels]
 			y_val_batch = batch_val_images[:, :, :, channels :]
 
-			pred_val_batch = net(x_val_batch)
+			pred_val_batch = model(x_val_batch)
 			loss_val = loss_function(y_val_batch, pred_val_batch)
 
 			loss_val_value += float(loss_val) # convert loss_val to float and sum
 
-		loss_val_value = loss_val_value / num_batches_val
+			binary_prediction = tf.math.round(pred_val_batch)
+			acc_val_value += acc_function(y_val_batch, binary_prediction)
+
+		loss_val_value /= num_batches_val
 		loss_val_history.append(loss_val_value)
+
+		acc_val_value /= num_batches_val
+		acc_val_history.append(acc_val_value)
+
 		print(f'Validation Loss: {loss_val_value}')
+		print(f'Validation Accuracy: {acc_val_value}')
 
 		if loss_val_value < best_val_loss:
 			print('[!] Saving best model...')
 			best_val_loss = loss_val_value
 			no_improvement_count = 0
-			net.save_weights(model_path) # save weights
-			best_net = copy.deepcopy(net)
+			model.save_weights(model_path) # save weights
+			best_net = copy.deepcopy(model)
 
 		else:
 			no_improvement_count += 1
@@ -119,8 +143,10 @@ def run_training(net, patches_dir: str, val_fraction: float, batch_size: int, nu
 				break
 	
 	print('Saving metrics history.')
-	persist = {'training':{'loss':loss_train_history},
-			   'validation':{'loss':loss_val_history},
+	persist = {'training':{'loss':loss_train_history,
+						   'accuracy':acc_train_history},
+			   'validation':{'loss':loss_val_history,
+			   				 'accuracy':acc_val_history},
 			   'image_files': {'training': train_data_dirs,
 							   'validation': val_data_dirs}}
 	save_json(persist, history_path)
@@ -134,15 +160,15 @@ def Train(train_dir: str, learning_rate: float, patch_size: int, channels: int, 
 
 	start = time.time()
 
-	net = Deeplabv3plus(input_shape = (patch_size, patch_size, channels), classes = num_class,
+	model = Deeplabv3plus(input_shape = (patch_size, patch_size, channels), classes = num_class,
 						output_stride = output_stride, activation = 'softmax', classifier_position = None)
-	net.summary()
+	model.summary()
 
 	optimizer = Adam(learning_rate = learning_rate)
 	loss_function = BinaryCrossentropy()
 
 	# call train function
-	run_training(net = net, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
+	run_training(model = model, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
 				 num_images = num_images_train, epochs = epochs, wait = patience, model_path = model_path,
 				 history_path = history_path, channels = channels, rotate = rotate, flip = flip,
 				 loss_function = loss_function, optimizer = optimizer)
