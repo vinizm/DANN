@@ -167,6 +167,7 @@ def Train(train_dir: str, learning_rate: float, patch_size: int, channels: int, 
 	optimizer = Adam(learning_rate = learning_rate)
 	loss_function = BinaryCrossentropy()
 
+	model.compile(optimizer = optimizer, loss = 'binary_crossentropy', metrics = ['accuracy'])
 	# call train function
 	run_training(model = model, patches_dir = train_dir, val_fraction = val_fraction, batch_size = batch_size,
 				 num_images = num_images_train, epochs = epochs, wait = patience, model_path = model_path,
