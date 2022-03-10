@@ -92,19 +92,6 @@ def run_training(model, patches_dir: str, val_fraction: float, batch_size: int, 
 
 			x_train = batch_images[ :, :, :, : channels]
 			y_train = batch_images[ :, :, :, channels :]
-			
-			# # train network
-			# with tf.GradientTape() as tape:
-			# 	pred_train = model(x_train)
-			# 	loss_train = loss_function(y_train, pred_train)
-			
-			# gradients = tape.gradient(loss_train, model.trainable_weights)
-			# optimizer.apply_gradients(zip(gradients, model.trainable_weights))
-
-			# loss_train_value += float(loss_train) # convert loss_train to float and sum
-			
-			# binary_prediction = tf.math.round(pred_train)
-			# acc_train_value += acc_function(y_train, binary_prediction)
 
 			loss_train, acc_train = training_step(x_train, y_train)
 			loss_global_train += loss_train
