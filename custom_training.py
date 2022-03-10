@@ -13,6 +13,23 @@ from utils.utils import load_array, save_json, augment_images
 from architectures_functional import Deeplabv3plus
 
 
+@tf.function
+def training_step(x_train, y_train):
+	# train network
+	with tf.GradientTape() as tape:
+		pred_train = model(x_train)
+		loss_raw = loss_function(y_train, pred_train)
+	
+	gradients = tape.gradient(loss_raw, model.trainable_weights)
+	optimizer.apply_gradients(zip(gradients, model.trainable_weights))
+
+	loss = float(loss_raw) # convert loss_train to float and sum
+	binary_prediction = tf.math.round(pred_train)
+	acc = acc_function(y_train, binary_prediction)
+	
+	return loss, acc
+
+
 def run_training(model, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, channels: int,
 				 epochs: int, wait: int, model_path: str, history_path: str, rotate: bool, flip: bool,
 				 loss_function, optimizer):
@@ -26,6 +43,22 @@ def run_training(model, patches_dir: str, val_fraction: float, batch_size: int, 
 	acc_train_history = []
 	acc_val_history = []
 	acc_function = Accuracy(name = 'accuracy', dtype = None)
+
+	# @tf.function
+	# def training_step(x_train, y_train):
+	# 	# train network
+	# 	with tf.GradientTape() as tape:
+	# 		pred_train = model(x_train)
+	# 		loss_raw = loss_function(y_train, pred_train)
+		
+	# 	gradients = tape.gradient(loss_raw, model.trainable_weights)
+	# 	optimizer.apply_gradients(zip(gradients, model.trainable_weights))
+
+	# 	loss = float(loss_raw) # convert loss_train to float and sum
+	# 	binary_prediction = tf.math.round(pred_train)
+	# 	acc = acc_function(y_train, binary_prediction)
+		
+	# 	return loss, acc
 
 	# loading dataset
 	data_dirs = glob.glob(patches_dir + '/*.npy')
@@ -55,11 +88,11 @@ def run_training(model, patches_dir: str, val_fraction: float, batch_size: int, 
 
 	for epoch in range(epochs):
 		print(f'Epoch {epoch + 1} of {epochs}')
-		loss_train_value = 0.
-		loss_val_value = 0.
+		loss_global_train = 0.
+		loss_global_val = 0.
 
-		acc_train_value = 0.
-		acc_val_value = 0.
+		acc_global_train = 0.
+		acc_global_val = 0.
 
 		np.random.shuffle(train_data_dirs)
 		np.random.shuffle(val_data_dirs)
@@ -74,30 +107,34 @@ def run_training(model, patches_dir: str, val_fraction: float, batch_size: int, 
 			batch_images = np.asarray([load_array(batch_file) for batch_file in batch_files])
 			batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-			x_train_batch = batch_images[ :, :, :, : channels]
-			y_train_batch = batch_images[ :, :, :, channels :]
+			x_train = batch_images[ :, :, :, : channels]
+			y_train = batch_images[ :, :, :, channels :]
 			
-			# train network
-			with tf.GradientTape() as tape:
-				pred_train_batch = model(x_train_batch)
-				loss_train = loss_function(y_train_batch, pred_train_batch)
+			# # train network
+			# with tf.GradientTape() as tape:
+			# 	pred_train = model(x_train)
+			# 	loss_train = loss_function(y_train, pred_train)
 			
-			gradients = tape.gradient(loss_train, model.trainable_weights)
-			optimizer.apply_gradients(zip(gradients, model.trainable_weights))
+			# gradients = tape.gradient(loss_train, model.trainable_weights)
+			# optimizer.apply_gradients(zip(gradients, model.trainable_weights))
 
-			loss_train_value += float(loss_train) # convert loss_train to float and sum
+			# loss_train_value += float(loss_train) # convert loss_train to float and sum
 			
-			binary_prediction = tf.math.round(pred_train_batch)
-			acc_train_value += acc_function(y_train_batch, binary_prediction)
+			# binary_prediction = tf.math.round(pred_train)
+			# acc_train_value += acc_function(y_train, binary_prediction)
 
-		loss_train_value /= num_batches_train
-		loss_train_history.append(loss_train_value)
+			loss_train, acc_train = training_step(x_train, y_train)
+			loss_global_train += loss_train
+			acc_global_train += acc_train
 
-		acc_train_value /= num_batches_train
-		acc_train_history.append(acc_train_value)
+		loss_global_train /= num_batches_train
+		loss_train_history.append(loss_global_train)
 
-		print(f'Training Loss: {loss_train_value}')
-		print(f'Training Accuracy: {acc_train_value}')
+		acc_global_train /= num_batches_train
+		acc_train_history.append(acc_global_train)
+
+		print(f'Training Loss: {loss_global_train}')
+		print(f'Training Accuracy: {acc_global_train}')
 
 		# evaluating network
 		print('Start validation...')
@@ -109,29 +146,29 @@ def run_training(model, patches_dir: str, val_fraction: float, batch_size: int, 
 			batch_val_images = np.asarray([load_array(batch_val_file) for batch_val_file in batch_val_files])
 			batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-			x_val_batch = batch_val_images[:, :, :, : channels]
-			y_val_batch = batch_val_images[:, :, :, channels :]
+			x_val = batch_val_images[:, :, :, : channels]
+			y_val = batch_val_images[:, :, :, channels :]
 
-			pred_val_batch = model(x_val_batch)
-			loss_val = loss_function(y_val_batch, pred_val_batch)
+			pred_val = model(x_val)
+			loss_val = loss_function(y_val, pred_val)
 
-			loss_val_value += float(loss_val) # convert loss_val to float and sum
+			loss_global_val += float(loss_val) # convert loss_val to float and sum
 
-			binary_prediction = tf.math.round(pred_val_batch)
-			acc_val_value += acc_function(y_val_batch, binary_prediction)
+			binary_prediction = tf.math.round(pred_val)
+			acc_global_val += acc_function(y_val, binary_prediction)
 
-		loss_val_value /= num_batches_val
-		loss_val_history.append(loss_val_value)
+		loss_global_val /= num_batches_val
+		loss_val_history.append(loss_global_val)
 
-		acc_val_value /= num_batches_val
-		acc_val_history.append(acc_val_value)
+		acc_global_val /= num_batches_val
+		acc_val_history.append(acc_global_val)
 
-		print(f'Validation Loss: {loss_val_value}')
-		print(f'Validation Accuracy: {acc_val_value}')
+		print(f'Validation Loss: {loss_global_val}')
+		print(f'Validation Accuracy: {acc_global_val}')
 
-		if loss_val_value < best_val_loss:
+		if loss_global_val < best_val_loss:
 			print('[!] Saving best model...')
-			best_val_loss = loss_val_value
+			best_val_loss = loss_global_val
 			no_improvement_count = 0
 			model.save_weights(model_path) # save weights
 			best_net = copy.deepcopy(model)
