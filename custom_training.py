@@ -184,9 +184,9 @@ class Trainer():
 			print(f'Validation Loss: {loss_global_val}')
 			print(f'Validation Accuracy: {acc_global_val}')
 
-			if loss_global_val < best_val_loss:
+			if loss_global_val < self.best_val_loss:
 				print('[!] Persisting best model...')
-				best_val_loss = loss_global_val
+				self.best_val_loss = loss_global_val
 				self.no_improvement_count = 0
 				self.best_model = copy.deepcopy(self.model)
 
