@@ -68,6 +68,15 @@ class Trainer():
 		
 		return loss, acc
 
+	def augment_images(self):
+		pass
+
+	def compile_model(self, show_summary: bool = True):
+		self.model.compile(optimizer = self.optimizer, loss = 'binary_crossentropy', metrics = ['accuracy'])
+
+		if show_summary:
+			self.model.summary()
+
 	def train(self, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, epochs: int,
 			  wait: int, rotate: bool, flip: bool):
 
