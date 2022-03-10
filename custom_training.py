@@ -13,23 +13,6 @@ from utils.utils import load_array, save_json, augment_images
 from architectures_functional import Deeplabv3plus
 
 
-@tf.function
-def training_step(x_train, y_train):
-	# train network
-	with tf.GradientTape() as tape:
-		pred_train = model(x_train)
-		loss_raw = loss_function(y_train, pred_train)
-	
-	gradients = tape.gradient(loss_raw, model.trainable_weights)
-	optimizer.apply_gradients(zip(gradients, model.trainable_weights))
-
-	loss = float(loss_raw) # convert loss_train to float and sum
-	binary_prediction = tf.math.round(pred_train)
-	acc = acc_function(y_train, binary_prediction)
-	
-	return loss, acc
-
-
 def run_training(model, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, channels: int,
 				 epochs: int, wait: int, model_path: str, history_path: str, rotate: bool, flip: bool,
 				 loss_function, optimizer):
@@ -44,21 +27,21 @@ def run_training(model, patches_dir: str, val_fraction: float, batch_size: int, 
 	acc_val_history = []
 	acc_function = Accuracy(name = 'accuracy', dtype = None)
 
-	# @tf.function
-	# def training_step(x_train, y_train):
-	# 	# train network
-	# 	with tf.GradientTape() as tape:
-	# 		pred_train = model(x_train)
-	# 		loss_raw = loss_function(y_train, pred_train)
+	@tf.function
+	def training_step(x_train, y_train):
+		# train network
+		with tf.GradientTape() as tape:
+			pred_train = model(x_train)
+			loss_raw = loss_function(y_train, pred_train)
 		
-	# 	gradients = tape.gradient(loss_raw, model.trainable_weights)
-	# 	optimizer.apply_gradients(zip(gradients, model.trainable_weights))
+		gradients = tape.gradient(loss_raw, model.trainable_weights)
+		optimizer.apply_gradients(zip(gradients, model.trainable_weights))
 
-	# 	loss = float(loss_raw) # convert loss_train to float and sum
-	# 	binary_prediction = tf.math.round(pred_train)
-	# 	acc = acc_function(y_train, binary_prediction)
+		loss = float(loss_raw) # convert loss_train to float and sum
+		binary_prediction = tf.math.round(pred_train)
+		acc = acc_function(y_train, binary_prediction)
 		
-	# 	return loss, acc
+		return loss, acc
 
 	# loading dataset
 	data_dirs = glob.glob(patches_dir + '/*.npy')
