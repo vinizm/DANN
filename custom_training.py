@@ -58,12 +58,11 @@ class Trainer():
 
 		with tf.GradientTape() as tape:
 			pred_train = self.model(x_train)
-			loss_raw = self.loss_function(y_train, pred_train)
+			loss = self.loss_function(y_train, pred_train)
 		
-		gradients = tape.gradient(loss_raw, self.model.trainable_weights)
+		gradients = tape.gradient(loss, self.model.trainable_weights)
 		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_weights))
 
-		loss = float(loss_raw) # convert loss_train to float
 		binary_prediction = tf.math.round(pred_train)
 		acc = float(self.acc_function(y_train, binary_prediction))
 		
@@ -144,8 +143,8 @@ class Trainer():
 				y_train = batch_images[ :, :, :, self.channels :]
 
 				loss_train, acc_train = self._training_step(x_train, y_train)
-				loss_global_train += loss_train
-				acc_global_train += acc_train
+				loss_global_train += float(loss_train)
+				acc_global_train += float(acc_train)
 
 			loss_global_train /= num_batches_train
 			self.loss_train_history.append(loss_global_train)
