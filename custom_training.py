@@ -45,13 +45,13 @@ class Trainer():
 		self.patches_dir = None
 		self.train_data_dirs = None
 		self.val_data_dirs = None
-		self.val_fraction = None
-		self.batch_size = None
-		self.num_images = None
-		self.epochs = None
-		self.wait = None
-		self.rotate = None
-		self.flip = None
+		self.val_fraction = 0.1
+		self.batch_size = 2
+		self.num_images = 60
+		self.epochs = 25
+		self.wait = 12
+		self.rotate = True
+		self.flip = True
 
 	@tf.function
 	def _training_step(self, x_train, y_train):
@@ -65,12 +65,22 @@ class Trainer():
 
 		loss = float(loss_raw) # convert loss_train to float
 		binary_prediction = tf.math.round(pred_train)
-		acc = self.acc_function(y_train, binary_prediction)
+		acc = float(self.acc_function(y_train, binary_prediction))
 		
 		return loss, acc
 
-	def augment_images(self):
-		pass
+	def _augment_images(self):
+		if self.rotate or self.flip:
+			augmented_train = augment_images(image_files = self.train_data_dirs, angles = [90, 180, 270],
+											 rotate = self.rotate, flip = self.flip)
+			self.train_data_dirs += augmented_train
+
+			augmented_val = augment_images(image_files = self.val_data_dirs, angles = [90, 180, 270],
+										   rotate = self.rotate, flip = self.flip)
+			self.val_data_dirs += augmented_val
+
+			np.random.shuffle(self.train_data_dirs)
+			np.random.shuffle(self.val_data_dirs)
 
 	def compile_model(self, show_summary: bool = True):
 		self.model.compile(optimizer = self.optimizer, loss = 'binary_crossentropy', metrics = ['accuracy'])
@@ -100,17 +110,8 @@ class Trainer():
 		self.train_data_dirs = data_dirs[num_val_samples :]
 		self.val_data_dirs = data_dirs[: num_val_samples]
 
-		if self.rotate or self.flip:
-			augmented_train = augment_images(image_files = self.train_data_dirs, angles = [90, 180, 270],
-											 rotate = self.rotate, flip = self.flip)
-			self.train_data_dirs += augmented_train
-
-			augmented_val = augment_images(image_files = self.val_data_dirs, angles = [90, 180, 270],
-										   rotate = self.rotate, flip = self.flip)
-			self.val_data_dirs += augmented_val
-
-			np.random.shuffle(self.train_data_dirs)
-			np.random.shuffle(self.val_data_dirs)
+		# data augmentation
+		self._augment_images()
 
 		# compute number of batches
 		num_batches_train = len(self.train_data_dirs) // self.batch_size
@@ -174,7 +175,7 @@ class Trainer():
 				loss_global_val += float(loss_val) # convert loss_val to float and sum
 
 				binary_prediction = tf.math.round(pred_val)
-				acc_global_val += self.acc_function(y_val, binary_prediction)
+				acc_global_val += float(self.acc_function(y_val, binary_prediction))
 
 			loss_global_val /= num_batches_val
 			self.loss_val_history.append(loss_global_val)
