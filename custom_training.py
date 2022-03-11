@@ -15,6 +15,7 @@ from architectures_functional import Deeplabv3plus
 
 
 class Trainer():
+	
 	def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8,
 				 learning_rate: float = 1e-3):
 
