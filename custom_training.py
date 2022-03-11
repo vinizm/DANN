@@ -15,7 +15,7 @@ from architectures_functional import Deeplabv3plus
 
 
 class Trainer():
-	
+
 	def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8,
 				 learning_rate: float = 1e-3):
 
@@ -78,8 +78,8 @@ class Trainer():
 		if show_summary:
 			self.model.summary()
 
-	def train(self, patches_dir: str, val_fraction: float, batch_size: int, num_images: int, epochs: int,
-			  wait: int, rotate: bool, flip: bool):
+	def train(self, patches_dir: str, epochs: int = 25, batch_size: int = 2, val_fraction: float = 0.1, num_images: int = 60,
+			  wait: int = 12, rotate: bool = True, flip: bool = True):
 
 		self.patches_dir = patches_dir
 		self.val_fraction = val_fraction
