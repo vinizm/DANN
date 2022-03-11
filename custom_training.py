@@ -201,11 +201,11 @@ class Trainer():
 		self.model.save_weights(model_path) # save weights
 		print('Model saved successfuly.')
 		
-		persist = {'training':{'loss': self.loss_train_history,
-							'accuracy': self.acc_train_history},
-				'validation':{'loss': self.loss_val_history,
-								'accuracy': self.acc_val_history},
-				'image_files': {'training': self.train_data_dirs,
-								'validation': self.val_data_dirs}}
+		persist = {'history':{'training':{'loss': self.loss_train_history,
+							  			  'accuracy': self.acc_train_history},
+							  'validation':{'loss': self.loss_val_history,
+							  				'accuracy': self.acc_val_history}},
+				   'image_files':{'training': self.train_data_dirs,
+								  'validation': self.val_data_dirs}}
 		save_json(persist, history_path) # save metrics and parameters
 		print('Metrcis saved successfuly.')
