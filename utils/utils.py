@@ -218,4 +218,4 @@ def generate_weight_maps(y_true, epsilon: float):
 
 
 def learning_rate_decay(p: float):
-	return LR0 / ((1 + ALPHA * (1 / p)) ** BETA)
+	return LR0 / ((1 + ALPHA * p) ** BETA)
