@@ -151,7 +151,6 @@ class Trainer():
 				p = epoch / (epochs - 1)
 				lr = learning_rate_decay(p)
 				self.optimizer.lr = lr
-				print(self.optimizer.lr)
 
 				loss_train, acc_train = self._training_step(x_train, y_train)
 				loss_global_train += float(loss_train)
