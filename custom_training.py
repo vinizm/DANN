@@ -8,6 +8,7 @@ import numpy as np
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.metrics import Accuracy
+from tensorflow.keras.models import save_model
 import tensorflow as tf
 
 from utils.utils import load_array, save_json, augment_images
@@ -197,10 +198,15 @@ class Trainer():
 					print('[!] Performing early stopping.')
 					break
 
-	def save_model(self, model_path: str, history_path: str):
-		self.model.save_weights(model_path) # save weights
-		print('Model saved successfuly.')
+	def save_weights(self, weights_path: str):
+		self.model.save_weights(weights_path) # save weights
+		print('Weights saved successfuly.')
+
+	def save_model(self, model_path: str):
+		save_model(self.save_model, model_path) # save model
+		print('Weights saved successfuly.')		
 		
+	def save_info(self, history_path):
 		persist = {'history':{'training':{'loss': self.loss_train_history,
 							  			  'accuracy': self.acc_train_history},
 							  'validation':{'loss': self.loss_val_history,
