@@ -12,7 +12,7 @@ from tensorflow.keras.models import save_model
 import tensorflow as tf
 from config import LR0
 
-from utils.utils import load_array, save_json, augment_images
+from utils.utils import load_array, save_json, augment_images, learning_rate_decay
 from architectures_functional import Deeplabv3plus
 
 
@@ -146,6 +146,12 @@ class Trainer():
 
 				x_train = batch_images[ :, :, :, : self.channels]
 				y_train = batch_images[ :, :, :, self.channels :]
+
+				# update learning rate
+				p = epoch / (epochs - 1)
+				lr = learning_rate_decay(p)
+				self.optimizer.lr = lr
+				print(self.optimizer.lr)
 
 				loss_train, acc_train = self._training_step(x_train, y_train)
 				loss_global_train += float(loss_train)
