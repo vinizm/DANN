@@ -10,6 +10,7 @@ from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.metrics import Accuracy
 from tensorflow.keras.models import save_model
 import tensorflow as tf
+from config import LR0
 
 from utils.utils import load_array, save_json, augment_images
 from architectures_functional import Deeplabv3plus
@@ -18,7 +19,7 @@ from architectures_functional import Deeplabv3plus
 class Trainer():
 
 	def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8,
-				 learning_rate: float = 1e-3):
+				 learning_rate: float = LR0):
 
 		self.patch_size = patch_size
 		self.channels = channels

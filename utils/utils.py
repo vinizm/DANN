@@ -1,15 +1,14 @@
 import os
-import skimage.io as io
-import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score, accuracy_score, average_precision_score
 from sklearn.feature_extraction.image import *
 import cv2
-import imutils
 
 from tensorflow import one_hot
 import tensorflow as tf
 import json
+
+from config import *
 
 
 def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
@@ -216,3 +215,7 @@ def generate_weight_maps(y_true, epsilon: float):
 
     wmaps = tf.convert_to_tensor(np.asarray(wmaps), dtype = tf.float32)
     return wmaps
+
+
+def learning_rate_decay(p: float):
+	return LR0 / ((1 + ALPHA * (1 / p)) ** BETA)

@@ -9,7 +9,7 @@ from tensorflow.keras.optimizers import Adam
 
 from architectures import Deeplabv3plus
 from utils.utils import load_array, save_json, augment_images
-from variables import *
+from config import *
 
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'

@@ -45,4 +45,8 @@ NUM_IMAGES = {
     'FeM':81,
     'Cu':121}
 
-EPSILON = 0.8
+
+LR0 = 1e-3
+ALPHA = 10.
+BETA = 0.75
+GAMMA = 10.

@@ -5,7 +5,7 @@ from tensorflow.keras.models import load_model
 
 from utils.utils import load_array, compute_metrics, save_json
 from architectures_functional import Deeplabv3plus
-from variables import *
+from config import *
 
 
 class Predictor():

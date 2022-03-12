@@ -5,7 +5,7 @@ from tensorflow.keras.models import load_model
 
 from utils.utils import load_array, compute_metrics, save_json
 from architectures import Deeplabv3plus
-from variables import *
+from config import *
 
 
 def Test(model, test_dir: str, num_images_test: int, path_to_metrics: str, channels: int, batch_size: int):

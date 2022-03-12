@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 
 from utils.utils import load_images, extract_patches_from_images, save_arrays, convert_to_onehot_tensor
-from variables import PATH_TO_FOLDER
+from config import PATH_TO_FOLDER
 
 
 _PATCH_SIZE = 512
