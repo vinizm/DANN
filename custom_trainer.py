@@ -54,6 +54,9 @@ class Trainer():
 		self.rotate = True
 		self.flip = True
 
+		self.num_batches_train = None
+		self.num_batches_val = None
+
 	@tf.function
 	def _training_step(self, x_train, y_train):
 
@@ -114,10 +117,10 @@ class Trainer():
 		self._augment_images()
 
 		# compute number of batches
-		num_batches_train = len(self.train_data_dirs) // self.batch_size
-		num_batches_val = len(self.val_data_dirs) // self.batch_size
-		print(f'num. of batches for training: {num_batches_train}')
-		print(f'num. of batches for validation: {num_batches_val}')
+		self.num_batches_train = len(self.train_data_dirs) // self.batch_size
+		self.num_batches_val = len(self.val_data_dirs) // self.batch_size
+		print(f'num. of batches for training: {self.num_batches_train}')
+		print(f'num. of batches for validation: {self.num_batches_val}')
 
 		for epoch in range(self.epochs):
 			print(f'Epoch {epoch + 1} of {self.epochs}')
@@ -131,9 +134,9 @@ class Trainer():
 			np.random.shuffle(self.val_data_dirs)
 
 			print('Start training...')
-			for batch in range(num_batches_train):
+			for batch in range(self.num_batches_train):
 
-				print(f'Batch {batch + 1} of {num_batches_train}')
+				print(f'Batch {batch + 1} of {self.num_batches_train}')
 				batch_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
 				# load images for training
@@ -147,10 +150,10 @@ class Trainer():
 				loss_global_train += float(loss_train)
 				acc_global_train += float(acc_train)
 
-			loss_global_train /= num_batches_train
+			loss_global_train /= self.num_batches_train
 			self.loss_train_history.append(loss_global_train)
 
-			acc_global_train /= num_batches_train
+			acc_global_train /= self.num_batches_train
 			self.acc_train_history.append(acc_global_train)
 
 			print(f'Training Loss: {loss_global_train}')
@@ -158,8 +161,8 @@ class Trainer():
 
 			# evaluating network
 			print('Start validation...')
-			for batch in range(num_batches_val):
-				print(f'Batch {batch + 1} of {num_batches_val}')
+			for batch in range(self.num_batches_val):
+				print(f'Batch {batch + 1} of {self.num_batches_val}')
 				batch_val_files = self.val_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
 				# load images for testing
@@ -177,10 +180,10 @@ class Trainer():
 				binary_prediction = tf.math.round(pred_val)
 				acc_global_val += float(self.acc_function(y_val, binary_prediction))
 
-			loss_global_val /= num_batches_val
+			loss_global_val /= self.num_batches_val
 			self.loss_val_history.append(loss_global_val)
 
-			acc_global_val /= num_batches_val
+			acc_global_val /= self.num_batches_val
 			self.acc_val_history.append(acc_global_val)
 
 			print(f'Validation Loss: {loss_global_val}')
