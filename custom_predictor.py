@@ -21,7 +21,7 @@ class Predictor():
         self.metrics = None
 
     def load_weights(self, weights_path: str):
-        self.model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), classes = self.num_class,
+        self.model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
 								   output_stride = self.output_stride, activation = 'softmax', classifier_position = None)
         self.model.load_weights(weights_path)
 

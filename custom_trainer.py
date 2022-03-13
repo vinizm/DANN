@@ -27,7 +27,7 @@ class Trainer():
 		self.output_stride = output_stride
 		self.learning_rate = learning_rate
 
-		self.model = DeepLabV3Plus(input_shape = (patch_size, patch_size, channels), classes = num_class,
+		self.model = DeepLabV3Plus(input_shape = (patch_size, patch_size, channels), num_class = num_class,
 								   output_stride = output_stride, activation = 'softmax', classifier_position = None)
 		self.optimizer = Adam(learning_rate = learning_rate)
 		
