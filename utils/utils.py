@@ -216,6 +216,8 @@ def generate_weight_maps(y_true, epsilon: float):
     wmaps = tf.convert_to_tensor(np.asarray(wmaps), dtype = tf.float32)
     return wmaps
 
-
 def learning_rate_decay(p: float):
 	return LR0 / ((1 + ALPHA * p) ** BETA)
+
+def lambda_grl(p: float):
+	return (2 / (1 + np.exp(- GAMMA * p))) - 1
