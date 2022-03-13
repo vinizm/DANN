@@ -46,7 +46,7 @@ NUM_IMAGES = {
     'Cu':121}
 
 
-LR0 = 1e-3
+LR0 = 5e-4
 ALPHA = 10.
 BETA = 0.75
 GAMMA = 10.
