@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-from turtle import shape
+from cv2 import flip
 
 import tensorflow as tf
 from tensorflow.keras.models import Model
@@ -21,6 +21,25 @@ from tensorflow.keras.layers import GlobalAveragePooling2D
 from tensorflow.keras.layers import Flatten
 from tensorflow.keras.layers import Dense
 from tensorflow.keras import backend as K
+
+from flip_gradient import flip_gradient
+
+
+class GradientReversalLayer(Layer):
+
+    def __init__(self, **kwargs):
+        super(GradientReversalLayer, self).__init__(**kwargs)
+    
+    def call(self, inputs):
+        x, l = inputs
+        y = flip_gradient(x, l = l)
+        return y
+
+    def get_config(self):
+        return super().get_config()
+
+    def from_config(cls, config):
+        return cls(**config)
 
 
 class ReshapeTensor(Layer):
@@ -198,7 +217,7 @@ def _xception_block(inputs, depth_list, prefix, skip_connection_type, stride,
         return outputs
 
 
-def Deeplabv3plus(input_shape: tuple = (512, 512, 1), classes: int = 2, output_stride: int = 16, activation: str = None,
+def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), classes: int = 2, output_stride: int = 16, activation: str = None,
                   classifier_position: str = None):
     """ Instantiates the Deeplabv3+ architecture
 
