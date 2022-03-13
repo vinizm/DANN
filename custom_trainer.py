@@ -95,7 +95,7 @@ class Trainer():
 			self.model.summary()
 
 	def train(self, patches_dir: str, epochs: int = 25, batch_size: int = 2, val_fraction: float = 0.1, num_images: int = 60,
-			  wait: int = 12, rotate: bool = True, flip: bool = True):
+			  wait: int = 12, rotate: bool = True, flip: bool = True, persist_best_model: bool = True):
 
 		self.patches_dir = patches_dir
 		self.val_fraction = val_fraction
@@ -198,7 +198,7 @@ class Trainer():
 			print(f'Validation Loss: {loss_global_val}')
 			print(f'Validation Accuracy: {acc_global_val}')
 
-			if loss_global_val < self.best_val_loss:
+			if loss_global_val < self.best_val_loss and persist_best_model:
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_global_val
 				self.no_improvement_count = 0
@@ -216,7 +216,7 @@ class Trainer():
 
 	def save_model(self, model_path: str):
 		save_model(self.save_model, model_path) # save model
-		print('Weights saved successfuly.')		
+		print('Weights saved successfuly.')
 		
 	def save_info(self, history_path):
 		persist = {'history':{'training':{'loss': self.loss_train_history,
