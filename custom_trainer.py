@@ -210,12 +210,18 @@ class Trainer():
 					print('[!] Performing early stopping.')
 					break
 
-	def save_weights(self, weights_path: str):
-		self.model.save_weights(weights_path) # save weights
+	def save_weights(self, weights_path: str, best: bool = True):
+		if best:
+			self.best_model.save_weights(weights_path) # save weights
+		else:
+			self.model.save_weights(weights_path) # save weights
 		print('Weights saved successfuly.')
 
-	def save_model(self, model_path: str):
-		save_model(self.save_model, model_path) # save model
+	def save_model(self, model_path: str, best: bool = True):
+		if best:
+			save_model(self.best_model, model_path) # save model
+		else:
+			save_model(self.model, model_path) # save model
 		print('Weights saved successfuly.')
 		
 	def save_info(self, history_path):
