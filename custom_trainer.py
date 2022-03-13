@@ -165,6 +165,7 @@ class Trainer():
 			acc_global_train /= self.num_batches_train
 			self.acc_train_history.append(acc_global_train)
 
+			print(f'Learning Rate: {lr}')
 			print(f'Training Loss: {loss_global_train}')
 			print(f'Training Accuracy: {acc_global_train}')
 
