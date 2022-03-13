@@ -120,6 +120,27 @@ class DomainRegressor(Model):
         return cls(**config)
 
 
+class DomainAdaptationModel(Model):
+
+    def __init__(self, input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 16,
+                 activation: str = 'softmax', classifier_position: int = None, **kwargs):
+        super(DomainAdaptationModel, self).__init__(**kwargs)
+
+        self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
+                                          activation = activation, classifier_position = classifier_position)
+        self.gradient_reversal_layer = GradientReversalLayer()
+        self.domain_regressor = DomainRegressor(units = 1024)
+
+    def call(self, inputs):
+        x, l = inputs
+
+        segmentation, domain_branch = self.main_network(x)
+        domain_branch = self.gradient_reversal_layer([domain_branch, l])
+        domain_branch = self.domain_regressor(domain_branch)
+
+        return segmentation, domain_branch
+
+
 def SepConv_BN(x, filters, prefix, stride = 1, kernel_size = 3, rate = 1, depth_activation = False, epsilon = 1e-3):
     """ SepConv with BN between depthwise & pointwise. Optionally add activation after BN
         Implements right "same" padding for even kernel sizes
@@ -217,15 +238,15 @@ def _xception_block(inputs, depth_list, prefix, skip_connection_type, stride,
         return outputs
 
 
-def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), classes: int = 2, output_stride: int = 16, activation: str = None,
-                  classifier_position: str = None):
+def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 16, activation: str = 'softmax',
+                  classifier_position: int = None):
     """ Instantiates the Deeplabv3+ architecture
 
     Optionally loads weights pre-trained
     on PASCAL VOC or Cityscapes. This model is available for TensorFlow only.
     # Arguments
         input_shape: shape of input image. format HxWxC
-        classes: number of desired classes.
+        num_class: number of desired classes.
         activation: optional activation to add to the top of the network.
             One of 'softmax', 'sigmoid' or None
         OS: determines input_shape/feature_extractor_output ratio. One of {8,16}.
@@ -349,7 +370,7 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), classes: int = 2, output_s
 
     x = SepConv_BN(x, 128, 'decoder_conv0', depth_activation = True, epsilon = 1e-5)
     x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1e-5)
-    x = Conv2D(classes, (1, 1), padding = 'same', name = 'custom_logits_semantic')(x)
+    x = Conv2D(num_class, (1, 1), padding = 'same', name = 'custom_logits_semantic')(x)
 
     size_before_3 = K.int_shape(img_input)
     x = ReshapeTensor(size_before_3[1:3], factor = 1, method = 'bilinear', align_corners = True)(x)
@@ -360,9 +381,7 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), classes: int = 2, output_s
     if classifier_position is not None:
         classifier_spots = [classifier_spot_1, classifier_spot_2, classifier_spot_3]
         classifier_input = classifier_spots[classifier_position]
-        
-        classifier_output = DomainRegressor(units = 1024)(classifier_input)
-        outputs = [outputs, classifier_output]
+        outputs = [outputs, classifier_input]
 
     inputs = img_input
     model = Model(inputs = inputs, outputs = outputs, name = 'deeplabv3plus')
