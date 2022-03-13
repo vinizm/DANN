@@ -4,7 +4,7 @@ import glob
 from tensorflow.keras.models import load_model
 
 from utils.utils import load_array, compute_metrics, save_json
-from architectures_functional import Deeplabv3plus
+from model_builder import DeepLabV3Plus
 from config import *
 
 
@@ -21,7 +21,7 @@ class Predictor():
         self.metrics = None
 
     def load_weights(self, weights_path: str):
-        self.model = Deeplabv3plus(input_shape = (self.patch_size, self.patch_size, self.channels), classes = self.num_class,
+        self.model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), classes = self.num_class,
 								   output_stride = self.output_stride, activation = 'softmax', classifier_position = None)
         self.model.load_weights(weights_path)
 

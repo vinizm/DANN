@@ -13,7 +13,7 @@ import tensorflow as tf
 from config import LR0
 
 from utils.utils import load_array, save_json, augment_images, learning_rate_decay
-from architectures_functional import Deeplabv3plus
+from model_builder import DeepLabV3Plus
 
 
 class Trainer():
@@ -27,7 +27,7 @@ class Trainer():
 		self.output_stride = output_stride
 		self.learning_rate = learning_rate
 
-		self.model = Deeplabv3plus(input_shape = (patch_size, patch_size, channels), classes = num_class,
+		self.model = DeepLabV3Plus(input_shape = (patch_size, patch_size, channels), classes = num_class,
 								   output_stride = output_stride, activation = 'softmax', classifier_position = None)
 		self.optimizer = Adam(learning_rate = learning_rate)
 		
