@@ -40,6 +40,8 @@ class Trainer():
 		self.acc_train_history = []
 		self.acc_val_history = []
 
+		self.learning_rate = []
+
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
 		self.best_model = None
@@ -151,6 +153,7 @@ class Trainer():
 				p = epoch / (epochs - 1)
 				lr = learning_rate_decay(p)
 				self.optimizer.lr = lr
+				self.learning_rate.append(lr)
 
 				loss_train, acc_train = self._training_step(x_train, y_train)
 				loss_global_train += float(loss_train)
