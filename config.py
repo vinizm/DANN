@@ -44,10 +44,3 @@ NUM_IMAGES = {
     'Fe120':120,
     'FeM':81,
     'Cu':121}
-
-
-LR_WARMUP = 0.3
-LR0 = 5e-4
-ALPHA = 5.
-BETA = 0.75
-GAMMA = 10.

@@ -10,9 +10,9 @@ from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.metrics import Accuracy
 from tensorflow.keras.models import save_model
 import tensorflow as tf
-from config import LR0
 
-from utils.utils import load_array, save_json, augment_images, learning_rate_decay
+from utils.utils import load_array, save_json, augment_images
+from utils.hyperparameters import *
 from model_builder import DeepLabV3Plus
 
 
