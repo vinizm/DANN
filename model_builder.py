@@ -29,10 +29,11 @@ class GradientReversalLayer(Layer):
 
     def __init__(self, **kwargs):
         super(GradientReversalLayer, self).__init__(**kwargs)
+        self.flipper = flip_gradient
     
     def call(self, inputs):
         x, l = inputs
-        y = flip_gradient(x, l = l)
+        y = self.flipper(x, l = l)
         return y
 
     def get_config(self):
