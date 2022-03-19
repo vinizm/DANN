@@ -129,14 +129,14 @@ class DomainAdaptationModel(Model):
         self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
                                           activation = activation, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
-        self.domain_regressor = DomainRegressor(units = 1024)
+        self.domain_classifier = DomainRegressor(units = 1024)
 
     def call(self, inputs):
         x, l = inputs
 
         segmentation, domain_branch = self.main_network(x)
         domain_branch = self.gradient_reversal_layer([domain_branch, l])
-        domain_branch = self.domain_regressor(domain_branch)
+        domain_branch = self.domain_classifier(domain_branch)
 
         return segmentation, domain_branch
 
