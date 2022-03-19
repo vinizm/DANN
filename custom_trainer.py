@@ -13,22 +13,28 @@ import tensorflow as tf
 
 from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
-from model_builder import DeepLabV3Plus
+from model_builder import DeepLabV3Plus, DomainAdaptationModel
 
 
 class Trainer():
 
 	def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8,
-				 learning_rate: float = LR0):
+				 learning_rate: float = LR0, domain_adaptation: bool = False):
 
 		self.patch_size = patch_size
 		self.channels = channels
 		self.num_class = num_class
 		self.output_stride = output_stride
 		self.learning_rate = learning_rate
+		self.domain_adaptation = domain_adaptation
 
-		self.model = DeepLabV3Plus(input_shape = (patch_size, patch_size, channels), num_class = num_class,
-								   output_stride = output_stride, activation = 'softmax', classifier_position = None)
+		if self.domain_adaptation:
+			self.model = DomainAdaptationModel(input_shape = (patch_size, patch_size, channels), num_class = num_class,
+											   output_stride = output_stride, activation = 'softmax')
+		else:
+			self.model = DeepLabV3Plus(input_shape = (patch_size, patch_size, channels), num_class = num_class,
+									   output_stride = output_stride, activation = 'softmax', domain_adaptation = False)
+		
 		self.optimizer = Adam(learning_rate = learning_rate)
 		
 		self.loss_function = BinaryCrossentropy()

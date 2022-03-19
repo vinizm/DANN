@@ -5,25 +5,31 @@ from tensorflow.keras.models import load_model
 
 from utils.utils import load_array, compute_metrics, save_json
 from utils.hyperparameters import *
-from model_builder import DeepLabV3Plus
+from model_builder import DeepLabV3Plus, DomainAdaptationModel
 from config import *
 
 
 class Predictor():
 
-    def __init__(self, model = None, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8):
+    def __init__(self, model = None, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8,
+                 domain_adaption: bool = False):
         self.model = model
         self.patch_size = patch_size
         self.channels = channels
         self.num_class = num_class
         self.output_stride = output_stride
+        self.domain_adaptation = domain_adaption
 
         self.test_data_dirs = None
         self.metrics = None
 
     def load_weights(self, weights_path: str):
-        self.model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
-								   output_stride = self.output_stride, activation = 'softmax', classifier_position = None)
+        if self.domain_adaptation:
+            self.model = DomainAdaptationModel(input_shape = (self.patch_size, self.patch_size, self.channels),
+                                               num_class = self.num_class, output_stride = self.output_stride, activation = 'softmax')
+        else:
+            self.model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
+                                    output_stride = self.output_stride, activation = 'softmax', domain_adaptation = False)
         self.model.load_weights(weights_path)
 
     def load_model(self, model_path: str):
