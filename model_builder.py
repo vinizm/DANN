@@ -123,11 +123,11 @@ class DomainRegressor(Model):
 class DomainAdaptationModel(Model):
 
     def __init__(self, input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 16,
-                 activation: str = 'softmax', classifier_position: int = None, **kwargs):
+                 activation: str = 'softmax', **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
         self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
-                                          activation = activation, classifier_position = classifier_position)
+                                          activation = activation, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
         self.domain_regressor = DomainRegressor(units = 1024)
 
@@ -239,7 +239,7 @@ def _xception_block(inputs, depth_list, prefix, skip_connection_type, stride,
 
 
 def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 16, activation: str = 'softmax',
-                  classifier_position: int = None):
+                  domain_adaptation: bool = False):
     """ Instantiates the Deeplabv3+ architecture
 
     Optionally loads weights pre-trained
@@ -304,14 +304,14 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
     x = _xception_block(x, [728, 1024, 1024], 'exit_flow_block1',
                         skip_connection_type = 'conv', stride = 1, rate  =exit_block_rates[0],
                         depth_activation = False)
-    classifier_spot_1 = _xception_block(x, [1536, 1536, 2048], 'exit_flow_block2',
+    x = _xception_block(x, [1536, 1536, 2048], 'exit_flow_block2',
                         skip_connection_type = 'none', stride = 1, rate = exit_block_rates[1],
                         depth_activation = True)
 
     # end of feature extractor
     # branching for Atrous Spatial Pyramid Pooling (ASPP)
     # image feature branch
-    b4 = GlobalAveragePooling2D()(classifier_spot_1)
+    b4 = GlobalAveragePooling2D()(x)
 
     # from (batch_size, channels) -> (batch_size, 1, 1, channels)
     b4 = ExpandDimensions()(b4)
@@ -346,12 +346,12 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
     x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1e-5)(x)
     x = Activation('relu')(x)
-    classifier_spot_2 = Dropout(0.1)(x)
+    classifier_spot = Dropout(0.1)(x)
 
     # DeepLabv3+ decoder
     # feature projection
-    size_before_2 = K.int_shape(classifier_spot_2)
-    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(classifier_spot_2)
+    size_before_2 = K.int_shape(classifier_spot)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(classifier_spot)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
     dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-5)(dec_skip_1)
@@ -359,9 +359,9 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
     x = Concatenate()([x, dec_skip_1])
 
     x = SepConv_BN(x, 256, 'decoder_conv2', depth_activation = True, epsilon = 1e-5)
-    classifier_spot_3 = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1e-5)
+    x = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1e-5)
 
-    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 2, method = 'bilinear', align_corners = True)(classifier_spot_3)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 2, method = 'bilinear', align_corners = True)(x)
 
     dec_skip_0 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection0')(skip_0)
     dec_skip_0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1e-5)(dec_skip_0)
@@ -378,10 +378,8 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
     if activation in ['softmax', 'sigmoid']:
         outputs = tf.keras.layers.Activation(activation)(x)
 
-    if classifier_position is not None:
-        classifier_spots = [classifier_spot_1, classifier_spot_2, classifier_spot_3]
-        classifier_input = classifier_spots[classifier_position]
-        outputs = [outputs, classifier_input]
+    if domain_adaptation:
+        outputs = [outputs, classifier_spot]
 
     inputs = img_input
     model = Model(inputs = inputs, outputs = outputs, name = 'deeplabv3plus')
