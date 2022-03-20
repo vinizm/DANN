@@ -6,7 +6,7 @@ from unittest.mock import patch
 import numpy as np
 
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import BinaryCrossentropy
+from tensorflow.keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Accuracy
 from tensorflow.keras.models import save_model
 import tensorflow as tf
@@ -39,6 +39,9 @@ class Trainer():
 		self.optimizer = Adam(learning_rate = learning_rate)
 		
 		self.loss_function = BinaryCrossentropy()
+		self.loss_function_segmentation = None
+		self.loss_function_classifier = SparseCategoricalCrossentropy()
+
 		self.acc_function = Accuracy(name = 'accuracy', dtype = None)
 
 		self.loss_segmentation_train_history = []
@@ -93,8 +96,8 @@ class Trainer():
 		with tf.GradientTape() as tape:
 			y_pred_segmentation, y_pred_classifier = self.model(inputs)
 
-			loss_segmentation = None
-			loss_classifier = None
+			loss_segmentation = self.loss_function_segmentation
+			loss_classifier = self.loss_function_classifier(y_true_classifier, y_pred_classifier)
 			loss_global = loss_segmentation + loss_classifier
 		
 		gradients = tape.gradient(loss_global, self.model.trainable_weights)
@@ -257,8 +260,8 @@ class Trainer():
 				y_segmentation_pred, y_classifier_pred = self.model([x_val, l])
 
 				mask = None
-				loss_segmentation = self.loss_function(y_segmentation_val, y_segmentation_pred, mask)
-				loss_classifier = self.loss_function(y_classifier_val, y_classifier_pred)
+				loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, mask)
+				loss_classifier = self.loss_function_classifier(y_classifier_val, y_classifier_pred)
 
 				loss_segmentation_val += float(loss_segmentation)
 				loss_classifier_val += float(loss_classifier)		
