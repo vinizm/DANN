@@ -98,6 +98,7 @@ class DomainRegressor(Model):
         self.activ_1 = Activation('relu')
         self.dense_2 = Dense(units = units)
         self.activ_2 = Activation('relu')
+        self.dense_3 = Dense(units = 2)
         self.proba = Activation('softmax')
 
     def call(self, inputs):
@@ -107,6 +108,7 @@ class DomainRegressor(Model):
         x = self.activ_1(x)
         x = self.dense_2(x)
         x = self.activ_2(x)
+        x = self.dense_3(x)
         x = self.proba(x)
 
         return x
