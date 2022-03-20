@@ -41,7 +41,7 @@ class MaskedBinaryCrossentropy(Loss):
     def __init__(self, **kwargs):
         super(MaskedBinaryCrossentropy, self).__init__(**kwargs)
 
-    def call(self, y_true, y_pred, mask):
+    def call(self, y_true, y_pred, mask = 1.):
 
         loss = tf.math.multiply(y_true, y_pred)
         loss = tf.reduce_sum(loss, axis = -1)
