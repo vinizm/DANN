@@ -14,7 +14,7 @@ class BinaryCrossentropy(Loss):
     def call(self, y_true, y_pred):
 
         loss = tf.math.multiply(y_true, y_pred)
-        loss = tf.reduce_sum(loss, axis = -1)
+        loss = tf.math.reduce_sum(loss, axis = -1)
         loss = tf.math.log(loss)
         loss = tf.math.multiply(-1., loss)
 
@@ -30,7 +30,7 @@ class WeighedD1BinaryCrossentropy(Loss):
         wmaps = generate_weight_maps(y_true, self.epsilon)
 
         loss = tf.math.multiply(y_true, y_pred)
-        loss = tf.reduce_sum(loss, axis = -1)
+        loss = tf.math.reduce_sum(loss, axis = -1)
         loss = tf.math.multiply(wmaps, tf.math.log(loss))
         loss = tf.math.multiply(-1., loss)
 
@@ -44,7 +44,7 @@ class MaskedBinaryCrossentropy(Loss):
     def call(self, y_true, y_pred, mask = 1.):
 
         loss = tf.math.multiply(y_true, y_pred)
-        loss = tf.reduce_sum(loss, axis = -1)
+        loss = tf.math.reduce_sum(loss, axis = -1)
         loss = tf.math.multiply(mask, loss) # multiply by mask
         loss = tf.math.log(loss)
         loss = tf.math.multiply(-1., loss)
