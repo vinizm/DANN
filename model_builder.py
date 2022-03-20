@@ -31,7 +31,9 @@ class GradientReversalLayer(Layer):
         self.flipper = flip_gradient
     
     def call(self, inputs):
-        x, l = inputs
+        x, l_tensor = inputs
+        l = float(l_tensor[0])]
+        print(l)
         y = self.flipper(x, l)
         return y
 
