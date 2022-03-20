@@ -229,6 +229,7 @@ class Trainer():
 				# set lambda value
 				l = lambda_grl(p)
 				self.lambdas.append(l)
+				l = np.full(self.batch_size, l)
 
 				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_classifier_train])
 				step_output = self._training_step_domain_adaptation([x_train, l], [y_segmentation_train, y_classifier_train], mask)
