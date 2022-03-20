@@ -41,13 +41,17 @@ class Trainer():
 		self.loss_function = BinaryCrossentropy()
 		self.acc_function = Accuracy(name = 'accuracy', dtype = None)
 
-		self.loss_train_history = []
-		self.loss_val_history = []
+		self.loss_segmentation_train_history = []
+		self.loss_segmentation_val_history = []
 
-		self.acc_train_history = []
-		self.acc_val_history = []
+		self.loss_classifier_train_history = []
+		self.loss_classifier_val_history = []
+
+		self.acc_segmentation_train_history = []
+		self.acc_segmentation_val_history = []
 
 		self.learning_rate = []
+		self.lambdas = []
 
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
@@ -81,6 +85,22 @@ class Trainer():
 		acc = float(self.acc_function(y_train, binary_prediction))
 		
 		return loss, acc
+
+	@tf.function
+	def _training_step_domain_adaptation(self, inputs, outputs, mask):
+
+		y_true_segmentation, y_true_classifier = outputs
+		with tf.GradientTape() as tape:
+			y_pred_segmentation, y_pred_classifier = self.model(inputs)
+
+			loss_segmentation = None
+			loss_classifier = None
+			loss_global = loss_segmentation + loss_classifier
+		
+		gradients = tape.gradient(loss_global, self.model.trainable_weights)
+		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_weights))
+
+		return loss_segmentation, loss_classifier
 
 	def _augment_images(self, data_dirs: list):
 		if self.rotate or self.flip:
@@ -117,11 +137,15 @@ class Trainer():
 		num_batches = len(data_dirs) // self.batch_size
 		return num_batches
 
+	@staticmethod
+	def _convert_path_to_domain(file_names: list, source_files: list):
+		return np.asarray([0 if file_name in source_files else 1 for file_name in file_names])
+
 	def train_domain_adaptation(self, patches_dir: list, epochs: int = 25, batch_size: int = 2, val_fraction: float = 0.1,
 								num_images: int = 60, wait: int = 12, rotate: bool = True, flip: bool = True,
 								persist_best_model: bool = True):
 
-		self.patches_dir = patches_dir # list of [source, target]
+		self.patches_dir = patches_dir # list: [source, target]
 		self.val_fraction = val_fraction
 		self.batch_size = batch_size
 		self.num_images = num_images
@@ -164,11 +188,11 @@ class Trainer():
 
 		for epoch in range(self.epochs):
 			print(f'Epoch {epoch + 1} of {self.epochs}')
-			loss_global_train = 0.
-			loss_global_val = 0.
+			loss_segmentation_train = 0.
+			loss_segmentation_val = 0.
 
-			acc_global_train = 0.
-			acc_global_val = 0.
+			loss_classifier_train = 0.
+			loss_classifier_val = 0.
 
 			np.random.shuffle(self.train_data_dirs)
 			np.random.shuffle(self.val_data_dirs)
@@ -184,7 +208,8 @@ class Trainer():
 				batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
 				x_train = batch_images[ :, :, :, : self.channels]
-				y_train = batch_images[ :, :, :, self.channels :]
+				y_segmentation_train = batch_images[ :, :, :, self.channels :]
+				y_classifier_train = self._convert_path_to_domain(batch_files, train_data_dirs_source)
 
 				# update learning rate
 				p = epoch / (epochs - 1)
@@ -192,19 +217,28 @@ class Trainer():
 				self.optimizer.lr = lr
 				self.learning_rate.append(lr)
 
-				loss_train, acc_train = self._training_step(x_train, y_train)
-				loss_global_train += float(loss_train)
-				acc_global_train += float(acc_train)
+				# set lambda value
+				l = lambda_grl(p)
+				self.lambdas.append(l)
 
-			loss_global_train /= self.num_batches_train
-			self.loss_train_history.append(loss_global_train)
+				mask = None
+				step_output = self._training_step_domain_adaptation([x_train, l], [y_segmentation_train, y_classifier_train], mask)
+				loss_segmentation, loss_classifier = step_output
 
-			acc_global_train /= self.num_batches_train
-			self.acc_train_history.append(acc_global_train)
+				loss_segmentation_train += float(loss_segmentation)
+				loss_classifier_train += float(loss_classifier)
+
+			loss_segmentation_train /= self.num_batches_train
+			self.loss_segmentation_train_history.append(loss_segmentation_train)
+
+			loss_classifier_train /= self.num_batches_train
+			self.loss_classifier_train_history.append(loss_classifier_train)					
 
 			print(f'Learning Rate: {lr}')
-			print(f'Training Loss: {loss_global_train}')
-			print(f'Training Accuracy: {acc_global_train}')
+			print(f'Lambda: {l}')
+
+			print(f'Segmentation Loss: {loss_segmentation_train}')
+			print(f'Classifier Loss: {loss_classifier_train}')
 
 			# evaluating network
 			print('Start validation...')
@@ -217,28 +251,31 @@ class Trainer():
 				batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
 				x_val = batch_val_images[:, :, :, : self.channels]
-				y_val = batch_val_images[:, :, :, self.channels :]
+				y_segmentation_val = batch_val_images[:, :, :, self.channels :]
+				y_classifier_val = self._convert_path_to_domain(batch_files, val_data_dirs_source)
 
-				pred_val = self.model(x_val)
-				loss_val = self.loss_function(y_val, pred_val)
+				y_segmentation_pred, y_classifier_pred = self.model([x_val, l])
 
-				loss_global_val += float(loss_val) # convert loss_val to float and sum
+				mask = None
+				loss_segmentation = self.loss_function(y_segmentation_val, y_segmentation_pred, mask)
+				loss_classifier = self.loss_function(y_classifier_val, y_classifier_pred)
 
-				binary_prediction = tf.math.round(pred_val)
-				acc_global_val += float(self.acc_function(y_val, binary_prediction))
+				loss_segmentation_val += float(loss_segmentation)
+				loss_classifier_val += float(loss_classifier)		
 
-			loss_global_val /= self.num_batches_val
-			self.loss_val_history.append(loss_global_val)
+			loss_segmentation_val /= self.num_batches_val
+			self.loss_segmentation_val_history.append(loss_segmentation_val)
 
-			acc_global_val /= self.num_batches_val
-			self.acc_val_history.append(acc_global_val)
+			loss_classifier_val /= self.num_batches_val
+			self.loss_classifier_val_history.append(loss_classifier_val)
 
-			print(f'Validation Loss: {loss_global_val}')
-			print(f'Validation Accuracy: {acc_global_val}')
+			print(f'Segmentation Loss: {loss_segmentation_val}')
+			print(f'Classifier Loss: {loss_classifier_val}')
 
-			if loss_global_val < self.best_val_loss and persist_best_model:
+			loss_total_val = loss_segmentation_val + loss_classifier_val
+			if loss_total_val < self.best_val_loss and persist_best_model:
 				print('[!] Persisting best model...')
-				self.best_val_loss = loss_global_val
+				self.best_val_loss = loss_total_val
 				self.no_improvement_count = 0
 				self.best_model = copy.deepcopy(self.model)
 
@@ -311,10 +348,10 @@ class Trainer():
 				acc_global_train += float(acc_train)
 
 			loss_global_train /= self.num_batches_train
-			self.loss_train_history.append(loss_global_train)
+			self.loss_segmentation_train_history.append(loss_global_train)
 
 			acc_global_train /= self.num_batches_train
-			self.acc_train_history.append(acc_global_train)
+			self.acc_segmentation_train_history.append(acc_global_train)
 
 			print(f'Learning Rate: {lr}')
 			print(f'Training Loss: {loss_global_train}')
@@ -342,10 +379,10 @@ class Trainer():
 				acc_global_val += float(self.acc_function(y_val, binary_prediction))
 
 			loss_global_val /= self.num_batches_val
-			self.loss_val_history.append(loss_global_val)
+			self.loss_segmentation_val_history.append(loss_global_val)
 
 			acc_global_val /= self.num_batches_val
-			self.acc_val_history.append(acc_global_val)
+			self.acc_segmentation_val_history.append(acc_global_val)
 
 			print(f'Validation Loss: {loss_global_val}')
 			print(f'Validation Accuracy: {acc_global_val}')
@@ -377,10 +414,10 @@ class Trainer():
 		print('Weights saved successfuly.')
 		
 	def save_info(self, history_path):
-		persist = {'history':{'training':{'loss': self.loss_train_history,
-							  			  'accuracy': self.acc_train_history},
-							  'validation':{'loss': self.loss_val_history,
-							  				'accuracy': self.acc_val_history}},
+		persist = {'history':{'training':{'loss': self.loss_segmentation_train_history,
+							  			  'accuracy': self.acc_segmentation_train_history},
+							  'validation':{'loss': self.loss_segmentation_val_history,
+							  				'accuracy': self.acc_segmentation_val_history}},
 				   'image_files':{'training': self.train_data_dirs,
 								  'validation': self.val_data_dirs}}
 		save_json(persist, history_path) # save metrics and parameters
