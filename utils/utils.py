@@ -95,9 +95,9 @@ def load_array(full_file_name: str):
 	with open(full_file_name, 'rb') as file:
 		try:
 			array = np.load(file)
-			print(f'Loaded file {file_name} successfuly.')
+			print(f'Loaded file {file_name} successfuly')
 		except:
-			print(f'Could not load file {file_name} successfuly.')
+			print(f'Could not load file {file_name} successfuly')
 
 	return array
 
@@ -106,10 +106,10 @@ def save_np_array(file_name: str, array: np.ndarray):
 	with open(file_name, 'wb') as file:
 		try:
 			np.save(file, array)
-			print(f'Saved file {file_name} successfuly.')
+			print(f'Saved file {file_name} successfuly')
 			status = True
 		except:
-			print(f'Could not save file {file_name}.')
+			print(f'Could not save file {file_name}')
 			status = False
 	return status
 
@@ -117,10 +117,10 @@ def save_np_array(file_name: str, array: np.ndarray):
 def save_image(file_name: str, array: np.ndarray):
 	try:
 		cv2.imwrite(file_name, array)
-		print(f'Saved file {file_name} successfuly.')
+		print(f'Saved file {file_name} successfuly')
 		status = True
 	except:
-		print(f'Could not save file {file_name}.')
+		print(f'Could not save file {file_name}')
 		status = False
 	return status
 
