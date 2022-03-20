@@ -32,7 +32,7 @@ class GradientReversalLayer(Layer):
     
     def call(self, inputs):
         x, l = inputs
-        y = self.flipper(x, l = l)
+        y = self.flipper(x, l)
         return y
 
     def get_config(self):

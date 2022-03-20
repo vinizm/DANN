@@ -7,13 +7,13 @@ class FlipGradientBuilder:
         pass
     
     @tf.custom_gradient
-    def grad_reverse(self, x, l = 1.):
+    def grad_reverse(self, x, l):
         y = tf.identity(x)
         def custom_grad(dy):
-            return -l * dy
+            return -l * dy, 0.
         return y, custom_grad
     
-    def __call__(self, x, l = 1.):
-        return self.grad_reverse(x, l = l)
+    def __call__(self, x, l):
+        return self.grad_reverse(x, l)
     
 flip_gradient = FlipGradientBuilder()
