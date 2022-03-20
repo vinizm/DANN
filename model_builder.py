@@ -386,3 +386,17 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
     inputs = img_input
     model = Model(inputs = inputs, outputs = outputs, name = 'deeplabv3plus')
     return model
+
+
+def DeepLabV3PlusDomainAdaptation(input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 16,
+                                  activation: str = 'softmax'):
+
+    img_input = Input(shape = input_shape)
+    lambda_input = Input(shape = (1,))
+
+    raw_model = DomainAdaptationModel(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
+                                      activation = activation)
+    outputs = raw_model([img_input, lambda_input])
+
+    model = Model(inputs = [img_input, lambda_input], outputs = outputs)
+    return model
