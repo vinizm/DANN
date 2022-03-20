@@ -145,7 +145,7 @@ class Trainer():
 	def _convert_path_to_domain(file_names: list, source_files: list):
 		return np.asarray([0 if file_name in source_files else 1 for file_name in file_names])
 
-	def generate_domain_mask(self, domain: int):
+	def _generate_domain_mask(self, domain: int):
 		if domain == 0:
 			return np.full((self.patch_size, self.patch_size), 1.)
 		return np.full((self.patch_size, self.patch_size), 0.)
@@ -230,7 +230,7 @@ class Trainer():
 				l = lambda_grl(p)
 				self.lambdas.append(l)
 
-				mask = None
+				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_classifier_train])
 				step_output = self._training_step_domain_adaptation([x_train, l], [y_segmentation_train, y_classifier_train], mask)
 				loss_segmentation, loss_classifier = step_output
 
@@ -265,7 +265,7 @@ class Trainer():
 
 				y_segmentation_pred, y_classifier_pred = self.model([x_val, l])
 
-				mask = None
+				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_classifier_val])
 				loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, mask)
 				loss_classifier = self.loss_function_classifier(y_classifier_val, y_classifier_pred)
 
