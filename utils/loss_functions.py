@@ -45,8 +45,8 @@ class MaskedBinaryCrossentropy(Loss):
 
         loss = tf.math.multiply(y_true, y_pred)
         loss = tf.math.reduce_sum(loss, axis = -1)
-        loss = tf.math.multiply(mask, loss) # multiply by mask
         loss = tf.math.log(loss)
+        loss = tf.math.multiply(mask, loss) # multiply by mask
         loss = tf.math.multiply(-1., loss)
 
         return loss
