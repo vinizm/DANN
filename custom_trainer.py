@@ -97,7 +97,7 @@ class Trainer():
 		with tf.GradientTape() as tape:
 			y_pred_segmentation, y_pred_classifier = self.model(inputs)
 
-			loss_segmentation = self.loss_function_segmentation
+			loss_segmentation = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, mask)
 			loss_classifier = self.loss_function_classifier(y_true_classifier, y_pred_classifier)
 			loss_global = loss_segmentation + loss_classifier
 		
