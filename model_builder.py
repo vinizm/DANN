@@ -32,10 +32,7 @@ class GradientReversalLayer(Layer):
     
     def call(self, inputs):
         x, l = inputs
-        
-        l = tf.reshape(l, shape = -1)
-        l = float(l[0])
-
+        l = tf.constant(l[0])
         y = self.flipper(x, l)
         return y
 
