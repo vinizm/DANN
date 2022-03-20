@@ -31,7 +31,7 @@ class WeighedD1BinaryCrossentropy(Loss):
 
         loss = tf.math.multiply(y_true, y_pred)
         loss = tf.reduce_sum(loss, axis = -1)
-        loss =  tf.math.multiply(wmaps, tf.math.log(loss))
+        loss = tf.math.multiply(wmaps, tf.math.log(loss))
         loss = tf.multiply(-1., loss)
 
         return loss
