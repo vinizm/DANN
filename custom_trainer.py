@@ -14,6 +14,7 @@ import tensorflow as tf
 from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
 from utils.hyperparameters import learning_rate_decay, lambda_grl
+from utils.loss_functions import MaskedBinaryCrossentropy
 from model_builder import DeepLabV3Plus, DomainAdaptationModel
 
 
@@ -39,7 +40,7 @@ class Trainer():
 		self.optimizer = Adam(learning_rate = learning_rate)
 		
 		self.loss_function = BinaryCrossentropy()
-		self.loss_function_segmentation = None
+		self.loss_function_segmentation = MaskedBinaryCrossentropy()
 		self.loss_function_classifier = SparseCategoricalCrossentropy()
 
 		self.acc_function = Accuracy(name = 'accuracy', dtype = None)
