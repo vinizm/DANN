@@ -145,6 +145,11 @@ class Trainer():
 	def _convert_path_to_domain(file_names: list, source_files: list):
 		return np.asarray([0 if file_name in source_files else 1 for file_name in file_names])
 
+	def generate_domain_mask(self, domain: int):
+		if domain == 0:
+			return np.full((self.patch_size, self.patch_size), 1.)
+		return np.full((self.patch_size, self.patch_size), 0.)
+
 	def train_domain_adaptation(self, patches_dir: list, epochs: int = 25, batch_size: int = 2, val_fraction: float = 0.1,
 								num_images: int = 60, wait: int = 12, rotate: bool = True, flip: bool = True,
 								persist_best_model: bool = True):
