@@ -15,7 +15,7 @@ from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
 from utils.hyperparameters import learning_rate_decay, lambda_grl
 from utils.loss_functions import MaskedBinaryCrossentropy
-from model_builder import DeepLabV3Plus, DomainAdaptationModel
+from model_builder import DeepLabV3Plus, DeepLabV3PlusDomainAdaptation, DomainAdaptationModel
 
 
 class Trainer():
@@ -31,8 +31,8 @@ class Trainer():
 		self.domain_adaptation = domain_adaptation
 
 		if self.domain_adaptation:
-			self.model = DomainAdaptationModel(input_shape = (patch_size, patch_size, channels), num_class = num_class,
-											   output_stride = output_stride, activation = 'softmax')
+			self.model = DeepLabV3PlusDomainAdaptation(input_shape = (patch_size, patch_size, channels), num_class = num_class,
+						 output_stride = output_stride, activation = 'softmax')
 		else:
 			self.model = DeepLabV3Plus(input_shape = (patch_size, patch_size, channels), num_class = num_class,
 									   output_stride = output_stride, activation = 'softmax', domain_adaptation = False)
