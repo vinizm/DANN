@@ -88,10 +88,10 @@ class ExpandDimensions(Layer):
         return cls(**config)
 
 
-class DomainRegressor(Model):
+class DomainClassifier(Model):
 
     def __init__(self, units: int, **kwargs):
-        super(DomainRegressor, self).__init__(**kwargs)
+        super(DomainClassifier, self).__init__(**kwargs)
         self.units = units
 
         self.flat = Flatten()
@@ -115,7 +115,7 @@ class DomainRegressor(Model):
         return x
 
     def get_config(self):
-        config = super(DomainRegressor, self).get_config()
+        config = super(DomainClassifier, self).get_config()
         config.update({'units': self.units})
         return config
 
@@ -132,7 +132,7 @@ class DomainAdaptationModel(Model):
         self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
                                           activation = activation, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
-        self.domain_classifier = DomainRegressor(units = 1024)
+        self.domain_classifier = DomainClassifier(units = 1024)
 
     def call(self, inputs):
         x, l = inputs
