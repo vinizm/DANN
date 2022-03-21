@@ -219,6 +219,7 @@ class Trainer():
 				x_train = batch_images[ :, :, :, : self.channels]
 				y_segmentation_train = batch_images[ :, :, :, self.channels :]
 				y_classifier_train = self._convert_path_to_domain(batch_files, train_data_dirs_source)
+				print(f'Domain: {y_classifier_train}')
 
 				# update learning rate
 				p = epoch / (epochs - 1)
@@ -263,6 +264,7 @@ class Trainer():
 				x_val = batch_val_images[:, :, :, : self.channels]
 				y_segmentation_val = batch_val_images[:, :, :, self.channels :]
 				y_classifier_val = self._convert_path_to_domain(batch_files, val_data_dirs_source)
+				print(f'Domain: {y_classifier_val}')
 
 				y_segmentation_pred, y_classifier_pred = self.model([x_val, l_vector])
 
