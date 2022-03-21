@@ -125,7 +125,7 @@ class DomainClassifier(Model):
 
 class DomainAdaptationModel(Model):
 
-    def __init__(self, input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 16,
+    def __init__(self, input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 8,
                  activation: str = 'softmax', **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
@@ -241,7 +241,7 @@ def _xception_block(inputs, depth_list, prefix, skip_connection_type, stride,
         return outputs
 
 
-def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 16, activation: str = 'softmax',
+def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 8, activation: str = 'softmax',
                   domain_adaptation: bool = False):
     """ Instantiates the Deeplabv3+ architecture
 
@@ -389,7 +389,7 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
     return model
 
 
-def DeepLabV3PlusDomainAdaptation(input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 16,
+def DeepLabV3PlusDomainAdaptation(input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 8,
                                   activation: str = 'softmax'):
 
     img_input = Input(shape = input_shape)
