@@ -210,15 +210,15 @@ class Trainer():
 			for batch in range(self.num_batches_train):
 
 				print(f'Batch {batch + 1} of {self.num_batches_train}')
-				batch_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
+				batch_train_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
 				# load images for training
-				batch_images = np.asarray([load_array(batch_file) for batch_file in batch_files])
+				batch_images = np.asarray([load_array(batch_train_file) for batch_train_file in batch_train_files])
 				batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
 				x_train = batch_images[ :, :, :, : self.channels]
 				y_segmentation_train = batch_images[ :, :, :, self.channels :]
-				y_classifier_train = self._convert_path_to_domain(batch_files, train_data_dirs_source)
+				y_classifier_train = self._convert_path_to_domain(batch_train_files, train_data_dirs_source)
 				print(f'Domain: {y_classifier_train}')
 
 				# update learning rate
@@ -263,7 +263,7 @@ class Trainer():
 
 				x_val = batch_val_images[:, :, :, : self.channels]
 				y_segmentation_val = batch_val_images[:, :, :, self.channels :]
-				y_classifier_val = self._convert_path_to_domain(batch_files, val_data_dirs_source)
+				y_classifier_val = self._convert_path_to_domain(batch_val_files, val_data_dirs_source)
 				print(f'Domain: {y_classifier_val}')
 
 				y_segmentation_pred, y_classifier_pred = self.model([x_val, l_vector])
