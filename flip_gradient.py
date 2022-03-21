@@ -10,7 +10,7 @@ class FlipGradientBuilder:
     def grad_reverse(self, x, l):
         y = tf.identity(x)
         def custom_grad(dy):
-            return -l * dy, 0.
+            return -l * dy, 0. * dy
         return y, custom_grad
     
     def __call__(self, x, l):
