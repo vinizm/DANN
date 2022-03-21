@@ -229,10 +229,10 @@ class Trainer():
 				# set lambda value
 				l = lambda_grl(p)
 				self.lambdas.append(l)
-				l = np.full((self.batch_size, 1), l, dtype = 'float32')
+				l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
 
 				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_classifier_train])
-				step_output = self._training_step_domain_adaptation([x_train, l], [y_segmentation_train, y_classifier_train], mask)
+				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_classifier_train], mask)
 				loss_segmentation, loss_classifier = step_output
 
 				loss_segmentation_train += float(loss_segmentation)
@@ -264,7 +264,7 @@ class Trainer():
 				y_segmentation_val = batch_val_images[:, :, :, self.channels :]
 				y_classifier_val = self._convert_path_to_domain(batch_files, val_data_dirs_source)
 
-				y_segmentation_pred, y_classifier_pred = self.model([x_val, l])
+				y_segmentation_pred, y_classifier_pred = self.model([x_val, l_vector])
 
 				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_classifier_val])
 				loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, mask)
