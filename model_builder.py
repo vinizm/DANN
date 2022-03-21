@@ -32,8 +32,8 @@ class GradientReversalLayer(Layer):
     
     def call(self, inputs):
         x, l = inputs
-        li = tf.math.reduce_mean(l)
-        y = self.flipper(x, li)
+        l = tf.math.reduce_mean(l)
+        y = self.flipper(x, l)
         return y
 
     def get_config(self):
