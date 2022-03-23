@@ -41,15 +41,15 @@ class Trainer():
 		
 		self.loss_function = BinaryCrossentropy()
 		self.loss_function_segmentation = MaskedBinaryCrossentropy()
-		self.loss_function_classifier = SparseCategoricalCrossentropy()
+		self.loss_function_discriminator = SparseCategoricalCrossentropy()
 
 		self.acc_function = Accuracy(name = 'accuracy', dtype = None)
 
 		self.loss_segmentation_train_history = []
 		self.loss_segmentation_val_history = []
 
-		self.loss_classifier_train_history = []
-		self.loss_classifier_val_history = []
+		self.loss_discriminator_train_history = []
+		self.loss_discriminator_val_history = []
 
 		self.acc_segmentation_train_history = []
 		self.acc_segmentation_val_history = []
@@ -93,18 +93,18 @@ class Trainer():
 	@tf.function
 	def _training_step_domain_adaptation(self, inputs, outputs, mask):
 
-		y_true_segmentation, y_true_classifier = outputs
+		y_true_segmentation, y_true_discriminator = outputs
 		with tf.GradientTape() as tape:
-			y_pred_segmentation, y_pred_classifier = self.model(inputs)
+			y_pred_segmentation, y_pred_discriminator = self.model(inputs)
 
 			loss_segmentation = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, mask)
-			loss_classifier = self.loss_function_classifier(y_true_classifier, y_pred_classifier)
-			loss_global = loss_segmentation + loss_classifier
+			loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
+			loss_global = loss_segmentation + loss_discriminator
 		
 		gradients = tape.gradient(loss_global, self.model.trainable_weights)
 		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_weights))
 
-		return loss_segmentation, loss_classifier
+		return loss_segmentation, loss_discriminator
 
 	def _augment_images(self, data_dirs: list):
 		if self.rotate or self.flip:
@@ -200,8 +200,8 @@ class Trainer():
 			loss_segmentation_train = 0.
 			loss_segmentation_val = 0.
 
-			loss_classifier_train = 0.
-			loss_classifier_val = 0.
+			loss_discriminator_train = 0.
+			loss_discriminator_val = 0.
 
 			np.random.shuffle(self.train_data_dirs)
 			np.random.shuffle(self.val_data_dirs)
@@ -218,8 +218,8 @@ class Trainer():
 
 				x_train = batch_images[ :, :, :, : self.channels]
 				y_segmentation_train = batch_images[ :, :, :, self.channels :]
-				y_classifier_train = self._convert_path_to_domain(batch_train_files, train_data_dirs_source)
-				print(f'Domain: {y_classifier_train}')
+				y_discriminator_train = self._convert_path_to_domain(batch_train_files, train_data_dirs_source)
+				print(f'Domain: {y_discriminator_train}')
 
 				# update learning rate
 				p = epoch / (epochs - 1)
@@ -232,24 +232,24 @@ class Trainer():
 				self.lambdas.append(l)
 				l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
 
-				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_classifier_train])
-				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_classifier_train], mask)
-				loss_segmentation, loss_classifier = step_output
+				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_discriminator_train])
+				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], mask)
+				loss_segmentation, loss_discriminator = step_output
 
 				loss_segmentation_train += float(loss_segmentation)
-				loss_classifier_train += float(loss_classifier)
+				loss_discriminator_train += float(loss_discriminator)
 
 			loss_segmentation_train /= self.num_batches_train
 			self.loss_segmentation_train_history.append(loss_segmentation_train)
 
-			loss_classifier_train /= self.num_batches_train
-			self.loss_classifier_train_history.append(loss_classifier_train)					
+			loss_discriminator_train /= self.num_batches_train
+			self.loss_discriminator_train_history.append(loss_discriminator_train)					
 
 			print(f'Learning Rate: {lr}')
 			print(f'Lambda: {l}')
 
 			print(f'Segmentation Loss: {loss_segmentation_train}')
-			print(f'Classifier Loss: {loss_classifier_train}')
+			print(f'Classifier Loss: {loss_discriminator_train}')
 
 			# evaluating network
 			print('Start validation...')
@@ -263,28 +263,28 @@ class Trainer():
 
 				x_val = batch_val_images[:, :, :, : self.channels]
 				y_segmentation_val = batch_val_images[:, :, :, self.channels :]
-				y_classifier_val = self._convert_path_to_domain(batch_val_files, val_data_dirs_source)
-				print(f'Domain: {y_classifier_val}')
+				y_discriminator_val = self._convert_path_to_domain(batch_val_files, val_data_dirs_source)
+				print(f'Domain: {y_discriminator_val}')
 
-				y_segmentation_pred, y_classifier_pred = self.model([x_val, l_vector])
+				y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
 
-				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_classifier_val])
+				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_discriminator_val])
 				loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, mask)
-				loss_classifier = self.loss_function_classifier(y_classifier_val, y_classifier_pred)
+				loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)
 
 				loss_segmentation_val += float(loss_segmentation)
-				loss_classifier_val += float(loss_classifier)		
+				loss_discriminator_val += float(loss_discriminator)		
 
 			loss_segmentation_val /= self.num_batches_val
 			self.loss_segmentation_val_history.append(loss_segmentation_val)
 
-			loss_classifier_val /= self.num_batches_val
-			self.loss_classifier_val_history.append(loss_classifier_val)
+			loss_discriminator_val /= self.num_batches_val
+			self.loss_discriminator_val_history.append(loss_discriminator_val)
 
 			print(f'Segmentation Loss: {loss_segmentation_val}')
-			print(f'Classifier Loss: {loss_classifier_val}')
+			print(f'Classifier Loss: {loss_discriminator_val}')
 
-			loss_total_val = loss_segmentation_val + loss_classifier_val
+			loss_total_val = loss_segmentation_val + loss_discriminator_val
 			if loss_total_val < self.best_val_loss and persist_best_model:
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_total_val

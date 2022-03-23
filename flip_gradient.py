@@ -11,7 +11,7 @@ class FlipGradientBuilder:
         y = tf.identity(x)
         def custom_grad(dy):
             l_shrink = tf.math.reduce_mean(l)
-            return -l_shrink * dy, 0. * dy 
+            return -l_shrink * dy, 0. * dy
         return y, custom_grad
     
     def __call__(self, x, l):
