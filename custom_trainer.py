@@ -287,6 +287,7 @@ class Trainer():
 				x_val = batch_val_images[:, :, :, : self.channels]
 				y_segmentation_val = batch_val_images[:, :, :, self.channels :]
 				y_discriminator_val = self._convert_path_to_domain(batch_val_files, val_data_dirs_source)
+				index_source = np.argwhere(y_discriminator_val == 0).reshape(-1)
 				print(f'Domain: {y_discriminator_val}')
 
 				y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
@@ -295,8 +296,12 @@ class Trainer():
 				loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, mask)
 				loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)
 
+				if len(index_source) > 0:
+					self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred)
+					self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
+
 				loss_segmentation_val += float(loss_segmentation)
-				loss_discriminator_val += float(loss_discriminator)		
+				loss_discriminator_val += float(loss_discriminator)
 
 			loss_segmentation_val /= self.num_batches_val
 			self.loss_segmentation_val_history.append(loss_segmentation_val)
@@ -304,8 +309,17 @@ class Trainer():
 			loss_discriminator_val /= self.num_batches_val
 			self.loss_discriminator_val_history.append(loss_discriminator_val)
 
+			acc_segmentation_val = float(self.acc_function_segmentation.result())
+			self.acc_segmentation_val_history.append(acc_segmentation_val)
+
+			acc_discriminator_val = float(self.acc_function_discriminator.result())
+			self.acc_discriminator_val_history.append(acc_discriminator_val)
+
 			print(f'Segmentation Loss: {loss_segmentation_val}')
 			print(f'Discriminator Loss: {loss_discriminator_val}')
+
+			print(f'Segmentation Accuracy: {acc_segmentation_val}')
+			print(f'Discriminator Accuracy: {acc_discriminator_val}')
 
 			loss_total_val = loss_segmentation_val + loss_discriminator_val
 			if loss_total_val < self.best_val_loss and persist_best_model:
