@@ -117,7 +117,7 @@ class Trainer():
 
 			y_true_discriminator = tf.expand_dims(y_true_discriminator, axis = -1)
 			self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation)
-			self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_segmentation)
+			self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_discriminator)
 
 		return loss_segmentation, loss_discriminator
 
