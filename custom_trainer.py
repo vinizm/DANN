@@ -96,7 +96,7 @@ class Trainer():
 	def _training_step_domain_adaptation(self, inputs, outputs, mask, index_source):
 
 		y_true_segmentation, y_true_discriminator = outputs
-		with tf.GradientTape() as tape:
+		with tf.GradientTape(persistent = True) as tape:
 			y_pred_segmentation, y_pred_discriminator = self.model(inputs)
 
 			loss_segmentation = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, mask)
@@ -105,6 +105,8 @@ class Trainer():
 		
 		gradients = tape.gradient(loss_global, self.model.trainable_weights)
 		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_weights))
+
+		del tape
 
 		if len(index_source) > 0:
 			y_true_segmentation = tf.gather(y_true_segmentation, indices = index_source, axis = 0)
