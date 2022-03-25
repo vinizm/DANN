@@ -2,7 +2,6 @@ import os
 import copy
 import glob
 import time
-from unittest.mock import patch
 import numpy as np
 
 from tensorflow.keras.optimizers import Adam
