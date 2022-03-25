@@ -143,7 +143,7 @@ class Trainer():
 
 	@staticmethod
 	def _convert_path_to_domain(file_names: list, source_files: list):
-		return np.asarray([0 if file_name in source_files else 1 for file_name in file_names])
+		return np.asarray([0 if file_name in source_files else 1 for file_name in file_names], dtype = 'int32')
 
 	def _generate_domain_mask(self, domain: int):
 		if domain == 0:
