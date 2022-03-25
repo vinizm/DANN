@@ -108,6 +108,12 @@ class Trainer():
 		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_weights))
 
 		if len(index_source) > 0:
+			y_true_segmentation = tf.gather(y_true_segmentation, indices = index_source, axis = 0)
+			y_true_discriminator = tf.gather(y_true_discriminator, indices = index_source, axis = 0)
+
+			y_pred_segmentation = tf.gather(y_pred_segmentation, indices = index_source, axis = 0)
+			y_pred_discriminator = tf.gather(y_pred_discriminator, indices = index_source, axis = 0)
+
 			self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation)
 			self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_segmentation)
 
@@ -297,6 +303,12 @@ class Trainer():
 				loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)
 
 				if len(index_source) > 0:
+					y_segmentation_val = tf.gather(y_segmentation_val, indices = index_source, axis = 0)
+					y_segmentation_pred = tf.gather(y_segmentation_pred, indices = index_source, axis = 0)
+
+					y_discriminator_val = tf.gather(y_discriminator_val, indices = index_source, axis = 0)
+					y_discriminator_pred = tf.gather(y_discriminator_pred, indices = index_source, axis = 0)					
+
 					self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred)
 					self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
 
