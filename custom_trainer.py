@@ -55,6 +55,9 @@ class Trainer():
 		self.acc_segmentation_train_history = []
 		self.acc_segmentation_val_history = []
 
+		self.acc_discriminator_train_history = []
+		self.acc_discriminator_val_history = []		
+
 		self.learning_rate = []
 		self.lambdas = []
 
@@ -91,7 +94,7 @@ class Trainer():
 		return loss
 
 	@tf.function
-	def _training_step_domain_adaptation(self, inputs, outputs, mask):
+	def _training_step_domain_adaptation(self, inputs, outputs, mask, index_source):
 
 		y_true_segmentation, y_true_discriminator = outputs
 		with tf.GradientTape() as tape:
@@ -103,6 +106,10 @@ class Trainer():
 		
 		gradients = tape.gradient(loss_global, self.model.trainable_weights)
 		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_weights))
+
+		if len(index_source) > 0:
+			self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation)
+			self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_segmentation)
 
 		return loss_segmentation, loss_discriminator
 
@@ -222,6 +229,7 @@ class Trainer():
 				x_train = batch_images[ :, :, :, : self.channels]
 				y_segmentation_train = batch_images[ :, :, :, self.channels :]
 				y_discriminator_train = self._convert_path_to_domain(batch_train_files, train_data_dirs_source)
+				index_source = np.argwhere(y_discriminator_train == 0).reshape(-1)
 				print(f'Domain: {y_discriminator_train}')
 
 				# update learning rate
@@ -236,7 +244,7 @@ class Trainer():
 				l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
 
 				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_discriminator_train])
-				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], mask)
+				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], mask, index_source)
 				loss_segmentation, loss_discriminator = step_output
 
 				loss_segmentation_train += float(loss_segmentation)
@@ -248,11 +256,23 @@ class Trainer():
 			loss_discriminator_train /= self.num_batches_train
 			self.loss_discriminator_train_history.append(loss_discriminator_train)
 
+			acc_segmentation_train = float(self.acc_function_segmentation.result())
+			self.acc_segmentation_train_history.append(acc_segmentation_train)
+			
+			acc_discriminator_train = float(self.acc_function_discriminator.result())
+			self.acc_discriminator_train_history.append(acc_discriminator_train)			
+
 			print(f'Learning Rate: {lr}')
 			print(f'Lambda: {l}')
 
 			print(f'Segmentation Loss: {loss_segmentation_train}')
 			print(f'Discriminator Loss: {loss_discriminator_train}')
+
+			print(f'Segmentation Accuracy: {acc_segmentation_train}')
+			print(f'Discriminator Accuracy: {acc_discriminator_train}')
+
+			self.acc_function_segmentation.reset_states()
+			self.acc_function_discriminator.reset_states()	
 
 			# evaluating network
 			print('Start validation...')
