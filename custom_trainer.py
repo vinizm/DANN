@@ -43,7 +43,8 @@ class Trainer():
 		self.loss_function_segmentation = MaskedBinaryCrossentropy()
 		self.loss_function_discriminator = SparseCategoricalCrossentropy()
 
-		self.acc_function = CategoricalAccuracy(name = 'accuracy', dtype = None)
+		self.acc_function_segmentation = CategoricalAccuracy()
+		self.acc_function_discriminator = CategoricalAccuracy()
 
 		self.loss_segmentation_train_history = []
 		self.loss_segmentation_val_history = []
@@ -85,7 +86,7 @@ class Trainer():
 		gradients = tape.gradient(loss, self.model.trainable_weights)
 		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_weights))
 
-		self.acc_function.update_state(y_train, pred_train)
+		self.acc_function_segmentation.update_state(y_train, pred_train)
 		
 		return loss
 
@@ -202,6 +203,9 @@ class Trainer():
 			loss_discriminator_train = 0.
 			loss_discriminator_val = 0.
 
+			self.acc_function_segmentation.reset_states()
+			self.acc_function_discriminator.reset_states()
+
 			np.random.shuffle(self.train_data_dirs)
 			np.random.shuffle(self.val_data_dirs)
 
@@ -242,13 +246,13 @@ class Trainer():
 			self.loss_segmentation_train_history.append(loss_segmentation_train)
 
 			loss_discriminator_train /= self.num_batches_train
-			self.loss_discriminator_train_history.append(loss_discriminator_train)					
+			self.loss_discriminator_train_history.append(loss_discriminator_train)
 
 			print(f'Learning Rate: {lr}')
 			print(f'Lambda: {l}')
 
 			print(f'Segmentation Loss: {loss_segmentation_train}')
-			print(f'Classifier Loss: {loss_discriminator_train}')
+			print(f'Discriminator Loss: {loss_discriminator_train}')
 
 			# evaluating network
 			print('Start validation...')
@@ -281,7 +285,7 @@ class Trainer():
 			self.loss_discriminator_val_history.append(loss_discriminator_val)
 
 			print(f'Segmentation Loss: {loss_segmentation_val}')
-			print(f'Classifier Loss: {loss_discriminator_val}')
+			print(f'Discriminator Loss: {loss_discriminator_val}')
 
 			loss_total_val = loss_segmentation_val + loss_discriminator_val
 			if loss_total_val < self.best_val_loss and persist_best_model:
@@ -329,7 +333,7 @@ class Trainer():
 			loss_global_train = 0.
 			loss_global_val = 0.
 
-			self.acc_function.reset_states()
+			self.acc_function_segmentation.reset_states()
 
 			np.random.shuffle(self.train_data_dirs)
 			np.random.shuffle(self.val_data_dirs)
@@ -359,14 +363,14 @@ class Trainer():
 			loss_global_train /= self.num_batches_train
 			self.loss_segmentation_train_history.append(loss_global_train)
 
-			acc_global_train = float(self.acc_function.result())
+			acc_global_train = float(self.acc_function_segmentation.result())
 			self.acc_segmentation_train_history.append(acc_global_train)
 
 			print(f'Learning Rate: {lr}')
 			print(f'Training Loss: {loss_global_train}')
 			print(f'Training Accuracy: {acc_global_train}')
 
-			self.acc_function.reset_states()
+			self.acc_function_segmentation.reset_states()
 
 			# evaluating network
 			print('Start validation...')
@@ -385,12 +389,12 @@ class Trainer():
 				loss_val = self.loss_function(y_val, pred_val)
 
 				loss_global_val += float(loss_val) # convert loss_val to float and sum
-				self.acc_function.update_state(y_val, pred_val)
+				self.acc_function_segmentation.update_state(y_val, pred_val)
 
 			loss_global_val /= self.num_batches_val
 			self.loss_segmentation_val_history.append(loss_global_val)
 
-			acc_global_val = float(self.acc_function.result())
+			acc_global_val = float(self.acc_function_segmentation.result())
 			self.acc_segmentation_val_history.append(acc_global_val)
 
 			print(f'Validation Loss: {loss_global_val}')
