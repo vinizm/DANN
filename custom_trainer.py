@@ -7,7 +7,7 @@ import numpy as np
 
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
-from tensorflow.keras.metrics import CategoricalAccuracy
+from tensorflow.keras.metrics import CategoricalAccuracy, SparseCategoricalAccuracy
 from tensorflow.keras.models import save_model
 import tensorflow as tf
 
@@ -15,7 +15,7 @@ from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
 from utils.hyperparameters import learning_rate_decay, lambda_grl
 from utils.loss_functions import MaskedBinaryCrossentropy
-from model_builder import DeepLabV3Plus, DeepLabV3PlusDomainAdaptation, DomainAdaptationModel
+from model_builder import DeepLabV3Plus, DeepLabV3PlusDomainAdaptation
 
 
 class Trainer():
@@ -44,7 +44,7 @@ class Trainer():
 		self.loss_function_discriminator = SparseCategoricalCrossentropy()
 
 		self.acc_function_segmentation = CategoricalAccuracy()
-		self.acc_function_discriminator = CategoricalAccuracy()
+		self.acc_function_discriminator = SparseCategoricalAccuracy()
 
 		self.loss_segmentation_train_history = []
 		self.loss_segmentation_val_history = []
