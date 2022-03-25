@@ -7,7 +7,7 @@ import numpy as np
 
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
-from tensorflow.keras.metrics import Accuracy
+from tensorflow.keras.metrics import CategoricalAccuracy
 from tensorflow.keras.models import save_model
 import tensorflow as tf
 
@@ -43,7 +43,7 @@ class Trainer():
 		self.loss_function_segmentation = MaskedBinaryCrossentropy()
 		self.loss_function_discriminator = SparseCategoricalCrossentropy()
 
-		self.acc_function = Accuracy(name = 'accuracy', dtype = None)
+		self.acc_function = CategoricalAccuracy(name = 'accuracy', dtype = None)
 
 		self.loss_segmentation_train_history = []
 		self.loss_segmentation_val_history = []
@@ -85,10 +85,9 @@ class Trainer():
 		gradients = tape.gradient(loss, self.model.trainable_weights)
 		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_weights))
 
-		binary_prediction = tf.math.round(pred_train)
-		acc = float(self.acc_function(y_train, binary_prediction))
+		self.acc_function.update_state(y_train, pred_train)
 		
-		return loss, acc
+		return loss
 
 	@tf.function
 	def _training_step_domain_adaptation(self, inputs, outputs, mask):
@@ -330,8 +329,7 @@ class Trainer():
 			loss_global_train = 0.
 			loss_global_val = 0.
 
-			acc_global_train = 0.
-			acc_global_val = 0.
+			self.acc_function.reset_states()
 
 			np.random.shuffle(self.train_data_dirs)
 			np.random.shuffle(self.val_data_dirs)
@@ -355,19 +353,20 @@ class Trainer():
 				self.optimizer.lr = lr
 				self.learning_rate.append(lr)
 
-				loss_train, acc_train = self._training_step(x_train, y_train)
+				loss_train = self._training_step(x_train, y_train)
 				loss_global_train += float(loss_train)
-				acc_global_train += float(acc_train)
 
 			loss_global_train /= self.num_batches_train
 			self.loss_segmentation_train_history.append(loss_global_train)
 
-			acc_global_train /= self.num_batches_train
+			acc_global_train = float(self.acc_function.result())
 			self.acc_segmentation_train_history.append(acc_global_train)
 
 			print(f'Learning Rate: {lr}')
 			print(f'Training Loss: {loss_global_train}')
 			print(f'Training Accuracy: {acc_global_train}')
+
+			self.acc_function.reset_states()
 
 			# evaluating network
 			print('Start validation...')
@@ -386,14 +385,12 @@ class Trainer():
 				loss_val = self.loss_function(y_val, pred_val)
 
 				loss_global_val += float(loss_val) # convert loss_val to float and sum
-
-				binary_prediction = tf.math.round(pred_val)
-				acc_global_val += float(self.acc_function(y_val, binary_prediction))
+				self.acc_function.update_state(y_val, pred_val)
 
 			loss_global_val /= self.num_batches_val
 			self.loss_segmentation_val_history.append(loss_global_val)
 
-			acc_global_val /= self.num_batches_val
+			acc_global_val = float(self.acc_function.result())
 			self.acc_segmentation_val_history.append(acc_global_val)
 
 			print(f'Validation Loss: {loss_global_val}')
