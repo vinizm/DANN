@@ -114,6 +114,7 @@ class Trainer():
 			y_pred_segmentation = tf.gather(y_pred_segmentation, indices = index_source, axis = 0)
 			y_pred_discriminator = tf.gather(y_pred_discriminator, indices = index_source, axis = 0)
 
+			y_true_discriminator = tf.expand_dims(y_true_discriminator, axis = -1)
 			self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation)
 			self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_segmentation)
 
@@ -309,6 +310,7 @@ class Trainer():
 					y_discriminator_val = tf.gather(y_discriminator_val, indices = index_source, axis = 0)
 					y_discriminator_pred = tf.gather(y_discriminator_pred, indices = index_source, axis = 0)					
 
+					y_discriminator_val = tf.expand_dims(y_discriminator_val, axis = -1)
 					self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred)
 					self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
 
