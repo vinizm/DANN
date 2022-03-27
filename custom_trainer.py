@@ -112,7 +112,7 @@ class Trainer():
 		print(y_true_discriminator)
 		print(y_pred_discriminator)
 		self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = acc_mask)
-		self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_discriminator, sample_weight = acc_mask)
+		self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_discriminator)
 
 		return loss_segmentation, loss_discriminator
 
@@ -315,7 +315,7 @@ class Trainer():
 
 				print(acc_mask)
 				self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = acc_mask)
-				self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred, sample_weight = acc_mask)
+				self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
 
 				loss_segmentation_val += float(loss_segmentation)
 				loss_discriminator_val += float(loss_discriminator)
