@@ -165,7 +165,7 @@ class Trainer():
 		return self._generate_mask(domain, (self.patch_size, self.patch_size))
 
 	def _generate_discriminator_mask(self, domain: int):
-		return self._generate_mask(domain, (1,))
+		return self._generate_mask(domain, (1,)).reshape(-1)
 
 	def train_domain_adaptation(self, patches_dir: list, epochs: int = 25, batch_size: int = 2, val_fraction: float = 0.1,
 								num_images: int = 60, wait: int = 12, rotate: bool = True, flip: bool = True,
