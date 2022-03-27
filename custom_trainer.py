@@ -226,6 +226,7 @@ class Trainer():
 
 			# update learning rate
 			p = epoch / (epochs - 1)
+			print(f'Training Progress: {p}')
 			lr = learning_rate_decay(p)
 			print(f'Learning Rate: {lr}')
 			self.optimizer.lr = lr
