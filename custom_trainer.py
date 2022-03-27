@@ -92,14 +92,14 @@ class Trainer():
 		
 		return loss
 
-	@tf.function
-	def _training_step_domain_adaptation(self, inputs, outputs, mask, index_source):
+	#@tf.function
+	def _training_step_domain_adaptation(self, inputs, outputs, loss_mask, acc_mask):
 
 		y_true_segmentation, y_true_discriminator = outputs
 		with tf.GradientTape(persistent = True) as tape:
 			y_pred_segmentation, y_pred_discriminator = self.model(inputs)
 
-			loss_segmentation = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, mask)
+			loss_segmentation = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, loss_mask)
 			loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
 			loss_global = loss_segmentation + loss_discriminator
 		
@@ -108,18 +108,11 @@ class Trainer():
 
 		del tape
 
-		if len(index_source) > 0:
-			y_true_segmentation = tf.gather(y_true_segmentation, indices = index_source, axis = 0)
-			y_true_discriminator = tf.gather(y_true_discriminator, indices = index_source, axis = 0)
-
-			y_pred_segmentation = tf.gather(y_pred_segmentation, indices = index_source, axis = 0)
-			y_pred_discriminator = tf.gather(y_pred_discriminator, indices = index_source, axis = 0)
-
-			y_true_discriminator = tf.expand_dims(y_true_discriminator, axis = -1)
-			print(y_true_discriminator)
-			print(y_pred_discriminator)
-			self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation)
-			self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_discriminator)
+		y_true_discriminator = tf.expand_dims(y_true_discriminator, axis = -1)
+		print(y_true_discriminator)
+		print(y_pred_discriminator)
+		self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = acc_mask)
+		self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_discriminator, sample_weight = acc_mask)
 
 		return loss_segmentation, loss_discriminator
 
@@ -162,10 +155,17 @@ class Trainer():
 	def _convert_path_to_domain(file_names: list, source_files: list):
 		return np.asarray([0 if file_name in source_files else 1 for file_name in file_names], dtype = 'int32')
 
-	def _generate_domain_mask(self, domain: int):
+	@staticmethod
+	def _generate_mask(domain: int, shape: tuple):
 		if domain == 0:
-			return np.full((self.patch_size, self.patch_size), 1., dtype = 'float32')
-		return np.full((self.patch_size, self.patch_size), 0., dtype = 'float32')
+			return np.full(shape, 1., dtype = 'float32')
+		return np.full(shape, 0., dtype = 'float32')
+
+	def _generate_segmentation_mask(self, domain: int):
+		return self._generate_mask(domain, (self.patch_size, self.patch_size))
+
+	def _generate_discriminator_mask(self, domain: int):
+		return self._generate_mask(domain, (1,))
 
 	def train_domain_adaptation(self, patches_dir: list, epochs: int = 25, batch_size: int = 2, val_fraction: float = 0.1,
 								num_images: int = 60, wait: int = 12, rotate: bool = True, flip: bool = True,
@@ -239,7 +239,6 @@ class Trainer():
 				x_train = batch_images[ :, :, :, : self.channels]
 				y_segmentation_train = batch_images[ :, :, :, self.channels :]
 				y_discriminator_train = self._convert_path_to_domain(batch_train_files, train_data_dirs_source)
-				index_source = np.argwhere(y_discriminator_train == 0).reshape(-1)
 				print(f'Domain: {y_discriminator_train}')
 
 				# update learning rate
@@ -253,8 +252,10 @@ class Trainer():
 				self.lambdas.append(l)
 				l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
 
-				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_discriminator_train])
-				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], mask, index_source)
+				loss_mask = np.asarray([self._generate_segmentation_mask(domain) for domain in y_discriminator_train])
+				acc_mask = np.asarray([self._generate_discriminator_mask(domain) for domain in y_discriminator_train])
+
+				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask)
 				loss_segmentation, loss_discriminator = step_output
 
 				loss_segmentation_train += float(loss_segmentation)
@@ -302,22 +303,17 @@ class Trainer():
 
 				y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
 
-				mask = np.asarray([self._generate_domain_mask(domain) for domain in y_discriminator_val])
-				loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, mask)
-				loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)
+				loss_mask = np.asarray([self._generate_segmentation_mask(domain) for domain in y_discriminator_val])
+				acc_mask = np.asarray([self._generate_discriminator_mask(domain) for domain in y_discriminator_val])
 
-				if len(index_source) > 0:
-					y_segmentation_val = tf.gather(y_segmentation_val, indices = index_source, axis = 0)
-					y_segmentation_pred = tf.gather(y_segmentation_pred, indices = index_source, axis = 0)
+				loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, loss_mask)
+				loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)			
 
-					y_discriminator_val = tf.gather(y_discriminator_val, indices = index_source, axis = 0)
-					y_discriminator_pred = tf.gather(y_discriminator_pred, indices = index_source, axis = 0)					
-
-					y_discriminator_val = tf.expand_dims(y_discriminator_val, axis = -1)
-					print(y_discriminator_val)
-					print(y_discriminator_pred)
-					self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred)
-					self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
+				y_discriminator_val = tf.expand_dims(y_discriminator_val, axis = -1)
+				print(y_discriminator_val)
+				print(y_discriminator_pred)
+				self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = acc_mask)
+				self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred, sample_weight = acc_mask)
 
 				loss_segmentation_val += float(loss_segmentation)
 				loss_discriminator_val += float(loss_discriminator)
