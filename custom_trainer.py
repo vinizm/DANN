@@ -165,7 +165,7 @@ class Trainer():
 		return self._generate_mask(domain, (self.patch_size, self.patch_size))
 
 	def _generate_discriminator_mask(self, domain: int):
-		return self._generate_mask(domain, (1,)).reshape(-1)
+		return self._generate_mask(domain, (1,))
 
 	def train_domain_adaptation(self, patches_dir: list, epochs: int = 25, batch_size: int = 2, val_fraction: float = 0.1,
 								num_images: int = 60, wait: int = 12, rotate: bool = True, flip: bool = True,
@@ -253,7 +253,7 @@ class Trainer():
 				l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
 
 				loss_mask = np.asarray([self._generate_segmentation_mask(domain) for domain in y_discriminator_train])
-				acc_mask = np.asarray([self._generate_discriminator_mask(domain) for domain in y_discriminator_train])
+				acc_mask = np.asarray([self._generate_discriminator_mask(domain) for domain in y_discriminator_train]).reshape(-1)
 
 				print(acc_mask)
 				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask)
@@ -304,7 +304,7 @@ class Trainer():
 				y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
 
 				loss_mask = np.asarray([self._generate_segmentation_mask(domain) for domain in y_discriminator_val])
-				acc_mask = np.asarray([self._generate_discriminator_mask(domain) for domain in y_discriminator_val])
+				acc_mask = np.asarray([self._generate_discriminator_mask(domain) for domain in y_discriminator_val]).reshape(-1)
 
 				loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, loss_mask)
 				loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)			
