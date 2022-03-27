@@ -255,6 +255,7 @@ class Trainer():
 				loss_mask = np.asarray([self._generate_segmentation_mask(domain) for domain in y_discriminator_train])
 				acc_mask = np.asarray([self._generate_discriminator_mask(domain) for domain in y_discriminator_train])
 
+				print(acc_mask)
 				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask)
 				loss_segmentation, loss_discriminator = step_output
 
@@ -298,7 +299,6 @@ class Trainer():
 				x_val = batch_val_images[:, :, :, : self.channels]
 				y_segmentation_val = batch_val_images[:, :, :, self.channels :]
 				y_discriminator_val = self._convert_path_to_domain(batch_val_files, val_data_dirs_source)
-				index_source = np.argwhere(y_discriminator_val == 0).reshape(-1)
 				print(f'Domain: {y_discriminator_val}')
 
 				y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
@@ -312,6 +312,8 @@ class Trainer():
 				y_discriminator_val = tf.expand_dims(y_discriminator_val, axis = -1)
 				print(y_discriminator_val)
 				print(y_discriminator_pred)
+
+				print(acc_mask)
 				self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = acc_mask)
 				self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred, sample_weight = acc_mask)
 
