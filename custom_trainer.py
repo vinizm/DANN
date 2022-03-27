@@ -242,11 +242,13 @@ class Trainer():
 				# update learning rate
 				p = epoch / (epochs - 1)
 				lr = learning_rate_decay(p)
+				print(f'Learning Rate: {lr}')
 				self.optimizer.lr = lr
 				self.learning_rate.append(lr)
 
 				# set lambda value
 				l = lambda_grl(p)
+				print(f'Lambda: {l}')
 				self.lambdas.append(l)
 				l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
 
@@ -270,9 +272,6 @@ class Trainer():
 			
 			acc_discriminator_train = float(self.acc_function_discriminator.result())
 			self.acc_discriminator_train_history.append(acc_discriminator_train)			
-
-			print(f'Learning Rate: {lr}')
-			print(f'Lambda: {l}')
 
 			print(f'Segmentation Loss: {loss_segmentation_train}')
 			print(f'Discriminator Loss: {loss_discriminator_train}')
