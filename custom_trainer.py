@@ -224,6 +224,19 @@ class Trainer():
 			np.random.shuffle(self.train_data_dirs)
 			np.random.shuffle(self.val_data_dirs)
 
+			# update learning rate
+			p = epoch / (epochs - 1)
+			lr = learning_rate_decay(p)
+			print(f'Learning Rate: {lr}')
+			self.optimizer.lr = lr
+			self.learning_rate.append(lr)
+
+			# set lambda value
+			l = lambda_grl(p)
+			print(f'Lambda: {l}')
+			self.lambdas.append(l)
+			l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
+
 			print('Start training...')
 			for batch in range(self.num_batches_train):
 
@@ -238,19 +251,6 @@ class Trainer():
 				y_segmentation_train = batch_images[ :, :, :, self.channels :]
 				y_discriminator_train = self._convert_path_to_domain(batch_train_files, train_data_dirs_source)
 				print(f'Domain: {y_discriminator_train}')
-
-				# update learning rate
-				p = epoch / (epochs - 1)
-				lr = learning_rate_decay(p)
-				print(f'Learning Rate: {lr}')
-				self.optimizer.lr = lr
-				self.learning_rate.append(lr)
-
-				# set lambda value
-				l = lambda_grl(p)
-				print(f'Lambda: {l}')
-				self.lambdas.append(l)
-				l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
 
 				loss_mask = np.asarray([self._generate_segmentation_mask(domain) for domain in y_discriminator_train])
 				acc_mask = np.asarray([self._generate_discriminator_mask(domain) for domain in y_discriminator_train]).reshape(-1)
