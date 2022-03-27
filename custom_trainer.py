@@ -124,7 +124,7 @@ class Trainer():
 		return data_dirs
 
 	def compile_model(self, show_summary: bool = True):
-		self.model.compile(optimizer = self.optimizer, loss = 'binary_crossentropy', metrics = ['accuracy'])
+		self.model.compile(optimizer = self.optimizer)
 
 		if show_summary:
 			self.model.summary()
