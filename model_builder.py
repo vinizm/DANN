@@ -133,6 +133,13 @@ class DomainAdaptationModel(Model):
         self.gradient_reversal_layer = GradientReversalLayer()
         self.domain_discriminator = DomainDiscriminator(units = 1024)
 
+        self.input_layer = Input(shape = input_shape)
+        self.lambdas = Input(shape = (1,))
+        self.output_layer = self.call([self.input_layer, self.lambdas])
+
+        # reinitial
+        super(DomainAdaptationModel, self).__init__(inputs = [self.input_layer, self.lambdas], outputs = self.output_layer, **kwargs)
+
     def call(self, inputs):
         x, l = inputs
 
@@ -141,6 +148,13 @@ class DomainAdaptationModel(Model):
         domain_branch = self.domain_discriminator(domain_branch)
 
         return segmentation, domain_branch
+
+    def get_config(self):
+        config = super(DomainAdaptationModel, self).get_config()
+        return config
+
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def SepConv_BN(x, filters, prefix, stride = 1, kernel_size = 3, rate = 1, depth_activation = False, epsilon = 1e-3):
