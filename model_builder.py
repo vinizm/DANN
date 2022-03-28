@@ -156,6 +156,7 @@ class DomainAdaptationModel(Model):
 
     def get_config(self):
         config = super(DomainAdaptationModel, self).get_config()
+        config.update({'input_dims': self.input_dims})
         return config
 
     def from_config(cls, config):
