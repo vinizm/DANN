@@ -65,7 +65,7 @@ def preprocess_images(dataset: str, test_index: list = None, resample: bool = Fa
     patches_test = np.concatenate((patches_rlm_test, patches_ref_test_onehot), axis = 3)
 
     print(f'train patches: {patches_train.shape}')
-    print(f'train patches: {patches_test.shape}')
+    print(f'test patches: {patches_test.shape}')
 
     save_arrays(patches_train, f'./processed_images/{dataset}_stride{stride_train}_Train/',
                 suffix = '', ext = '.npy', clean_all = True)
