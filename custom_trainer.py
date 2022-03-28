@@ -14,7 +14,7 @@ from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
 from utils.hyperparameters import learning_rate_decay, lambda_grl
 from utils.loss_functions import MaskedBinaryCrossentropy
-from model_builder import DeepLabV3Plus, DeepLabV3PlusDomainAdaptation
+from model_builder import DeepLabV3Plus, DomainAdaptationModel
 
 
 class Trainer():
@@ -30,7 +30,7 @@ class Trainer():
 		self.domain_adaptation = domain_adaptation
 
 		if self.domain_adaptation:
-			self.model = DeepLabV3PlusDomainAdaptation(input_shape = (patch_size, patch_size, channels), num_class = num_class,
+			self.model = DomainAdaptationModel(input_shape = (patch_size, patch_size, channels), num_class = num_class,
 						 output_stride = output_stride, activation = 'softmax')
 		else:
 			self.model = DeepLabV3Plus(input_shape = (patch_size, patch_size, channels), num_class = num_class,
@@ -92,7 +92,7 @@ class Trainer():
 		
 		return loss
 
-	@tf.function
+	#@tf.function
 	def _training_step_domain_adaptation(self, inputs, outputs, loss_mask, acc_mask):
 
 		y_true_segmentation, y_true_discriminator = outputs
@@ -103,8 +103,13 @@ class Trainer():
 			loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
 			loss_global = loss_segmentation + loss_discriminator
 		
-		gradients = tape.gradient(loss_global, self.model.trainable_weights)
-		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_weights))
+		gradients_segmentation = tape.gradient(loss_global, self.model.main_network.trainable_weights)
+		self.optimizer.apply_gradients(zip(gradients_segmentation, self.model.main_network.trainable_weights))
+
+		gradients_discriminator = tape.gradient(loss_discriminator, self.model.domain_discriminator.trainable_weights)
+		self.optimizer.apply_gradients(zip(gradients_discriminator, self.model.domain_discriminator.trainable_weights))
+
+		print(tape.gradient(loss_segmentation, self.model.domain_discriminator.trainable_weights))
 
 		del tape
 
