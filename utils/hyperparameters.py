@@ -16,6 +16,7 @@ def learning_rate_decay(p: float):
 	return LR0 / ((1 + ALPHA * (p - LR_WARMUP)) ** BETA)
 
 def lambda_grl(p: float):
-	if p <= LAMBDA_WARMUP:
-		return 0.
-	return (2 / (1 + np.exp(- GAMMA * (p - LAMBDA_WARMUP)))) - 1
+	# if p <= LAMBDA_WARMUP:
+	# 	return 0.
+	# return (2 / (1 + np.exp(- GAMMA * (p - LAMBDA_WARMUP)))) - 1
+	return 0.
