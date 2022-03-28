@@ -132,7 +132,7 @@ class DomainAdaptationModel(Model):
                                           activation = activation, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
 
-        inputs = Input(shape = self.main_network.outputs[1].shape)
+        inputs = Input(shape = self.main_network.outputs[1].shape[1 :])
         outputs = DomainDiscriminator(units = 1024)(inputs)
         self.domain_discriminator = Model(inputs = inputs, outputs = outputs)
 
