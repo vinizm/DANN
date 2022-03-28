@@ -133,14 +133,11 @@ class DomainAdaptationModel(Model):
         self.gradient_reversal_layer = GradientReversalLayer()
         self.domain_discriminator = DomainDiscriminator(units = 1024)
 
-        self.input_layer = Input(shape = input_shape)
-        self.lambdas = Input(shape = (1,))
-        self.output_layer = self.call([self.input_layer, self.lambdas])
+        input_shape_discriminator = self.main_network.outputs[1].shape
+        self.domain_discriminator.build(input_shape = input_shape_discriminator)
+        self.domain_discriminator.call(Input(shape = input_shape_discriminator))
 
-        # reinitial
-        super(DomainAdaptationModel, self).__init__(inputs = [self.input_layer, self.lambdas], outputs = self.output_layer, **kwargs)
-
-    def call(self, inputs, training = None):
+    def call(self, inputs):
         x, l = inputs
 
         segmentation, domain_branch = self.main_network(x)
@@ -361,13 +358,13 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
 
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
     x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1e-5)(x)
-    x = Activation('relu')(x)
-    classifier_spot = Dropout(0.1)(x)
+    classifier_spot = Activation('relu')(x)
+    x = Dropout(0.1)(classifier_spot)
 
     # DeepLabv3+ decoder
     # feature projection
-    size_before_2 = K.int_shape(classifier_spot)
-    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(classifier_spot)
+    size_before_2 = K.int_shape(x)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(x)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
     dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-5)(dec_skip_1)
