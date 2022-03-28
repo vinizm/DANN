@@ -128,7 +128,7 @@ class DomainAdaptationModel(Model):
                  activation: str = 'softmax', **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
-        self.input_shape = input_shape
+        self.shape = input_shape
 
         self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
                                           activation = activation, domain_adaptation = True)
