@@ -109,7 +109,7 @@ class Trainer():
 		gradients_discriminator = tape.gradient(loss_discriminator, self.model.domain_discriminator.trainable_weights)
 		self.optimizer.apply_gradients(zip(gradients_discriminator, self.model.domain_discriminator.trainable_weights))
 
-		print(tape.gradient(loss_segmentation, self.model.domain_discriminator.trainable_weights))
+		print(gradients_discriminator)
 
 		del tape
 
