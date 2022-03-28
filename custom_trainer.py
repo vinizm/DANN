@@ -96,6 +96,7 @@ class Trainer():
 	def _training_step_domain_adaptation(self, inputs, outputs, loss_mask, acc_mask):
 
 		y_true_segmentation, y_true_discriminator = outputs
+		print('oi')
 		with tf.GradientTape(persistent = True) as tape:
 			y_pred_segmentation, y_pred_discriminator = self.model(inputs)
 
