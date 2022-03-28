@@ -128,16 +128,13 @@ class DomainAdaptationModel(Model):
                  activation: str = 'softmax', **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
-        self.shape = input_shape
-
         self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
                                           activation = activation, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
-        self.domain_discriminator = DomainDiscriminator(units = 1024)
 
-        input_shape_discriminator = self.main_network.outputs[1].shape
-        self.domain_discriminator.build(input_shape = input_shape_discriminator)
-        self.domain_discriminator.call(Input(shape = input_shape_discriminator))
+        inputs = Input(shape = self.main_network.outputs[1].shape)
+        outputs = DomainDiscriminator(units = 1024)(inputs)
+        self.domain_discriminator = Model(inputs = inputs, outputs = outputs)
 
     def call(self, inputs):
         x, l = inputs
