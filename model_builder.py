@@ -147,6 +147,13 @@ class DomainAdaptationModel(Model):
 
         return segmentation, domain_branch
 
+    def summary(self):
+        input_1 = Input(shape = self.input_dims)
+        input_2 = Input(shape = (1,))
+        inputs = [input_1, input_2]
+        model = Model(inputs = inputs, outputs = self.call(inputs))
+        model.summary()
+
     def get_config(self):
         config = super(DomainAdaptationModel, self).get_config()
         return config
