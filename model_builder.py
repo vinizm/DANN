@@ -140,7 +140,7 @@ class DomainAdaptationModel(Model):
         # reinitial
         super(DomainAdaptationModel, self).__init__(inputs = [self.input_layer, self.lambdas], outputs = self.output_layer, **kwargs)
 
-    def call(self, inputs):
+    def call(self, inputs, training = None):
         x, l = inputs
 
         segmentation, domain_branch = self.main_network(x)
