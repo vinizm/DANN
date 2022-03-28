@@ -92,7 +92,7 @@ class Trainer():
 		
 		return loss
 
-	#@tf.function
+	@tf.function
 	def _training_step_domain_adaptation(self, inputs, outputs, loss_mask, acc_mask):
 
 		y_true_segmentation, y_true_discriminator = outputs
@@ -108,8 +108,6 @@ class Trainer():
 
 		gradients_discriminator = tape.gradient(loss_discriminator, self.model.domain_discriminator.trainable_weights)
 		self.optimizer.apply_gradients(zip(gradients_discriminator, self.model.domain_discriminator.trainable_weights))
-
-		print(gradients_discriminator)
 
 		del tape
 
