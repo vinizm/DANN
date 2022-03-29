@@ -128,35 +128,26 @@ class DomainAdaptationModel(Model):
                  activation: str = 'softmax', **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
-        self.input_dims = input_shape
-
+        self.inputs = [Input(shape = input_shape), Input(shape = (1,))]
+        
         self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
                                           activation = activation, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
+        self.domain_discriminator = DomainDiscriminator(units = 1024)
 
-        inputs = Input(shape = self.main_network.outputs[1].shape[1 :])
-        outputs = DomainDiscriminator(units = 1024)(inputs)
-        self.domain_discriminator = Model(inputs = inputs, outputs = outputs)
+        self.outputs = self.call(self.inputs)
 
     def call(self, inputs):
         x, l = inputs
 
-        segmentation, domain_branch = self.main_network(x)
-        domain_branch = self.gradient_reversal_layer([domain_branch, l])
-        domain_branch = self.domain_discriminator(domain_branch)
+        segmentation_output, discriminator_input = self.main_network(x)
+        grl_output = self.gradient_reversal_layer([discriminator_input, l])
+        discriminator_output = self.domain_discriminator(grl_output)
 
-        return segmentation, domain_branch
-
-    def summary(self):
-        input_1 = Input(shape = self.input_dims)
-        input_2 = Input(shape = (1,))
-        inputs = [input_1, input_2]
-        model = Model(inputs = inputs, outputs = self.call(inputs))
-        model.summary()
+        return segmentation_output, discriminator_output
 
     def get_config(self):
         config = super(DomainAdaptationModel, self).get_config()
-        config.update({'input_dims': self.input_dims})
         return config
 
     def from_config(cls, config):
@@ -419,4 +410,13 @@ def DeepLabV3PlusDomainAdaptation(input_shape: tuple = (512, 512, 1), num_class:
     outputs = raw_model([img_input, lambda_input])
 
     model = Model(inputs = [img_input, lambda_input], outputs = outputs)
+    return model
+
+
+def DomainDiscriminatorFunctional(input_shape: tuple, units = 1024):
+    img_input = Input(shape = input_shape)
+
+    outputs = DomainDiscriminator(units = units)(img_input)
+    model = Model(inputs = img_input, outputs = outputs)
+
     return model
