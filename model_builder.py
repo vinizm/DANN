@@ -128,21 +128,22 @@ class DomainAdaptationModel(Model):
                  activation: str = 'softmax', **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
-        self.inputs = [Input(shape = input_shape), Input(shape = (1,))]
-        
         self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
-                                          activation = activation, domain_adaptation = True)
+                            activation = activation, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
         self.domain_discriminator = DomainDiscriminator(units = 1024)
 
+        self.inputs = [Input(shape = input_shape), Input(shape = (1,))]
         self.outputs = self.call(self.inputs)
+
+        self.build()
 
     def call(self, inputs):
         x, l = inputs
 
-        segmentation_output, discriminator_input = self.main_network(x)
-        grl_output = self.gradient_reversal_layer([discriminator_input, l])
-        discriminator_output = self.domain_discriminator(grl_output)
+        segmentation_output, x = self.main_network(x)
+        x = self.gradient_reversal_layer([x, l])
+        discriminator_output = self.domain_discriminator(x)
 
         return segmentation_output, discriminator_output
 
@@ -152,6 +153,10 @@ class DomainAdaptationModel(Model):
 
     def from_config(cls, config):
         return cls(**config)
+
+    def build(self):
+        super(DomainAdaptationModel, self).build(self.inputs.shape if tf.is_tensor(self.inputs) else self.inputs)
+        self.call(self.inputs)
 
 
 def SepConv_BN(x, filters, prefix, stride = 1, kernel_size = 3, rate = 1, depth_activation = False, epsilon = 1e-3):
