@@ -65,8 +65,15 @@ class Trainer():
 		self.best_model = None
 
 		self.patches_dir = None
-		self.train_data_dirs = None
-		self.val_data_dirs = None
+		self.train_data_dirs = []
+		self.val_data_dirs = []
+
+		self.train_data_dirs_source = []
+		self.val_data_dirs_source = []
+
+		self.train_data_dirs_target = []
+		self.val_data_dirs_target = []
+
 		self.val_fraction = 0.1
 		self.batch_size = 2
 		self.num_images = 60
@@ -168,19 +175,16 @@ class Trainer():
 	def _generate_discriminator_mask(self, domain: int):
 		return self._generate_mask(domain, (1,))
 
-	def train_domain_adaptation(self, patches_dir: list, epochs: int = 25, batch_size: int = 2, val_fraction: float = 0.1,
-								num_images: int = 60, wait: int = 12, rotate: bool = True, flip: bool = True,
-								persist_best_model: bool = True):
+	def preprocess_images(self, patches_dir: list, batch_size: int = 2, val_fraction: float = 0.1,
+						  num_images: int = 60, rotate: bool = True, flip: bool = True):
 
 		self.patches_dir = patches_dir # list: [source, target]
 		self.val_fraction = val_fraction
 		self.batch_size = batch_size
 		self.num_images = num_images
-		self.epochs = epochs
-		self.wait = wait
 		self.rotate = rotate
 		self.flip = flip
-
+	
 		# loading source dataset
 		data_dirs_source = self._load_file_names(self.patches_dir[0])
 		# loading target dataset
@@ -192,12 +196,12 @@ class Trainer():
 		train_data_dirs_target, val_data_dirs_target = self._split_file_list(data_dirs_target)
 
 		# augment source images
-		train_data_dirs_source = self._augment_images(train_data_dirs_source)
-		val_data_dirs_source = self._augment_images(val_data_dirs_source)
+		self.train_data_dirs_source = self._augment_images(train_data_dirs_source)
+		self.val_data_dirs_source = self._augment_images(val_data_dirs_source)
 
 		# augment target images
-		train_data_dirs_target = self._augment_images(train_data_dirs_target)
-		val_data_dirs_target = self._augment_images(val_data_dirs_target)
+		self.train_data_dirs_target = self._augment_images(train_data_dirs_target)
+		self.val_data_dirs_target = self._augment_images(val_data_dirs_target)
 
 		# merge databases
 		self.train_data_dirs = train_data_dirs_source + train_data_dirs_target
@@ -212,6 +216,11 @@ class Trainer():
 		self.num_batches_val = self._calculate_batch_size(self.val_data_dirs)
 		print(f'num. of batches for training: {self.num_batches_train}')
 		print(f'num. of batches for validation: {self.num_batches_val}')
+
+	def train_domain_adaptation(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True):
+
+		self.epochs = epochs
+		self.wait = wait
 
 		for epoch in range(self.epochs):
 			print(f'Epoch {epoch + 1} of {self.epochs}')
@@ -253,7 +262,7 @@ class Trainer():
 
 				x_train = batch_images[ :, :, :, : self.channels]
 				y_segmentation_train = batch_images[ :, :, :, self.channels :]
-				y_discriminator_train = self._convert_path_to_domain(batch_train_files, train_data_dirs_source)
+				y_discriminator_train = self._convert_path_to_domain(batch_train_files, self.train_data_dirs_source)
 				print(f'Domain: {y_discriminator_train}')
 
 				loss_mask = np.asarray([self._generate_segmentation_mask(domain) for domain in y_discriminator_train])
@@ -298,7 +307,7 @@ class Trainer():
 
 				x_val = batch_val_images[:, :, :, : self.channels]
 				y_segmentation_val = batch_val_images[:, :, :, self.channels :]
-				y_discriminator_val = self._convert_path_to_domain(batch_val_files, val_data_dirs_source)
+				y_discriminator_val = self._convert_path_to_domain(batch_val_files, self.val_data_dirs_source)
 				print(f'Domain: {y_discriminator_val}')
 
 				y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
