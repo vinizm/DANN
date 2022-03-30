@@ -483,11 +483,32 @@ class Trainer():
 		print('Model saved successfuly')
 		
 	def save_info(self, history_path):
-		persist = {'history':{'training':{'loss': self.loss_segmentation_train_history,
-							  			  'accuracy': self.acc_segmentation_train_history},
-							  'validation':{'loss': self.loss_segmentation_val_history,
-							  				'accuracy': self.acc_segmentation_val_history}},
-				   'image_files':{'training': self.train_data_dirs,
-								  'validation': self.val_data_dirs}}
+		persist = {
+				'history':{
+					'training':{
+						'loss':{
+							'segmentation': self.loss_segmentation_train_history,
+							'discriminator': self.loss_discriminator_train_history},
+						'accuracy':{
+							'segmentation': self.acc_segmentation_train_history,
+							'discriminator': self.acc_discriminator_train_history}},
+					'validation':{
+						'loss':{
+							'segmentation': self.loss_segmentation_val_history,
+							'discriminator': self.loss_discriminator_val_history},
+						'accuracy':{
+							'segmentation': self.acc_segmentation_val_history,
+							'discriminator': self.acc_discriminator_val_history}}},
+				'image_files':{
+					'training':{
+						'total': self.train_data_dirs,
+						'source': self.train_data_dirs_source,
+				   		'target': self.train_data_dirs_target},
+					'validation':{
+						'total': self.val_data_dirs,
+						'source': self.val_data_dirs_source,
+						'target': self.val_data_dirs_target}},
+				'is_domain_adaptation': self.domain_adaptation}
+
 		save_json(persist, history_path) # save metrics and parameters
 		print('Metrics saved successfuly')
