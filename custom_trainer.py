@@ -36,7 +36,8 @@ class Trainer():
 			self.model = DeepLabV3Plus(input_shape = (patch_size, patch_size, channels), num_class = num_class,
 						 output_stride = output_stride, activation = 'softmax', domain_adaptation = False)
 		
-		self.optimizer = Adam(learning_rate = learning_rate)
+		self.optimizer_segmentation = Adam(learning_rate = learning_rate)
+		self.optimizer_discriminator = Adam(learning_rate = 2.e-3)
 		
 		self.loss_function = BinaryCrossentropy()
 		self.loss_function_segmentation = MaskedBinaryCrossentropy()
@@ -93,7 +94,7 @@ class Trainer():
 			loss = self.loss_function(y_train, pred_train)
 		
 		gradients = tape.gradient(loss, self.model.trainable_weights)
-		self.optimizer.apply_gradients(zip(gradients, self.model.trainable_weights))
+		self.optimizer_segmentation.apply_gradients(zip(gradients, self.model.trainable_weights))
 
 		self.acc_function_segmentation.update_state(y_train, pred_train)
 		
@@ -111,10 +112,10 @@ class Trainer():
 			loss_global = loss_segmentation + loss_discriminator
 		
 		gradients_segmentation = tape.gradient(loss_global, self.model.main_network.trainable_weights)
-		self.optimizer.apply_gradients(zip(gradients_segmentation, self.model.main_network.trainable_weights))
+		self.optimizer_segmentation.apply_gradients(zip(gradients_segmentation, self.model.main_network.trainable_weights))
 
 		gradients_discriminator = tape.gradient(loss_discriminator, self.model.domain_discriminator.trainable_weights)
-		self.optimizer.apply_gradients(zip(gradients_discriminator, self.model.domain_discriminator.trainable_weights))
+		self.optimizer_discriminator.apply_gradients(zip(gradients_discriminator, self.model.domain_discriminator.trainable_weights))
 
 		del tape
 
@@ -134,7 +135,7 @@ class Trainer():
 		return data_dirs
 
 	def compile_model(self, show_summary: bool = True):
-		self.model.compile(optimizer = self.optimizer)
+		self.model.compile(optimizer = self.optimizer_segmentation)
 
 		if show_summary:
 			self.model.summary()
@@ -241,7 +242,7 @@ class Trainer():
 			print(f'Training Progress: {p}')
 			lr = learning_rate_decay(p)
 			print(f'Learning Rate: {lr}')
-			self.optimizer.lr = lr
+			self.optimizer_segmentation.lr = lr
 			self.learning_rate.append(lr)
 
 			# set lambda value
@@ -410,7 +411,7 @@ class Trainer():
 				# update learning rate
 				p = epoch / (epochs - 1)
 				lr = learning_rate_decay(p)
-				self.optimizer.lr = lr
+				self.optimizer_segmentation.lr = lr
 				self.learning_rate.append(lr)
 
 				loss_train = self._training_step(x_train, y_train)
