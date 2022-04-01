@@ -120,10 +120,6 @@ class Trainer():
 		del tape
 
 		y_true_discriminator = tf.expand_dims(y_true_discriminator, axis = -1)
-
-		print(f'true: {y_true_discriminator}')
-		print(f'pred: {y_pred_discriminator}')
-
 		self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = acc_mask)
 		self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_discriminator)
 
@@ -325,8 +321,6 @@ class Trainer():
 
 				y_discriminator_val = tf.expand_dims(y_discriminator_val, axis = -1)
 
-				print(f'true: {y_discriminator_val}')
-				print(f'pred: {y_discriminator_pred}')
 				self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = acc_mask)
 				self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
 
