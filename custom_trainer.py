@@ -101,7 +101,7 @@ class Trainer():
 		
 		return loss
 
-	#@tf.function
+	@tf.function
 	def _training_step_domain_adaptation(self, inputs, outputs, loss_mask, acc_mask):
 
 		y_true_segmentation, y_true_discriminator = outputs
