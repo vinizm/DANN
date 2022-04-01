@@ -37,7 +37,7 @@ class Trainer():
 						 output_stride = output_stride, activation = 'softmax', domain_adaptation = False)
 		
 		self.optimizer_segmentation = Adam(learning_rate = learning_rate)
-		self.optimizer_discriminator = Adam(learning_rate = 2.e-3)
+		self.optimizer_discriminator = Adam(learning_rate = learning_rate)
 		
 		self.loss_function = BinaryCrossentropy()
 		self.loss_function_segmentation = MaskedBinaryCrossentropy()
@@ -59,6 +59,7 @@ class Trainer():
 		self.acc_discriminator_val_history = []		
 
 		self.learning_rate = []
+		self.learning_rate_2 = []
 		self.lambdas = []
 
 		self.no_improvement_count = 0
@@ -245,6 +246,10 @@ class Trainer():
 			self.optimizer_segmentation.lr = lr
 			self.learning_rate.append(lr)
 
+			lr_2 = 10 ** (-1 * (3 * p + 4))
+			self.optimizer_discriminator.lr = lr_2
+			self.learning_rate_2.append(lr_2)
+
 			# set lambda value
 			l = lambda_grl(p)
 			print(f'Lambda: {l}')
@@ -320,7 +325,6 @@ class Trainer():
 				loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)			
 
 				y_discriminator_val = tf.expand_dims(y_discriminator_val, axis = -1)
-
 				self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = acc_mask)
 				self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
 
