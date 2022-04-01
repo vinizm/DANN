@@ -100,7 +100,7 @@ class Trainer():
 		
 		return loss
 
-	@tf.function
+	#@tf.function
 	def _training_step_domain_adaptation(self, inputs, outputs, loss_mask, acc_mask):
 
 		y_true_segmentation, y_true_discriminator = outputs
@@ -120,6 +120,10 @@ class Trainer():
 		del tape
 
 		y_true_discriminator = tf.expand_dims(y_true_discriminator, axis = -1)
+
+		print(f'true: {y_true_discriminator}')
+		print(f'pred: {y_pred_discriminator}')
+
 		self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = acc_mask)
 		self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_discriminator)
 
