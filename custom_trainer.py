@@ -247,6 +247,7 @@ class Trainer():
 			self.learning_rate.append(lr)
 
 			lr_2 = 10 ** (-1 * (3 * p + 4))
+			print(f'Learning Rate 2: {lr_2}')
 			self.optimizer_discriminator.lr = lr_2
 			self.learning_rate_2.append(lr_2)
 
