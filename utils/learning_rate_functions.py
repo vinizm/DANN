@@ -51,24 +51,49 @@ class LearningRateStepDecay(AbstractLearningRate):
 
                 return self.lr0 / (self.decay ** (i - 1))
 
-# linear decay
+class LearningRateLinear(AbstractLearningRate):
 
-# exponential growth
+    def __init__(self, start: float = 1e-4, stop: float = 1e-2):
 
-# linear growth
+        self.start = start
+        self.stop = stop
 
-# step growth
+        self.a = stop - start
+        self.b = start
+
+    def calculate(self, p: float):
+        return self.a * p + self.b
+
+class LearningRateLog(AbstractLearningRate):
+
+    def __init__(self, start: float = -4., stop: float = -2.):
+
+        self.start = start
+        self.stop = stop
+
+        self.a = stop - start
+        self.b = start
+
+    def calculate(self, p: float):
+        return 10 ** (self.a * p + self.b)
+
 
 class LearningRateFactory:
 
     @staticmethod
-    def get_function(name: str, **kargs):
+    def get_function(name: str, **kwargs):
 
         if name == 'constant':
-            return LearningRateConstant(**kargs)
+            return LearningRateConstant(**kwargs)
 
         elif name == 'exp_decay':
-            return LearningRateExpDecay(**kargs)
+            return LearningRateExpDecay(**kwargs)
 
-        elif name == 'step_decay':
-            return LearningRateStepDecay(**kargs)
+        elif name == 'step':
+            return LearningRateStepDecay(**kwargs)
+
+        elif name == 'linear':
+            return LearningRateLinear(**kwargs)
+
+        elif name == 'log':
+            return LearningRateLog(**kwargs)
