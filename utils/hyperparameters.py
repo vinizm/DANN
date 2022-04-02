@@ -9,11 +9,9 @@ LR0 = 5e-4
 ALPHA = 5.
 BETA = 0.75
 GAMMA = 10.
+STEP_DECAY = 2.
+NUM_STEPS = 3
 
-def learning_rate_decay(p: float):
-	if p <= LR_WARMUP:
-		return LR0
-	return LR0 / ((1 + ALPHA * (p - LR_WARMUP)) ** BETA)
 
 def lambda_grl(p: float):
 	# if p <= LAMBDA_WARMUP:
