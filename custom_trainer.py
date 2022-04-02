@@ -395,8 +395,7 @@ class Trainer():
 					print('[!] Performing early stopping.')
 					break
 
-	def train(self, patches_dir: str, epochs: int = 25, batch_size: int = 2, val_fraction: float = 0.1, num_images: int = 60,
-			  wait: int = 12, rotate: bool = True, flip: bool = True, persist_best_model: bool = True):
+	def train(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True):
 
 		self.epochs = epochs
 		self.wait = wait
