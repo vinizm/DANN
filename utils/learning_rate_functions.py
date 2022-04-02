@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
-from utils.hyperparameters import LR_WARMUP, LR0, ALPHA, BETA, STEP_DECAY, NUM_STEPS
+from utils.hyperparameters import *
 
 
 class AbstractLearningRate(ABC):
@@ -53,7 +53,7 @@ class LearningRateStepDecay(AbstractLearningRate):
 
 class LearningRateLinear(AbstractLearningRate):
 
-    def __init__(self, start: float = 1e-4, stop: float = 1e-2):
+    def __init__(self, start: float = LR_START_LINEAR, stop: float = LR_STOP_LINEAR):
 
         self.start = start
         self.stop = stop
@@ -66,7 +66,7 @@ class LearningRateLinear(AbstractLearningRate):
 
 class LearningRateLog(AbstractLearningRate):
 
-    def __init__(self, start: float = -4., stop: float = -2.):
+    def __init__(self, start: float = LR_START_LOG, stop: float = LR_STOP_LOG):
 
         self.start = start
         self.stop = stop

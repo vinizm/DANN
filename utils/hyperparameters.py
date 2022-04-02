@@ -9,8 +9,15 @@ LR0 = 5e-4
 ALPHA = 5.
 BETA = 0.75
 GAMMA = 10.
+
 STEP_DECAY = 2.
 NUM_STEPS = 3
+
+LR_START_LOG = -4.
+LR_STOP_LOG = -2.
+
+LR_START_LINEAR = 10 ** LR_START_LOG
+LR_STOP_LINEAR = 10 ** LR_STOP_LOG
 
 
 def lambda_grl(p: float):
