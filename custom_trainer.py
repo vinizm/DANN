@@ -410,6 +410,13 @@ class Trainer():
 			np.random.shuffle(self.train_data_dirs)
 			np.random.shuffle(self.val_data_dirs)
 
+			# update learning rate
+			p = epoch / (epochs - 1)
+			lr = self.lr_function_segmentation.calculate(p)
+			self.optimizer_segmentation.lr = lr
+			self.lr_segmentation_history.append(lr)
+			print(f'Learning Rate: {lr}')
+
 			print('Start training...')
 			for batch in range(self.num_batches_train):
 
@@ -423,12 +430,6 @@ class Trainer():
 				x_train = batch_images[ :, :, :, : self.channels]
 				y_train = batch_images[ :, :, :, self.channels :]
 
-				# update learning rate
-				p = epoch / (epochs - 1)
-				lr = self.lr_function_segmentation.calculate(p)
-				self.optimizer_segmentation.lr = lr
-				self.lr_segmentation_history.append(lr)
-
 				loss_train = self._training_step(x_train, y_train)
 				loss_global_train += float(loss_train)
 
@@ -438,7 +439,6 @@ class Trainer():
 			acc_global_train = float(self.acc_function_segmentation.result())
 			self.acc_segmentation_train_history.append(acc_global_train)
 
-			print(f'Learning Rate: {lr}')
 			print(f'Training Loss: {loss_global_train}')
 			print(f'Training Accuracy: {acc_global_train}')
 
