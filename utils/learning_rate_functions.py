@@ -51,6 +51,14 @@ class LearningRateStepDecay(AbstractLearningRate):
 
                 return self.lr0 / (self.decay ** (i - 1))
 
+# linear decay
+
+# exponential growth
+
+# linear growth
+
+# step growth
+
 class LearningRateFactory:
 
     @staticmethod
@@ -59,8 +67,8 @@ class LearningRateFactory:
         if name == 'constant':
             return LearningRateConstant(**kargs)
 
-        elif name == 'exponential':
+        elif name == 'exp_decay':
             return LearningRateExpDecay(**kargs)
 
-        elif name == 'step':
+        elif name == 'step_decay':
             return LearningRateStepDecay(**kargs)
