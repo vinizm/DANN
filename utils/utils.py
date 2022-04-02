@@ -138,7 +138,7 @@ def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.np
 	count = 0
 	for i in range(images.shape[0]):
 		img = images[i, :, :, :]
-		file_name = f'{i + 1:03}{suffix}{ext}'
+		file_name = f'{i + 1:04}{suffix}{ext}'
 		full_file_name = os.path.join(path_to_folder, file_name)
 		
 		savior = _saviors.get(ext)
