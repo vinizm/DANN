@@ -12,21 +12,20 @@ import tensorflow as tf
 
 from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
-from utils.hyperparameters import learning_rate_decay, lambda_grl
+from utils.hyperparameters import lambda_grl
 from utils.loss_functions import MaskedBinaryCrossentropy
+from utils.learning_rate_functions import LearningRateFactory as lrf
 from model_builder import DomainAdaptationModel, DeepLabV3Plus
 
 
 class Trainer():
 
-	def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8,
-				 learning_rate: float = LR0, domain_adaptation: bool = False):
+	def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8, domain_adaptation: bool = False):
 
 		self.patch_size = patch_size
 		self.channels = channels
 		self.num_class = num_class
 		self.output_stride = output_stride
-		self.learning_rate = learning_rate
 		self.domain_adaptation = domain_adaptation
 
 		if self.domain_adaptation:
@@ -36,9 +35,13 @@ class Trainer():
 			self.model = DeepLabV3Plus(input_shape = (patch_size, patch_size, channels), num_class = num_class,
 						 output_stride = output_stride, activation = 'softmax', domain_adaptation = False)
 		
-		self.optimizer_segmentation = Adam(learning_rate = learning_rate)
-		self.optimizer_discriminator = Adam(learning_rate = learning_rate)
+		self.optimizer_segmentation = Adam()
+		self.optimizer_discriminator = Adam()
 		
+		lr_factory = lrf()
+		self.lr_function_segmentation = lr_factory.get_function('exp_decay')
+		self.lr_function_discriminator = lr_factory.get_function('exp_decay')
+
 		self.loss_function = BinaryCrossentropy()
 		self.loss_function_segmentation = MaskedBinaryCrossentropy()
 		self.loss_function_discriminator = SparseCategoricalCrossentropy()
@@ -58,8 +61,8 @@ class Trainer():
 		self.acc_discriminator_train_history = []
 		self.acc_discriminator_val_history = []		
 
-		self.learning_rate = []
-		self.learning_rate_2 = []
+		self.lr_segmentation_history = []
+		self.lr_discriminator_history = []
 		self.lambdas = []
 
 		self.no_improvement_count = 0
@@ -177,8 +180,8 @@ class Trainer():
 	def _generate_discriminator_mask(self, domain: int):
 		return self._generate_mask(domain, (1,))
 
-	def preprocess_images(self, patches_dir: list, batch_size: int = 2, val_fraction: float = 0.1,
-						  num_images: int = 60, rotate: bool = True, flip: bool = True):
+	def preprocess_images_domain_adaptation(self, patches_dir: list, batch_size: int = 2, val_fraction: float = 0.1,
+		num_images: int = 60, rotate: bool = True, flip: bool = True):
 
 		self.patches_dir = patches_dir # list: [source, target]
 		self.val_fraction = val_fraction
@@ -216,6 +219,34 @@ class Trainer():
 		# compute number of batches
 		self.num_batches_train = self._calculate_batch_size(self.train_data_dirs)
 		self.num_batches_val = self._calculate_batch_size(self.val_data_dirs)
+
+		print(f'num. of batches for training: {self.num_batches_train}')
+		print(f'num. of batches for validation: {self.num_batches_val}')
+
+	def preprocess_images(self, patches_dir: str, batch_size: int = 2, val_fraction: float = 0.1,
+		num_images: int = 60, rotate: bool = True, flip: bool = True):
+
+		self.patches_dir = patches_dir
+		self.val_fraction = val_fraction
+		self.batch_size = batch_size
+		self.num_images = num_images
+		self.rotate = rotate
+		self.flip = flip
+	
+		# loading dataset
+		data_dirs = self._load_file_names(self.patches_dir)
+
+		# define files for validation
+		self.train_data_dirs, self.val_data_dirs = self._split_file_list(data_dirs)
+
+		# data augmentation
+		self.train_data_dirs = self._augment_images(self.train_data_dirs)
+		self.val_data_dirs = self._augment_images(self.val_data_dirs)
+
+		# compute number of batches
+		self.num_batches_train = self._calculate_batch_size(self.train_data_dirs)
+		self.num_batches_val = self._calculate_batch_size(self.val_data_dirs)
+
 		print(f'num. of batches for training: {self.num_batches_train}')
 		print(f'num. of batches for validation: {self.num_batches_val}')
 
@@ -241,15 +272,16 @@ class Trainer():
 			# update learning rate
 			p = epoch / (epochs - 1)
 			print(f'Training Progress: {p}')
-			lr = learning_rate_decay(p)
-			print(f'Learning Rate: {lr}')
-			self.optimizer_segmentation.lr = lr
-			self.learning_rate.append(lr)
+			
+			lr_1 = self.lr_function_segmentation.calculate(p)
+			print(f'Learning Rate Segmentation: {lr_1}')
+			self.optimizer_segmentation.lr = lr_1
+			self.lr_segmentation_history.append(lr_1)
 
-			lr_2 = 10 ** (-1 * (-3 * p + 4))
-			print(f'Learning Rate 2: {lr_2}')
+			lr_2 = self.lr_function_discriminator.calculate(p)
+			print(f'Learning Rate Discriminator: {lr_2}')
 			self.optimizer_discriminator.lr = lr_2
-			self.learning_rate_2.append(lr_2)
+			self.lr_discriminator_history.append(lr_2)
 
 			# set lambda value
 			l = lambda_grl(p)
@@ -366,30 +398,8 @@ class Trainer():
 	def train(self, patches_dir: str, epochs: int = 25, batch_size: int = 2, val_fraction: float = 0.1, num_images: int = 60,
 			  wait: int = 12, rotate: bool = True, flip: bool = True, persist_best_model: bool = True):
 
-		self.patches_dir = patches_dir
-		self.val_fraction = val_fraction
-		self.batch_size = batch_size
-		self.num_images = num_images
 		self.epochs = epochs
 		self.wait = wait
-		self.rotate = rotate
-		self.flip = flip
-
-		# loading dataset
-		data_dirs = self._load_file_names(self.patches_dir)
-
-		# define files for validation
-		self.train_data_dirs, self.val_data_dirs = self._split_file_list(data_dirs)
-
-		# data augmentation
-		self.train_data_dirs = self._augment_images(self.train_data_dirs)
-		self.val_data_dirs = self._augment_images(self.val_data_dirs)
-
-		# compute number of batches
-		self.num_batches_train = self._calculate_batch_size(self.train_data_dirs)
-		self.num_batches_val = self._calculate_batch_size(self.val_data_dirs)
-		print(f'num. of batches for training: {self.num_batches_train}')
-		print(f'num. of batches for validation: {self.num_batches_val}')
 
 		for epoch in range(self.epochs):
 			print(f'Epoch {epoch + 1} of {self.epochs}')
@@ -416,9 +426,9 @@ class Trainer():
 
 				# update learning rate
 				p = epoch / (epochs - 1)
-				lr = learning_rate_decay(p)
+				lr = self.lr_function_segmentation.calculate(p)
 				self.optimizer_segmentation.lr = lr
-				self.learning_rate.append(lr)
+				self.lr_segmentation_history.append(lr)
 
 				loss_train = self._training_step(x_train, y_train)
 				loss_global_train += float(loss_train)
