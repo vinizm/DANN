@@ -40,7 +40,7 @@ class Trainer():
 		
 		lr_factory = lrf()
 		self.lr_function_segmentation = lr_factory.get_function('exp_decay')
-		self.lr_function_discriminator = lr_factory.get_function('exp_decay')
+		self.lr_function_discriminator = lr_factory.get_function('log', start = -4., stop = -1.)
 
 		self.loss_function = BinaryCrossentropy()
 		self.loss_function_segmentation = MaskedBinaryCrossentropy()
@@ -59,7 +59,7 @@ class Trainer():
 		self.acc_segmentation_val_history = []
 
 		self.acc_discriminator_train_history = []
-		self.acc_discriminator_val_history = []		
+		self.acc_discriminator_val_history = []
 
 		self.lr_segmentation_history = []
 		self.lr_discriminator_history = []
