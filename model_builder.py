@@ -363,13 +363,13 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
 
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
     x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1e-5)(x)
-    classifier_spot = Activation('relu')(x)
-    x = Dropout(0.1)(classifier_spot)
+    discriminator_spot = Activation('relu')(x)
+    # x = Dropout(0.1)(discriminator_spot)
 
     # DeepLabv3+ decoder
     # feature projection
-    size_before_2 = K.int_shape(x)
-    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(x)
+    size_before_2 = K.int_shape(discriminator_spot)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(discriminator_spot)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
     dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-5)(dec_skip_1)
@@ -397,7 +397,7 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
         outputs = tf.keras.layers.Activation(activation)(x)
 
     if domain_adaptation:
-        outputs = [outputs, classifier_spot]
+        outputs = [outputs, discriminator_spot]
 
     inputs = img_input
     model = Model(inputs = inputs, outputs = outputs, name = 'deeplabv3plus')
