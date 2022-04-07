@@ -509,6 +509,12 @@ class Trainer():
 		print('Model saved successfuly')
 		
 	def save_info(self, history_path):
+		persist = self.parameters
+		save_json(persist, history_path) # save metrics and parameters
+		print('Metrics saved successfuly')
+
+	@property
+	def parameters(self):
 		persist = {
 				'history':{
 					'training':{
@@ -549,5 +555,4 @@ class Trainer():
 				'rotate': self.rotate,
 				'flip': self.flip}
 
-		save_json(persist, history_path) # save metrics and parameters
-		print('Metrics saved successfuly')
+		return persist
