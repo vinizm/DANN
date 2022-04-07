@@ -364,8 +364,8 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
 
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
     x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1e-5)(x)
-    discriminator_spot = LeakyReLU(alpha = 0.)(x)
-    # discriminator_spot = Activation('relu')(x)
+    # discriminator_spot = LeakyReLU(alpha = 0.)(x)
+    discriminator_spot = Activation('relu')(x)
     # x = Dropout(0.1)(discriminator_spot)
 
     # DeepLabv3+ decoder
