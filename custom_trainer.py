@@ -534,7 +534,20 @@ class Trainer():
 						'total': self.val_data_dirs,
 						'source': self.val_data_dirs_source,
 						'target': self.val_data_dirs_target}},
-				'is_domain_adaptation': self.domain_adaptation}
+				'is_domain_adaptation': self.domain_adaptation,
+				'lr_segmentation': self.lr_segmentation_history,
+				'lr_discriminator': self.lr_discriminator_history,
+				'time': self.elapsed_time,
+				'lambdas': self.lambdas,
+				'patch_size': self.patch_size,
+				'output_stride': self.output_stride,
+				'val_fraction': self.val_fraction,
+				'batch_size': self.batch_size,
+				'num_images': self.num_images,
+				'epochs': self.epochs,
+				'wait': self.wait,
+				'rotate': self.rotate,
+				'flip': self.flip}
 
 		save_json(persist, history_path) # save metrics and parameters
 		print('Metrics saved successfuly')
