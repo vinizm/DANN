@@ -8,7 +8,6 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Layer
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Concatenate
 from tensorflow.keras.layers import Add
 from tensorflow.keras.layers import Dropout
@@ -19,6 +18,8 @@ from tensorflow.keras.layers import ZeroPadding2D
 from tensorflow.keras.layers import GlobalAveragePooling2D
 from tensorflow.keras.layers import Flatten
 from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras import backend as K
 
 from flip_gradient import flip_gradient
@@ -363,7 +364,8 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
 
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
     x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1e-5)(x)
-    discriminator_spot = Activation('relu')(x)
+    discriminator_spot = LeakyReLU(alpha = 0.1)(x)
+    # discriminator_spot = Activation('relu')(x)
     # x = Dropout(0.1)(discriminator_spot)
 
     # DeepLabv3+ decoder
