@@ -90,6 +90,8 @@ class Trainer():
 		self.num_batches_train = None
 		self.num_batches_val = None
 
+		self.elapsed_time = 0
+
 	@tf.function
 	def _training_step(self, x_train, y_train):
 
@@ -252,6 +254,8 @@ class Trainer():
 
 	def train_domain_adaptation(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True):
 
+		time_init = time.time()
+
 		self.epochs = epochs
 		self.wait = wait
 
@@ -395,7 +399,11 @@ class Trainer():
 					print('[!] Performing early stopping.')
 					break
 
+		self.elapsed_time = (time.time() - time_init) / 60
+
 	def train(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True):
+
+		time_init = time.time()
 
 		self.epochs = epochs
 		self.wait = wait
@@ -483,6 +491,8 @@ class Trainer():
 				if  self.no_improvement_count > self.wait:
 					print('[!] Performing early stopping')
 					break
+
+		self.elapsed_time = (time.time() - time_init) / 60
 
 	def save_weights(self, weights_path: str, best: bool = True):
 		if best:
