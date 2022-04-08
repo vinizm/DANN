@@ -43,7 +43,8 @@ class LearningRateStepDecay(AbstractLearningRate):
         self.num_steps = num_steps
         self.warmup = warmup
 
-        self.points = np.linspace(0, 1, self.num_steps + 1)
+        points = np.linspace(self.warmup, 1, self.num_steps + 1)
+        self.points = np.concatenate([np.asarray([0.]), points])
 
     def calculate(self, p: float):
         
