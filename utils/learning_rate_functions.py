@@ -47,7 +47,7 @@ class LearningRateStepDecay(AbstractLearningRate):
     def calculate(self, p: float):
         
         for i in range(len(self.points) - 1):
-            if p < self.points[i + 1]:
+            if p <= self.points[i + 1] + 1e-6:
 
                 return self.lr0 / (self.step_decay ** i)
 

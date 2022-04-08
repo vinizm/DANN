@@ -39,7 +39,7 @@ class Trainer():
 		self.optimizer_discriminator = Adam()
 		
 		lr_factory = lrf()
-		self.lr_function_segmentation = lr_factory.get_function('step', num_steps = 3, step_decay = 1.25)
+		self.lr_function_segmentation = lr_factory.get_function('step', num_steps = 3, step_decay = 1.5)
 		self.lr_function_discriminator = lr_factory.get_function('log', start = -4., stop = -1.)
 
 		self.loss_function = BinaryCrossentropy()
