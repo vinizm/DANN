@@ -24,16 +24,16 @@ class LearningRateConstant(AbstractLearningRate):
 
 class LearningRateExpDecay(AbstractLearningRate):
 
-    def __init__(self, lr0 = LR0, lr_warmup = LR_WARMUP, alpha = ALPHA, beta = BETA):
+    def __init__(self, lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA):
         self.lr0 = lr0
-        self.lr_warmup = lr_warmup
+        self.warmup = warmup
         self.alpha = alpha
         self.beta = beta
 
     def calculate(self, p: float):
-        if p <= self.lr_warmup:
+        if p <= self.warmup:
             return self.lr0
-        return self.lr0 / ((1 + self.alpha * (p - self.lr_warmup)) ** self.beta)
+        return self.lr0 / ((1 + self.alpha * (p - self.warmup)) ** self.beta)
 
 class LearningRateStepDecay(AbstractLearningRate):
 
@@ -55,29 +55,35 @@ class LearningRateStepDecay(AbstractLearningRate):
 
 class LearningRateLinear(AbstractLearningRate):
 
-    def __init__(self, start: float = LR_START_LINEAR, stop: float = LR_STOP_LINEAR):
+    def __init__(self, start: float = LR_START_LINEAR, stop: float = LR_STOP_LINEAR, warmup = LR_WARMUP):
 
         self.start = start
         self.stop = stop
+        self.warmup = warmup
 
         self.a = stop - start
         self.b = start
 
     def calculate(self, p: float):
-        return self.a * p + self.b
+        if p <= self.warmup:
+            return self.a
+        return self.a * (p - self.warmup) + self.b
 
 class LearningRateLog(AbstractLearningRate):
 
-    def __init__(self, start: float = LR_START_LOG, stop: float = LR_STOP_LOG):
+    def __init__(self, start: float = LR_START_LOG, stop: float = LR_STOP_LOG, warmup = LR_WARMUP):
 
         self.start = start
         self.stop = stop
+        self.warmup = warmup
 
         self.a = stop - start
         self.b = start
 
     def calculate(self, p: float):
-        return 10 ** (self.a * p + self.b)
+        if p <= self.warmup:
+            return 10 ** self.a
+        return 10 ** (self.a * (p - self.warmup) + self.b)
 
 
 class LearningRateFactory:
