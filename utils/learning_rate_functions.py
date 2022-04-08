@@ -37,10 +37,11 @@ class LearningRateExpDecay(AbstractLearningRate):
 
 class LearningRateStepDecay(AbstractLearningRate):
 
-    def __init__(self, lr0 = LR0, step_decay = STEP_DECAY, num_steps = NUM_STEPS):
+    def __init__(self, lr0 = LR0, step_decay = STEP_DECAY, num_steps = NUM_STEPS, warmup = LR_WARMUP):
         self.lr0 = lr0
         self.step_decay = step_decay
         self.num_steps = num_steps
+        self.warmup = warmup
 
         self.points = np.linspace(0, 1, self.num_steps + 1)
 
