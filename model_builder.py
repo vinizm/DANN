@@ -337,7 +337,7 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
     b4 = ExpandDimensions()(b4)
 
     b4 = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'image_pooling')(b4)
-    b4 = BatchNormalization(name = 'image_pooling_BN', epsilon = 1e-5)(b4)
+    b4 = BatchNormalization(name = 'image_pooling_BN', epsilon = 1e-16)(b4)
     b4 = Activation('relu')(b4)
 
     # upsample; have to use compat because of the option align_corners
@@ -346,24 +346,24 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
     
     # simple 1x1
     b0 = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'aspp0')(x)
-    b0 = BatchNormalization(name = 'aspp0_BN', epsilon = 1e-5)(b0)
+    b0 = BatchNormalization(name = 'aspp0_BN', epsilon = 1e-16)(b0)
     b0 = Activation('relu', name = 'aspp0_activation')(b0)
 
     # there are only 2 branches in mobilenetV2; not sure why
     # rate = 6 (12)
-    b1 = SepConv_BN(x, 256, 'aspp1', rate = atrous_rates[0], depth_activation = True, epsilon = 1e-5)
+    b1 = SepConv_BN(x, 256, 'aspp1', rate = atrous_rates[0], depth_activation = True, epsilon = 1e-16)
     
     # rate = 12 (24)
-    b2 = SepConv_BN(x, 256, 'aspp2', rate = atrous_rates[1], depth_activation = True, epsilon = 1e-5)
+    b2 = SepConv_BN(x, 256, 'aspp2', rate = atrous_rates[1], depth_activation = True, epsilon = 1e-16)
     
     # rate = 18 (36)
-    b3 = SepConv_BN(x, 256, 'aspp3', rate = atrous_rates[2], depth_activation = True, epsilon = 1e-5)
+    b3 = SepConv_BN(x, 256, 'aspp3', rate = atrous_rates[2], depth_activation = True, epsilon = 1e-16)
 
     # concatenate ASPP branches and project
     x = Concatenate()([b4, b0, b1, b2, b3])
 
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
-    x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1e-5)(x)
+    x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1e-16)(x)
     discriminator_spot = LeakyReLU(alpha = 0.01)(x)
     x = Dropout(0.1)(discriminator_spot)
 
@@ -373,22 +373,22 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
     x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(discriminator_spot)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
-    dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-5)(dec_skip_1)
+    dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-16)(dec_skip_1)
     dec_skip_1 = Activation('relu')(dec_skip_1)
     x = Concatenate()([x, dec_skip_1])
 
-    x = SepConv_BN(x, 256, 'decoder_conv2', depth_activation = True, epsilon = 1e-5)
-    x = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1e-5)
+    x = SepConv_BN(x, 256, 'decoder_conv2', depth_activation = True, epsilon = 1e-16)
+    x = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1e-16)
 
     x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 2, method = 'bilinear', align_corners = True)(x)
 
     dec_skip_0 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection0')(skip_0)
-    dec_skip_0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1e-5)(dec_skip_0)
+    dec_skip_0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1e-16)(dec_skip_0)
     dec_skip_0 = Activation('relu')(dec_skip_0)
     x = Concatenate()([x, dec_skip_0])
 
-    x = SepConv_BN(x, 128, 'decoder_conv0', depth_activation = True, epsilon = 1e-5)
-    x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1e-5)
+    x = SepConv_BN(x, 128, 'decoder_conv0', depth_activation = True, epsilon = 1e-16)
+    x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1e-16)
     x = Conv2D(num_class, (1, 1), padding = 'same', name = 'custom_logits_semantic')(x)
 
     size_before_3 = K.int_shape(img_input)
