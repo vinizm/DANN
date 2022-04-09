@@ -12,7 +12,7 @@ import tensorflow as tf
 
 from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
-from utils.hyperparameters import lambda_grl
+from utils.hyperparameters import LambdaGradientReversalLayer
 from utils.loss_functions import MaskedBinaryCrossentropy
 from utils.learning_rate_functions import LearningRateFactory as lrf
 from model_builder import DomainAdaptationModel, DeepLabV3Plus
@@ -39,8 +39,10 @@ class Trainer():
 		self.optimizer_discriminator = Adam()
 		
 		lr_factory = lrf()
-		self.lr_function_segmentation = lr_factory.get_function('step', num_steps = 3, step_decay = 1.25)
+		self.lr_function_segmentation = lr_factory.get_function('step', num_steps = 3, step_decay = 1.25, warmup = 0.5)
 		self.lr_function_discriminator = lr_factory.get_function('constant', const = 1.e-4)
+
+		self.lambda_function = LambdaGradientReversalLayer(warmup = 0.05, gamma = 7.)
 
 		self.loss_function = BinaryCrossentropy()
 		self.loss_function_segmentation = MaskedBinaryCrossentropy()
@@ -288,7 +290,7 @@ class Trainer():
 			self.lr_discriminator_history.append(lr_2)
 
 			# set lambda value
-			l = lambda_grl(p)
+			l = self.lambda_function.calculate(p)
 			print(f'Lambda: {l}')
 			self.lambdas.append(l)
 			l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
