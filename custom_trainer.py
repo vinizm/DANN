@@ -388,10 +388,9 @@ class Trainer():
 			print(f'Segmentation Accuracy: {acc_segmentation_val}')
 			print(f'Discriminator Accuracy: {acc_discriminator_val}')
 
-			loss_total_val = loss_segmentation_val + loss_discriminator_val
-			if loss_total_val < self.best_val_loss and persist_best_model:
+			if loss_segmentation_val < self.best_val_loss and persist_best_model:
 				print('[!] Persisting best model...')
-				self.best_val_loss = loss_total_val
+				self.best_val_loss = loss_segmentation_val
 				self.no_improvement_count = 0
 				self.best_model = copy.deepcopy(self.model)
 
