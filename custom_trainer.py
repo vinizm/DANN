@@ -26,12 +26,7 @@ class Trainer():
 		self.output_stride = output_stride
 		self.domain_adaptation = domain_adaptation
 
-		if self.domain_adaptation:
-			self.model = DomainAdaptationModel(input_shape = (patch_size, patch_size, channels), num_class = num_class,
-						 output_stride = output_stride, activation = 'softmax')
-		else:
-			self.model = DeepLabV3Plus(input_shape = (patch_size, patch_size, channels), num_class = num_class,
-						 output_stride = output_stride, activation = 'softmax', domain_adaptation = False)
+		self.model = self.assembly_empty_model()
 		
 		self.optimizer_segmentation = Adam()
 		self.optimizer_discriminator = Adam()
@@ -67,7 +62,7 @@ class Trainer():
 
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
-		self.best_weights = None
+		self.best_model = None
 
 		self.patches_dir = None
 		self.train_data_dirs = []
@@ -91,6 +86,17 @@ class Trainer():
 		self.num_batches_val = None
 
 		self.elapsed_time = 0
+
+	def assembly_empty_model(self):
+
+		if self.domain_adaptation:
+			empty_model = DomainAdaptationModel(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
+						 output_stride = self.output_stride, activation = 'softmax')
+		else:
+			empty_model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
+						 output_stride = self.output_stride, activation = 'softmax', domain_adaptation = False)
+		
+		return empty_model
 
 	@tf.function
 	def _training_step(self, x_train, y_train):
@@ -390,7 +396,9 @@ class Trainer():
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_segmentation_val
 				self.no_improvement_count = 0
-				self.best_weights = self.model.get_weights()
+				
+				self.best_model = self.assembly_empty_model()
+				self.best_model.set_weights(self.model.get_weights())
 
 			else:
 				self.no_improvement_count += 1
@@ -483,7 +491,9 @@ class Trainer():
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_global_val
 				self.no_improvement_count = 0
-				self.best_weights = self.model.get_weights()
+
+				self.best_model = self.assembly_empty_model()
+				self.best_model.set_weights(self.model.get_weights())
 
 			else:
 				self.no_improvement_count += 1
@@ -495,14 +505,14 @@ class Trainer():
 
 	def save_weights(self, weights_path: str, best: bool = True):
 		if best:
-			self.best_weights.save_weights(weights_path) # save weights
+			self.best_model.save_weights(weights_path) # save weights
 		else:
 			self.model.save_weights(weights_path) # save weights
 		print('Weights saved successfuly')
 
 	def save_model(self, model_path: str, best: bool = True):
 		if best:
-			save_model(self.best_weights, model_path) # save model
+			save_model(self.best_model, model_path) # save model
 		else:
 			save_model(self.model, model_path) # save model
 		print('Model saved successfuly')
