@@ -107,7 +107,7 @@ class DomainDiscriminator(Model):
     def call(self, inputs):
 
         x = self.batch_norm_1(inputs, training = True)
-        x = self.flat(inputs)
+        x = self.flat(x)
         x = self.dense_1(x)
         x = self.activ_1(x)
         x = self.dense_2(x)
