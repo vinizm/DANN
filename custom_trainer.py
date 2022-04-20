@@ -1,5 +1,3 @@
-import os
-import copy
 import glob
 import time
 import numpy as np
@@ -69,7 +67,7 @@ class Trainer():
 
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
-		self.best_model = None
+		self.best_weights = None
 
 		self.patches_dir = None
 		self.train_data_dirs = []
@@ -392,7 +390,7 @@ class Trainer():
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_segmentation_val
 				self.no_improvement_count = 0
-				self.best_model = copy.deepcopy(self.model)
+				self.best_weights = self.model.get_weights()
 
 			else:
 				self.no_improvement_count += 1
@@ -485,7 +483,7 @@ class Trainer():
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_global_val
 				self.no_improvement_count = 0
-				self.best_model = copy.deepcopy(self.model)
+				self.best_weights = self.model.get_weights()
 
 			else:
 				self.no_improvement_count += 1
@@ -497,14 +495,14 @@ class Trainer():
 
 	def save_weights(self, weights_path: str, best: bool = True):
 		if best:
-			self.best_model.save_weights(weights_path) # save weights
+			self.best_weights.save_weights(weights_path) # save weights
 		else:
 			self.model.save_weights(weights_path) # save weights
 		print('Weights saved successfuly')
 
 	def save_model(self, model_path: str, best: bool = True):
 		if best:
-			save_model(self.best_model, model_path) # save model
+			save_model(self.best_weights, model_path) # save model
 		else:
 			save_model(self.model, model_path) # save model
 		print('Model saved successfuly')
