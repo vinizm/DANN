@@ -27,7 +27,7 @@ class LambdaGradientReversalLayer():
 	def __init__(self, warmup = LAMBDA_WARMUP, gamma = GAMMA, lambda_scale = LAMBDA_SCALE):
 		self.warmup = warmup
 		self.gamma = gamma
-		self.lambda_scale = LAMBDA_SCALE
+		self.lambda_scale = lambda_scale
 
 	def calculate(self, p: float):
 		if p <= self.warmup:
