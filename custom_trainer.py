@@ -28,11 +28,8 @@ class Trainer():
 
 		self.model = self.assembly_empty_model()
 		
-		# self.optimizer_segmentation = Adam()
-		# self.optimizer_discriminator = Adam()
-
-		self.optimizer_segmentation = SGD(momentum = 0.9)
-		self.optimizer_discriminator = SGD(momentum = 0.9)
+		self.optimizer_segmentation = Adam()
+		self.optimizer_discriminator = Adam()
 		
 		lr_factory = lrf()
 		# self.lr_function_segmentation = lr_factory.get_function('step', num_steps = 3, step_decay = 1.25, warmup = 0.5)
@@ -41,7 +38,7 @@ class Trainer():
 		self.lr_function_segmentation = lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0.12, alpha = 10., beta = 0.75)
 		self.lr_function_discriminator = lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0.12, alpha = 10., beta = 0.75)
 
-		self.lambda_function = LambdaGradientReversalLayer(warmup = 0.1, gamma = 10., lambda_scale = 1.)
+		self.lambda_function = LambdaGradientReversalLayer(warmup = 1., gamma = 10., lambda_scale = 1.)
 
 		self.loss_function = BinaryCrossentropy()
 		self.loss_function_segmentation = MaskedBinaryCrossentropy()
