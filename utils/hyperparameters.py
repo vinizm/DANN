@@ -19,15 +19,18 @@ LR_STOP_LOG = -2.
 LR_START_LINEAR = 10 ** LR_START_LOG
 LR_STOP_LINEAR = 10 ** LR_STOP_LOG
 
+LAMBDA_SCALE = 1.
+
 
 class LambdaGradientReversalLayer():
 	
-	def __init__(self, warmup = LAMBDA_WARMUP, gamma = GAMMA):
+	def __init__(self, warmup = LAMBDA_WARMUP, gamma = GAMMA, lambda_scale = LAMBDA_SCALE):
 		self.warmup = warmup
 		self.gamma = gamma
+		self.lambda_scale = LAMBDA_SCALE
 
 	def calculate(self, p: float):
 		if p <= self.warmup:
 			return 0.
-		# return (2 / (1 + np.exp(- self.gamma * (p - self.warmup)))) - 1
-		return 0.
+		return self.lambda_scale * ((2 / (1 + np.exp(- self.gamma * (p - self.warmup)))) - 1)
+		# return 0.
