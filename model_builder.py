@@ -151,9 +151,9 @@ class DomainAdaptationModel(Model):
         self.build()
 
     def call(self, inputs):
-        x, l = inputs
+        input_img, l = inputs
 
-        feature, skip_0, skip_1 = self.encoder(x)
+        feature, skip_0, skip_1 = self.encoder(input_img)
         segmentation_output = self.decoder([feature, skip_0, skip_1])
         discriminator_input = self.gradient_reversal_layer([feature, l])
         discriminator_output = self.domain_discriminator(discriminator_input)
