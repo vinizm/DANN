@@ -75,8 +75,7 @@ def extract_patches_from_images(images: list, patch_size: int, stride: int):
 	return np.array(image_patches)
 
 
-
-def load_arrays(path_to_folder: str):
+def load_arrays(path_to_folder: str, verbose: bool = True):
 	if not os.path.exists(path_to_folder):
 		print('Folder does not exist.')
 	
@@ -85,19 +84,21 @@ def load_arrays(path_to_folder: str):
 	content = []
 	for file_name in file_names:
 		full_file_name = os.path.join(path_to_folder, file_name)
-		content.append(load_array(full_file_name))
+		content.append(load_array(full_file_name, verbose = verbose))
 
 	return np.asarray(content)
 
 
-def load_array(full_file_name: str):
+def load_array(full_file_name: str, verbose: bool = True):
 	file_name = os.path.basename(full_file_name)
 	with open(full_file_name, 'rb') as file:
 		try:
 			array = np.load(file)
-			print(f'Loaded file {file_name} successfuly')
+			if verbose:
+				print(f'Loaded file {file_name} successfuly')
 		except:
-			print(f'Could not load file {file_name} successfuly')
+			if verbose:
+				print(f'Could not load file {file_name} successfuly')
 
 	return array
 
@@ -166,18 +167,19 @@ def load_json(file_name: str):
 	return history
 
 
-def augment_images(image_files: list, angles: list, rotate: bool, flip: bool):
+def augment_images(image_files: list, angles: list, rotate: bool, flip: bool, verbose: bool = True):
 	augmented_files = []
 
 	for image_file in image_files:
 		file_id = os.path.basename(image_file)
 
-		array = load_array(image_file)
+		array = load_array(image_file, verbose = verbose)
 		file_path, ext = os.path.splitext(image_file)
 
 		if rotate:
 			for angle in angles:
-				print(f'Rotating {file_id} by {angle}.') 
+				if verbose:
+					print(f'Rotating {file_id} by {angle}.') 
 				array_rot = np.asarray(tf.image.rot90(array, k = int(angle / 90.)))
 				
 				file_name = f'{file_path}_rotation{angle}{ext}'
@@ -185,13 +187,15 @@ def augment_images(image_files: list, angles: list, rotate: bool, flip: bool):
 				augmented_files.append(file_name)
 		
 		if flip:
-			print(f'Flipping {file_id} vertically.')
+			if verbose:
+				print(f'Flipping {file_id} vertically.')
 			array_flip = np.asarray(tf.image.flip_left_right(array))
 			file_name = f'{file_path}_flip_y{ext}'
 			save_np_array(file_name = file_name, array = array_flip)
 			augmented_files.append(file_name)
 
-			print(f'Flipping {file_id} horizontally.')
+			if verbose:
+				print(f'Flipping {file_id} horizontally.')
 			array_flip = np.asarray(tf.image.flip_up_down(array))
 			file_name = f'{file_path}_flip_x{ext}'
 			save_np_array(file_name = file_name, array = array_flip)

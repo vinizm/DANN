@@ -143,7 +143,7 @@ class Trainer():
 	def _augment_images(self, data_dirs: list):
 		if self.rotate or self.flip:
 			augmented_dirs = augment_images(image_files = data_dirs, angles = [90, 180, 270],
-											 rotate = self.rotate, flip = self.flip)
+											 rotate = self.rotate, flip = self.flip, verbose = True)
 			data_dirs += augmented_dirs
 			np.random.shuffle(data_dirs)
 
@@ -309,7 +309,7 @@ class Trainer():
 				batch_train_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
 				# load images for training
-				batch_images = np.asarray([load_array(batch_train_file) for batch_train_file in batch_train_files])
+				batch_images = np.asarray([load_array(batch_train_file, verbose = False) for batch_train_file in batch_train_files])
 				batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
 				x_train = batch_images[ :, :, :, : self.channels]
@@ -354,7 +354,7 @@ class Trainer():
 				batch_val_files = self.val_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
 				# load images for testing
-				batch_val_images = np.asarray([load_array(batch_val_file) for batch_val_file in batch_val_files])
+				batch_val_images = np.asarray([load_array(batch_val_file, verbose = False) for batch_val_file in batch_val_files])
 				batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
 				x_val = batch_val_images[:, :, :, : self.channels]
@@ -442,7 +442,7 @@ class Trainer():
 				batch_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
 				# load images for training
-				batch_images = np.asarray([load_array(batch_file) for batch_file in batch_files])
+				batch_images = np.asarray([load_array(batch_file, verbose = False) for batch_file in batch_files])
 				batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
 				x_train = batch_images[ :, :, :, : self.channels]
@@ -469,7 +469,7 @@ class Trainer():
 				batch_val_files = self.val_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
 				# load images for testing
-				batch_val_images = np.asarray([load_array(batch_val_file) for batch_val_file in batch_val_files])
+				batch_val_images = np.asarray([load_array(batch_val_file, verbose = False) for batch_val_file in batch_val_files])
 				batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
 				x_val = batch_val_images[:, :, :, : self.channels]
