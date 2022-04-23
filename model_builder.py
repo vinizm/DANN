@@ -132,16 +132,8 @@ class DomainAdaptationModel(Model):
                  activation: str = 'softmax', **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
-        self.encoder = FeatureExtractor(input_shape = input_shape, output_stride = output_stride)
-
-        feature, skip_0, skip_1 = self.encoder.outputs
-        feature_shape = tuple(feature.shape[1:])
-        skip_0_shape = tuple(skip_0.shape[1:])
-        skip_1_shape = tuple(skip_1.shape[1:])
-        self.decoder = PixelwiseClassifier(input_shape = input_shape, feature_shape = feature_shape, skip_0_shape = skip_0_shape,
-                                           skip_1_shape = skip_1_shape, num_class = num_class, output_stride = output_stride,
-                                           activation = activation)
-
+        self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
+                            activation = activation, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
         self.domain_discriminator = DomainDiscriminator(units = 1024)
 
@@ -153,9 +145,8 @@ class DomainAdaptationModel(Model):
     def call(self, inputs):
         input_img, l = inputs
 
-        feature, skip_0, skip_1 = self.encoder(input_img)
-        segmentation_output = self.decoder([feature, skip_0, skip_1])
-        discriminator_input = self.gradient_reversal_layer([feature, l])
+        segmentation_output, feature_output = self.main_network(input_img)
+        discriminator_input = self.gradient_reversal_layer([feature_output, l])
         discriminator_output = self.domain_discriminator(discriminator_input)
 
         return segmentation_output, discriminator_output
@@ -367,7 +358,7 @@ def PixelwiseClassifier(input_shape: tuple = (256, 256, 1), feature_shape: tuple
     skip_0 = Input(shape = skip_0_shape)
     skip_1 = Input(shape = skip_1_shape)
 
-    # x = Dropout(0.1)(input_feature)
+    x = Dropout(0.1)(input_feature)
 
     # DeepLabv3+ decoder
     # feature projection
