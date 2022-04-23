@@ -271,7 +271,7 @@ def _xception_block(inputs, depth_list, prefix, skip_connection_type, stride,
 
 def FeatureExtractor(input_shape: tuple = (256, 256, 1), output_stride: int = 8):
 
-    img_input = Input(shape = input_shape)
+    input_img = Input(shape = input_shape)
 
     if output_stride == 8:
         entry_block3_stride = 1
@@ -285,7 +285,7 @@ def FeatureExtractor(input_shape: tuple = (256, 256, 1), output_stride: int = 8)
         exit_block_rates = (1, 2)
         atrous_rates = (6, 12, 18)
 
-    x = Conv2D(32, (3, 3), strides = (2, 2), name = 'entry_flow_conv1_1', use_bias = False, padding = 'same')(img_input)
+    x = Conv2D(32, (3, 3), strides = (2, 2), name = 'entry_flow_conv1_1', use_bias = False, padding = 'same')(input_img)
     x = BatchNormalization(name = 'entry_flow_conv1_1_BN')(x)
     x = Activation('relu')(x)
 
@@ -357,7 +357,7 @@ def FeatureExtractor(input_shape: tuple = (256, 256, 1), output_stride: int = 8)
     x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1e-16)(x)
     output_feature = Activation('relu')(x)
 
-    model = Model(inputs = img_input, outputs = [output_feature, skip_0, skip_1], name = 'deeplabv3plus_feature_extractor')
+    model = Model(inputs = input_img, outputs = [output_feature, skip_0, skip_1], name = 'deeplabv3plus_feature_extractor')
     return model
 
 def PixelwiseClassifier(input_shape: tuple = (256, 256, 1), feature_shape: tuple = (16, 16, 256), skip_0_shape: tuple = (128, 128, 128),
@@ -393,11 +393,11 @@ def PixelwiseClassifier(input_shape: tuple = (256, 256, 1), feature_shape: tuple
     x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1e-16)
     x = Conv2D(num_class, (1, 1), padding = 'same', name = 'custom_logits_semantic')(x)
 
-    size_before_3 = input_shape
+    size_before_3 = (None, *input_shape)
     x = ReshapeTensor(size_before_3[1: 3], factor = 1, method = 'bilinear', align_corners = True)(x)
 
     if activation in ['softmax', 'sigmoid']:
-        output = tf.keras.layers.Activation(activation)(x)
+        output = Activation(activation)(x)
 
     model = Model(inputs = [input_feature, skip_0, skip_1], outputs = output, name = 'deeplabv3plus_pixelwise_classifier')
     return model
@@ -522,7 +522,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     x = ReshapeTensor(size_before_3[1:3], factor = 1, method = 'bilinear', align_corners = True)(x)
 
     if activation in ['softmax', 'sigmoid']:
-        outputs = tf.keras.layers.Activation(activation)(x)
+        outputs = Activation(activation)(x)
 
     if domain_adaptation:
         outputs = [outputs, discriminator_spot]
