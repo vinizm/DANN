@@ -372,7 +372,7 @@ def PixelwiseClassifier(input_shape: tuple = (256, 256, 1), feature_shape: tuple
     # DeepLabv3+ decoder
     # feature projection
     size_before_2 = K.int_shape(input_feature)
-    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(input_feature)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(x)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
     dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-16)(dec_skip_1)
@@ -497,7 +497,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     # DeepLabv3+ decoder
     # feature projection
     size_before_2 = K.int_shape(discriminator_spot)
-    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(discriminator_spot)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(x)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
     dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-16)(dec_skip_1)
