@@ -128,7 +128,7 @@ class DomainDiscriminator(Model):
 
 class DomainAdaptationModel(Model):
 
-    def __init__(self, input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 8,
+    def __init__(self, input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8,
                  activation: str = 'softmax', **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
@@ -269,7 +269,7 @@ def _xception_block(inputs, depth_list, prefix, skip_connection_type, stride,
         return outputs
 
 
-def FeatureExtractor(input_shape: tuple = (512, 512, 1), output_stride: int = 8):
+def FeatureExtractor(input_shape: tuple = (256, 256, 1), output_stride: int = 8):
 
     img_input = Input(shape = input_shape)
 
@@ -360,8 +360,8 @@ def FeatureExtractor(input_shape: tuple = (512, 512, 1), output_stride: int = 8)
     model = Model(inputs = img_input, outputs = [output_feature, skip_0, skip_1], name = 'deeplabv3plus_feature_extractor')
     return model
 
-def PixelwiseClassifier(input_shape: tuple, feature_shape: tuple, skip_0_shape: tuple, skip_1_shape: tuple,
-                        num_class: int, output_stride: int = 8, activation: str = 'softmax'):
+def PixelwiseClassifier(input_shape: tuple = (256, 256, 1), feature_shape: tuple = (16, 16, 256), skip_0_shape: tuple = (128, 128, 128),
+                        skip_1_shape: tuple = (64, 64, 256), num_class: int = 2, output_stride: int = 8, activation: str = 'softmax'):
 
     input_feature = Input(shape = feature_shape)
     skip_0 = Input(shape = skip_0_shape)
@@ -403,7 +403,7 @@ def PixelwiseClassifier(input_shape: tuple, feature_shape: tuple, skip_0_shape: 
     return model
 
 
-def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 8, activation: str = 'softmax',
+def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8, activation: str = 'softmax',
                   domain_adaptation: bool = False):
     """ Instantiates the Deeplabv3+ architecture
     """
@@ -532,7 +532,7 @@ def DeepLabV3Plus(input_shape: tuple = (512, 512, 1), num_class: int = 2, output
     return model
 
 
-def DeepLabV3PlusDomainAdaptation(input_shape: tuple = (512, 512, 1), num_class: int = 2, output_stride: int = 8,
+def DeepLabV3PlusDomainAdaptation(input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8,
                                   activation: str = 'softmax'):
 
     img_input = Input(shape = input_shape)
