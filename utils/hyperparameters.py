@@ -33,4 +33,3 @@ class LambdaGradientReversalLayer():
 		if p <= self.warmup:
 			return 0.
 		return self.lambda_scale * ((2 / (1 + np.exp(- self.gamma * (p - self.warmup)))) - 1)
-		# return 0.
