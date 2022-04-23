@@ -126,8 +126,11 @@ class Trainer():
 			loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
 			loss_global = loss_segmentation + loss_discriminator
 		
-		gradients_segmentation = tape.gradient(loss_global, self.model.main_network.trainable_weights)
-		self.optimizer_segmentation.apply_gradients(zip(gradients_segmentation, self.model.main_network.trainable_weights))
+		gradients_decoder = tape.gradient(loss_segmentation, self.model.decoder.trainable_weights)
+		self.optimizer_segmentation.apply_gradients(zip(gradients_decoder, self.model.decoder.trainable_weights))
+
+		gradients_encoder = tape.gradient(loss_global, self.model.encoder.trainable_weights)
+		self.optimizer_segmentation.apply_gradients(zip(gradients_encoder, self.model.encoder.trainable_weights))		
 
 		gradients_discriminator = tape.gradient(loss_discriminator, self.model.domain_discriminator.trainable_weights)
 		self.optimizer_discriminator.apply_gradients(zip(gradients_discriminator, self.model.domain_discriminator.trainable_weights))

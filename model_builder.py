@@ -132,8 +132,16 @@ class DomainAdaptationModel(Model):
                  activation: str = 'softmax', **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
-        self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
-                            activation = activation, domain_adaptation = True)
+        self.encoder = FeatureExtractor(input_shape = input_shape, output_stride = output_stride)
+
+        feature, skip_0, skip_1 = self.encoder.outputs
+        feature_shape = tuple(feature.shape[1:])
+        skip_0_shape = tuple(skip_0.shape[1:])
+        skip_1_shape = tuple(skip_1.shape[1:])
+        self.decoder = PixelwiseClassifier(input_shape = input_shape, feature_shape = feature_shape, skip_0_shape = skip_0_shape,
+                                           skip_1_shape = skip_1_shape, num_class = num_class, output_stride = output_stride,
+                                           activation = activation)
+
         self.gradient_reversal_layer = GradientReversalLayer()
         self.domain_discriminator = DomainDiscriminator(units = 1024)
 
@@ -145,9 +153,10 @@ class DomainAdaptationModel(Model):
     def call(self, inputs):
         x, l = inputs
 
-        segmentation_output, x = self.main_network(x)
-        x = self.gradient_reversal_layer([x, l])
-        discriminator_output = self.domain_discriminator(x)
+        feature, skip_0, skip_1 = self.encoder(x)
+        segmentation_output = self.decoder([feature, skip_0, skip_1])
+        discriminator_input = self.gradient_reversal_layer([feature, l])
+        discriminator_output = self.domain_discriminator(discriminator_input)
 
         return segmentation_output, discriminator_output
 
@@ -390,8 +399,7 @@ def PixelwiseClassifier(input_shape: tuple, feature_shape: tuple, skip_0_shape: 
     if activation in ['softmax', 'sigmoid']:
         output = tf.keras.layers.Activation(activation)(x)
 
-    inputs = [input_feature, skip_0, skip_1]
-    model = Model(inputs = inputs, outputs = output, name = 'deeplabv3plus_pixelwise_classifier')
+    model = Model(inputs = [input_feature, skip_0, skip_1], outputs = output, name = 'deeplabv3plus_pixelwise_classifier')
     return model
 
 
