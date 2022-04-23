@@ -367,12 +367,12 @@ def PixelwiseClassifier(input_shape: tuple = (256, 256, 1), feature_shape: tuple
     skip_0 = Input(shape = skip_0_shape)
     skip_1 = Input(shape = skip_1_shape)
 
-    x = Dropout(0.1)(input_feature)
+    # x = Dropout(0.1)(input_feature)
 
     # DeepLabv3+ decoder
     # feature projection
     size_before_2 = K.int_shape(input_feature)
-    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(x)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(input_feature)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
     dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-16)(dec_skip_1)
