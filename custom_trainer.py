@@ -294,7 +294,7 @@ class Trainer():
 		print(f'num. of batches for training: {self.num_batches_train}')
 		print(f'num. of batches for validation: {self.num_batches_val}')
 
-	def pre_train_segmentation(self, max_epoch: int = 50, min_acc: float = 0.8):
+	def pretrain_segmentation(self, max_epoch: int = 50, min_acc: float = 0.8):
 		self.reset_history()
 
 		epoch = 0
@@ -390,7 +390,7 @@ class Trainer():
 
 			epoch += 1
 
-	def pre_train_discriminator(self, max_epoch: int = 500, min_acc: float = 0.9):
+	def pretrain_discriminator(self, max_epoch: int = 500, min_acc: float = 0.9):
 		self.reset_history()
 
 		epoch = 0
