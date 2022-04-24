@@ -312,7 +312,6 @@ class Trainer():
 				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask,
 																	train_segmentation = True, train_discriminator = False)
 				loss_segmentation, _ = step_output
-
 				loss_segmentation_train += float(loss_segmentation)
 	
 			loss_segmentation_train /= self.num_batches_train
@@ -610,11 +609,19 @@ class Trainer():
 
 		self.elapsed_time = (time.time() - time_init) / 60
 
-	def save_weights(self, weights_path: str, best: bool = True):
+	def save_weights(self, weights_path: str, best: bool = True, piece: str = None):
 		if best:
 			self.best_model.save_weights(weights_path) # save weights
-		else:
+
+		elif piece is None:
 			self.model.save_weights(weights_path) # save weights
+
+		elif piece == 'segmentation':
+			self.model.main_network.save_weights(weights_path)
+		
+		elif piece == 'discriminator':
+			self.model.domain_discriminator.save_weights(weights_path)
+			
 		print('Weights saved successfuly')
 
 	def save_model(self, model_path: str, best: bool = True):
