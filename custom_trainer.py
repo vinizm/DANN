@@ -35,10 +35,10 @@ class Trainer():
 		# self.lr_function_segmentation = lr_factory.get_function('step', num_steps = 3, step_decay = 1.25, warmup = 0.5)
 		self.lr_function_discriminator = lr_factory.get_function('constant', const = 1.e-3)
 
-		self.lr_function_segmentation = lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0.12, alpha = 10., beta = 0.75)
+		self.lr_function_segmentation = lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0.1, alpha = 10., beta = 0.75)
 		# self.lr_function_discriminator = lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0.12, alpha = 10., beta = 0.75)
 
-		self.lambda_function = LambdaGradientReversalLayer(warmup = 0.15, gamma = 10., lambda_scale = 0.1)
+		self.lambda_function = LambdaGradientReversalLayer(warmup = 0.25, gamma = 10., lambda_scale = 0.1)
 
 		self.loss_function = BinaryCrossentropy()
 		self.loss_function_segmentation = MaskedBinaryCrossentropy()
