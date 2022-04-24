@@ -621,7 +621,7 @@ class Trainer():
 		
 		elif piece == 'discriminator':
 			self.model.domain_discriminator.save_weights(weights_path)
-			
+
 		print('Weights saved successfuly')
 
 	def save_model(self, model_path: str, best: bool = True):
@@ -679,3 +679,7 @@ class Trainer():
 				'flip': self.flip}
 
 		return persist
+
+	@property
+	def time(self):
+		return self.elapsed_time
