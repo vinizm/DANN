@@ -95,8 +95,8 @@ class DomainDiscriminator(Model):
         super(DomainDiscriminator, self).__init__(**kwargs)
         self.units = units
 
-        self.batch_norm_1 = BatchNormalization(center = False, scale = False, axis = -1, epsilon = 1.e-32)
         self.flat = Flatten()
+        self.batch_norm_1 = BatchNormalization(center = False, scale = False, axis = -1, epsilon = 1.e-32)
         self.dense_1 = Dense(units = units)
         self.activ_1 = Activation('relu')
         self.dense_2 = Dense(units = units)
@@ -104,10 +104,10 @@ class DomainDiscriminator(Model):
         self.dense_3 = Dense(units = 2)
         self.proba = Activation('softmax')
 
-    def call(self, inputs):
+    def call(self, x):
 
-        x = self.batch_norm_1(inputs, training = True)
         x = self.flat(x)
+        x = self.batch_norm_1(x, training = True)
         x = self.dense_1(x)
         x = self.activ_1(x)
         x = self.dense_2(x)
