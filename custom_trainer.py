@@ -604,7 +604,7 @@ class Trainer():
 			else:
 				self.no_improvement_count += 1
 				if  self.no_improvement_count > self.wait:
-					print('[!] Performing early stopping')
+					print('[!] Performing early stopping.')
 					break
 
 		self.elapsed_time = (time.time() - time_init) / 60
@@ -622,19 +622,31 @@ class Trainer():
 		elif piece == 'discriminator':
 			self.model.domain_discriminator.save_weights(weights_path)
 
-		print('Weights saved successfuly')
+		print('Weights saved successfuly.')
+
+	def load_weights(self, weights_path: str, piece: str = None):
+		if piece is None:
+			self.model.load_weights(weights_path)
+		
+		elif piece == 'segmentation':
+			self.model.main_network.load_weights(weights_path)
+
+		elif piece == 'discriminator':
+			self.model.domain_discriminator.load_weights(weights_path)
+
+		print('Weights loaded successfuly.')
 
 	def save_model(self, model_path: str, best: bool = True):
 		if best:
 			save_model(self.best_model, model_path) # save model
 		else:
 			save_model(self.model, model_path) # save model
-		print('Model saved successfuly')
+		print('Model saved successfuly.')
 		
 	def save_info(self, history_path):
 		persist = self.parameters
 		save_json(persist, history_path) # save metrics and parameters
-		print('Metrics saved successfuly')
+		print('Metrics saved successfuly.')
 
 	@property
 	def parameters(self):
