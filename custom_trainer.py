@@ -195,6 +195,29 @@ class Trainer():
 	def _generate_discriminator_mask(self, domain: int):
 		return self._generate_mask(domain, (1,))
 
+	def reset_history(self):
+		self.acc_function_segmentation.reset_states()
+		self.acc_function_discriminator.reset_states()
+
+		self.loss_segmentation_train_history = []
+		self.loss_segmentation_val_history = []
+
+		self.loss_discriminator_train_history = []
+		self.loss_discriminator_val_history = []
+
+		self.acc_segmentation_train_history = []
+		self.acc_segmentation_val_history = []
+
+		self.acc_discriminator_train_history = []
+		self.acc_discriminator_val_history = []
+
+		self.lr_segmentation_history = []
+		self.lr_discriminator_history = []
+		self.lambdas = []
+
+		self.no_improvement_count = 0
+		self.best_val_loss = 1.e8
+
 	def preprocess_images_domain_adaptation(self, patches_dir: list, batch_size: int = 2, val_fraction: float = 0.1,
 		num_images: int = 60, rotate: bool = True, flip: bool = True):
 
@@ -266,6 +289,8 @@ class Trainer():
 		print(f'num. of batches for validation: {self.num_batches_val}')
 
 	def pre_train_segmentation(self, max_epoch: int = 50, min_acc: float = 0.8):
+
+		self.reset_history()
 
 		epoch = 0
 		acc_segmentation_val = 0.
@@ -366,6 +391,7 @@ class Trainer():
 
 	def train_domain_adaptation(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True):
 
+		self.reset_history()
 		time_init = time.time()
 
 		self.epochs = epochs
