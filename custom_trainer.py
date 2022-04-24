@@ -397,6 +397,7 @@ class Trainer():
 		acc_discriminator_val = 0.
 
 		while epoch < max_epoch and acc_discriminator_val < min_acc:
+			print(f'Epoch {epoch + 1} of {max_epoch}')
 			loss_discriminator_train = 0.
 			loss_discriminator_val = 0.
 
