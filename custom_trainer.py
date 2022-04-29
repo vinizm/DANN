@@ -730,17 +730,19 @@ class Trainer():
 		self.elapsed_time = (time.time() - time_init) / 60
 
 	def save_weights(self, weights_path: str, best: bool = True, piece: str = None):
-		if best and piece is None:
-			self.best_model.save_weights(weights_path) # save weights
+		if best:
+			model_to_save = self.best_model
+		else:
+			model_to_save = self.model
 
-		elif piece is None:
-			self.model.save_weights(weights_path) # save weights
+		if piece is None:
+			model_to_save.save_weights(weights_path) # save weights
 
 		elif piece == 'segmentation':
-			self.model.main_network.save_weights(weights_path)
+			model_to_save.main_network.save_weights(weights_path)
 		
 		elif piece == 'discriminator':
-			self.model.domain_discriminator.save_weights(weights_path)
+			model_to_save.domain_discriminator.save_weights(weights_path)
 
 		print('Weights saved successfuly.')
 
