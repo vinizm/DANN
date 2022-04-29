@@ -618,7 +618,7 @@ class Trainer():
 			print(f'Segmentation Accuracy: {acc_segmentation_val}')
 			print(f'Discriminator Accuracy: {acc_discriminator_val}')
 
-			if loss_segmentation_val < self.best_val_loss and persist_best_model:
+			if loss_segmentation_val < self.best_val_loss and persist_best_model and p >= 0.5:
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_segmentation_val
 				self.no_improvement_count = 0
@@ -713,7 +713,7 @@ class Trainer():
 			print(f'Validation Loss: {loss_global_val}')
 			print(f'Validation Accuracy: {acc_global_val}')
 
-			if loss_global_val < self.best_val_loss and persist_best_model:
+			if loss_global_val < self.best_val_loss and persist_best_model and p >= 0.5:
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_global_val
 				self.no_improvement_count = 0
