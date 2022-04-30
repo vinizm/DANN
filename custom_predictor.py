@@ -74,7 +74,7 @@ class Predictor():
 
 			print('Predicting...')
 			if self.domain_adaptation:
-				y_pred_total = self.model.main_network.predict(x_test_total)
+				y_pred_total, _ = self.model.main_network.predict(x_test_total)
 			else:
 				y_pred_total = self.model.predict(x_test_total)
 
