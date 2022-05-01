@@ -815,7 +815,8 @@ class Trainer():
 				'epochs': self.epochs,
 				'wait': self.wait,
 				'rotate': self.rotate,
-				'flip': self.flip}
+				'flip': self.flip,
+				'test_index': self.test_index}
 
 		return persist
 
