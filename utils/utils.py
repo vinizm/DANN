@@ -11,6 +11,15 @@ import json
 from config import *
 
 
+def flatten(array: np.ndarray, keep_dims: bool = True):
+  if keep_dims:
+    last_dim = array.shape[-1]
+    new_shape = (np.prod(array.shape[: -1]), last_dim)
+  else:
+    new_shape = -1
+  return array.reshape(new_shape)
+
+
 def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
 	matrix = confusion_matrix(true_labels, predicted_labels)
 	accuracy = accuracy_score(true_labels, predicted_labels)
