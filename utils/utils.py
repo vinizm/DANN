@@ -21,21 +21,24 @@ def flatten(array: np.ndarray, keep_dims: bool = True):
 
 
 def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
-	matrix = confusion_matrix(true_labels, predicted_labels)
-	accuracy = accuracy_score(true_labels, predicted_labels)
-	avg_precision = average_precision_score(true_labels, predicted_labels)
-	f1 = f1_score(true_labels, predicted_labels)
-	recall = recall_score(true_labels, predicted_labels)
-	precision = precision_score(true_labels, predicted_labels)
+	
+	avg_precision = average_precision_score(flatten(true_labels), flatten(predicted_labels))
+
+	y_test_argmax = flatten(np.argmax(true_labels, axis = -1), keep_dims = False)
+	y_pred_argmax = flatten(np.argmax(predicted_labels, axis = -1), keep_dims = False)
+
+	accuracy = accuracy_score(y_test_argmax, y_pred_argmax)
+	precision = precision_score(y_test_argmax, y_pred_argmax)
+	recall = recall_score(y_test_argmax, y_pred_argmax)
+	f1 = f1_score(y_test_argmax, y_pred_argmax)
 	
 	metrics = {
-				'matrix': matrix.tolist(),
-				'accuracy': accuracy,
 				'average_precision': avg_precision,
-				'f1_score': f1,
+				'accuracy': accuracy,
+				'precision': precision,
 				'recall': recall,
-				'precision': precision
-	}
+				'f1_score': f1,
+			}
 	return metrics
 
 
