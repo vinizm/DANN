@@ -88,6 +88,8 @@ class Trainer():
 		self.num_batches_train = None
 		self.num_batches_val = None
 
+		self.test_index = []
+
 		self.elapsed_time = 0
 
 	def assembly_empty_model(self):
@@ -769,6 +771,9 @@ class Trainer():
 		persist = self.parameters
 		save_json(persist, history_path) # save metrics and parameters
 		print('Metrics saved successfuly.')
+
+	def set_test_index(self, index: list):
+		self.test_index = index
 
 	@property
 	def parameters(self):
