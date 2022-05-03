@@ -830,7 +830,8 @@ class Trainer():
 				'wait': self.wait,
 				'rotate': self.rotate,
 				'flip': self.flip,
-				'test_index': self.test_index}
+				'test_index_segmentation': self.test_index_segmentation,
+				'test_index_discriminator': self.test_index_discriminator}
 
 		return persist
 
