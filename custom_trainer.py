@@ -32,8 +32,6 @@ class Trainer():
 		self.optimizer_discriminator = Adam()
 		
 		self.lr_factory = lrf()
-		# self.lr_function_segmentation = self.lr_factory.get_function('step', num_steps = 3, step_decay = 1.25, warmup = 0.5)
-		# self.lr_function_discriminator = self.lr_factory.get_function('constant', const = 1.e-3)
 
 		self.lr_function_segmentation = self.lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0., alpha = 10., beta = 0.75)
 		self.lr_function_discriminator = self.lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0., alpha = 10., beta = 0.75)
@@ -779,12 +777,12 @@ class Trainer():
 		segmentation_params = kwargs.get('segmentation')
 		if segmentation_params is not None:
 			name = segmentation_params.pop('name')
-			self.optimizer_segmentation = self.lr_function_segmentation = self.lr_factory.get_function(name, **kwargs)
+			self.lr_function_segmentation = self.lr_factory.get_function(name, **kwargs)
 
 		discriminator_params = kwargs.get('discriminator')
 		if discriminator_params is not None:
 			name = discriminator_params.pop('name')
-			self.optimizer_discriminator = self.lr_factory.get_function(name, **kwargs)
+			self.lr_function_discriminator = self.lr_factory.get_function(name, **kwargs)
 
 	def set_lambda(self, **kwargs):
 		self.lambda_function = LambdaGradientReversalLayer(**kwargs)
