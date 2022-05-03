@@ -395,7 +395,7 @@ def PixelwiseClassifier(input_shape: tuple = (256, 256, 1), feature_shape: tuple
 
 
 def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8, activation: str = 'softmax',
-                  domain_adaptation: bool = False):
+                  num_backbone: int = 16, domain_adaptation: bool = False):
     """ Instantiates the Deeplabv3+ architecture
     """
     img_input = Input(shape = input_shape)
@@ -433,7 +433,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
                         skip_connection_type = 'conv', stride = entry_block3_stride,
                         depth_activation = False)
     
-    for i in range(16):
+    for i in range(num_backbone):
         x = _xception_block(x, [728, 728, 728], 'middle_flow_unit_{}'.format(i + 1),
                             skip_connection_type = 'sum', stride = 1, rate = middle_block_rate,
                             depth_activation = False)
