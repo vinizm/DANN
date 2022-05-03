@@ -1,3 +1,4 @@
+from distutils.command.config import config
 import numpy as np
 from abc import ABC, abstractmethod
 
@@ -13,6 +14,11 @@ class AbstractLearningRate(ABC):
     def calculate(self):
         pass
 
+    @property
+    @abstractmethod
+    def config(self):
+        pass
+
 
 class LearningRateConstant(AbstractLearningRate):
 
@@ -21,6 +27,11 @@ class LearningRateConstant(AbstractLearningRate):
 
     def calculate(self, p: float):
         return self.const
+
+    @property
+    def config(self):
+        config = {'const': self.const}
+        return config
 
 class LearningRateExpDecay(AbstractLearningRate):
 
@@ -34,6 +45,16 @@ class LearningRateExpDecay(AbstractLearningRate):
         if p <= self.warmup:
             return self.lr0
         return self.lr0 / ((1 + self.alpha * (p - self.warmup)) ** self.beta)
+
+    @property
+    def config(self):
+        config = {
+                    'lr0': self.lr0,
+                    'warmup': self.warmup,
+                    'alpha': self.alpha,
+                    'beta': self.beta
+                }
+        return config
 
 class LearningRateStepDecay(AbstractLearningRate):
 
@@ -53,6 +74,17 @@ class LearningRateStepDecay(AbstractLearningRate):
 
                 return self.lr0 / (self.step_decay ** i)
 
+    @property
+    def config(self):
+        config = {
+                    'lr0': self.lr0,
+                    'step_decay': self.step_decay,
+                    'num_steps': self.num_steps,
+                    'warmup': self.warmup,
+                    'points': self.points
+                }
+        return config
+
 class LearningRateLinear(AbstractLearningRate):
 
     def __init__(self, start: float = LR_START_LINEAR, stop: float = LR_STOP_LINEAR, warmup = LR_WARMUP):
@@ -69,6 +101,17 @@ class LearningRateLinear(AbstractLearningRate):
             return self.a
         return self.a * (p - self.warmup) + self.b
 
+    @property
+    def config(self):
+        config = {
+                    'start': self.start,
+                    'stop': self.stop,
+                    'warmup': self.warmup,
+                    'a': self.a,
+                    'b': self.b
+                }
+        return config
+
 class LearningRateLog(AbstractLearningRate):
 
     def __init__(self, start: float = LR_START_LOG, stop: float = LR_STOP_LOG, warmup = LR_WARMUP):
@@ -84,6 +127,17 @@ class LearningRateLog(AbstractLearningRate):
         if p <= self.warmup:
             return 10 ** self.a
         return 10 ** (self.a * (p - self.warmup) + self.b)
+
+    @property
+    def config(self):
+        config = {
+                    'start': self.start,
+                    'stop': self.stop,
+                    'warmup': self.warmup,
+                    'a': self.a,
+                    'b': self.b
+                }
+        return config
 
 
 class LearningRateFactory:

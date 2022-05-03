@@ -34,7 +34,8 @@ class LambdaGradientReversalLayer():
 			return 0.
 		return self.lambda_scale * ((2 / (1 + np.exp(- self.gamma * (p - self.warmup)))) - 1)
 
-	def get_config(self):
+	@property
+	def config(self):
 		config = {
 					'warmup': self.warmup,
 					'gamma': self.gamma,
