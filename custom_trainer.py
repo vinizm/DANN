@@ -777,12 +777,12 @@ class Trainer():
 		segmentation_params = kwargs.get('segmentation')
 		if segmentation_params is not None:
 			name = segmentation_params.pop('name')
-			self.lr_function_segmentation = self.lr_factory.get_function(name, **kwargs)
+			self.lr_function_segmentation = self.lr_factory.get_function(name, **segmentation_params)
 
 		discriminator_params = kwargs.get('discriminator')
 		if discriminator_params is not None:
 			name = discriminator_params.pop('name')
-			self.lr_function_discriminator = self.lr_factory.get_function(name, **kwargs)
+			self.lr_function_discriminator = self.lr_factory.get_function(name, **discriminator_params)
 
 	def set_lambda(self, **kwargs):
 		self.lambda_function = LambdaGradientReversalLayer(**kwargs)
