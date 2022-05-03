@@ -18,12 +18,14 @@ from model_builder import DomainAdaptationModel, DeepLabV3Plus
 
 class Trainer():
 
-	def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8, domain_adaptation: bool = False):
+	def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8,
+				backbone_size: int = 16, domain_adaptation: bool = False):
 
 		self.patch_size = patch_size
 		self.channels = channels
 		self.num_class = num_class
 		self.output_stride = output_stride
+		self.backbone_size = backbone_size
 		self.domain_adaptation = domain_adaptation
 
 		self.model = self.assembly_empty_model()
@@ -95,10 +97,10 @@ class Trainer():
 
 		if self.domain_adaptation:
 			empty_model = DomainAdaptationModel(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
-						 output_stride = self.output_stride, activation = 'softmax')
+						 output_stride = self.output_stride, backbone_size = self.backbone_size, activation = 'softmax')
 		else:
 			empty_model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
-						 output_stride = self.output_stride, activation = 'softmax', domain_adaptation = False)
+						 output_stride = self.output_stride, activation = 'softmax', backbone_size = self.backbone_size, domain_adaptation = False)
 		
 		return empty_model
 
