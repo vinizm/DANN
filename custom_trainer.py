@@ -86,7 +86,8 @@ class Trainer():
 		self.num_batches_train = None
 		self.num_batches_val = None
 
-		self.test_index = []
+		self.test_index_segmentation = []
+		self.test_index_discriminator = []
 
 		self.elapsed_time = 0
 
@@ -770,8 +771,9 @@ class Trainer():
 		save_json(persist, history_path) # save metrics and parameters
 		print('Metrics saved successfuly.')
 
-	def set_test_index(self, index: list):
-		self.test_index = index
+	def set_test_index(self, test_index_segmentation: list, test_index_driscriminator: list):
+		self.test_index_segmentation = test_index_segmentation
+		self.test_index_driscriminator = test_index_driscriminator
 
 	def set_learning_rate(self, **kwargs):
 		segmentation_params = kwargs.get('segmentation')
