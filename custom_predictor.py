@@ -1,3 +1,4 @@
+from turtle import back
 import numpy as np
 import glob
 
@@ -12,12 +13,13 @@ from config import *
 class Predictor():
 
 	def __init__(self, model = None, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8,
-				 domain_adaption: bool = False):
+				 backbone_size: int = 16, domain_adaption: bool = False):
 		self.model = model
 		self.patch_size = patch_size
 		self.channels = channels
 		self.num_class = num_class
 		self.output_stride = output_stride
+		self.backbone_size = backbone_size
 		self.domain_adaptation = domain_adaption
 
 		self.model = self.assembly_empty_model()
@@ -30,10 +32,10 @@ class Predictor():
 
 		if self.domain_adaptation:
 			empty_model = DomainAdaptationModel(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
-						 output_stride = self.output_stride, activation = 'softmax')
+						 output_stride = self.output_stride, backbone_size = self.backbone_size, activation = 'softmax')
 		else:
 			empty_model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
-						 output_stride = self.output_stride, activation = 'softmax', domain_adaptation = False)
+						 output_stride = self.output_stride, backbone_size = self.backbone_size, activation = 'softmax', domain_adaptation = False)
 		
 		return empty_model
 
