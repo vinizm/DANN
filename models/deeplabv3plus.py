@@ -35,11 +35,11 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
         atrous_rates = (6, 12, 18)
 
     x = Conv2D(32, (3, 3), strides = (2, 2), name = 'entry_flow_conv1_1', use_bias = False, padding = 'same')(img_input)
-    x = BatchNormalization(name = 'entry_flow_conv1_1_BN')(x)
+    x = BatchNormalization(name = 'entry_flow_conv1_1_BN', epsilon = 1.e-32)(x)
     x = Activation('relu')(x)
 
     x = _conv2d_same(x, 64, 'entry_flow_conv1_2', kernel_size = 3, stride = 1)
-    x = BatchNormalization(name = 'entry_flow_conv1_2_BN')(x)
+    x = BatchNormalization(name = 'entry_flow_conv1_2_BN', epsilon = 1.e-32)(x)
     x = Activation('relu')(x)
 
     x, skip_0 = _xception_block(x, [128, 128, 128], 'entry_flow_block1',
@@ -77,7 +77,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     b4 = ExpandDimensions()(b4)
 
     b4 = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'image_pooling')(b4)
-    b4 = BatchNormalization(name = 'image_pooling_BN', epsilon = 1e-16)(b4)
+    b4 = BatchNormalization(name = 'image_pooling_BN', epsilon = 1.e-32)(b4)
     b4 = Activation('relu')(b4)
 
     # upsample; have to use compat because of the option align_corners
@@ -86,24 +86,24 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     
     # simple 1x1
     b0 = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'aspp0')(x)
-    b0 = BatchNormalization(name = 'aspp0_BN', epsilon = 1e-16)(b0)
+    b0 = BatchNormalization(name = 'aspp0_BN', epsilon = 1.e-32)(b0)
     b0 = Activation('relu', name = 'aspp0_activation')(b0)
 
     # there are only 2 branches in mobilenetV2; not sure why
     # rate = 6 (12)
-    b1 = SepConv_BN(x, 256, 'aspp1', rate = atrous_rates[0], depth_activation = True, epsilon = 1e-16)
+    b1 = SepConv_BN(x, 256, 'aspp1', rate = atrous_rates[0], depth_activation = True, epsilon = 1.e-32)
     
     # rate = 12 (24)
-    b2 = SepConv_BN(x, 256, 'aspp2', rate = atrous_rates[1], depth_activation = True, epsilon = 1e-16)
+    b2 = SepConv_BN(x, 256, 'aspp2', rate = atrous_rates[1], depth_activation = True, epsilon = 1.e-32)
     
     # rate = 18 (36)
-    b3 = SepConv_BN(x, 256, 'aspp3', rate = atrous_rates[2], depth_activation = True, epsilon = 1e-16)
+    b3 = SepConv_BN(x, 256, 'aspp3', rate = atrous_rates[2], depth_activation = True, epsilon = 1.e-32)
 
     # concatenate ASPP branches and project
     x = Concatenate()([b4, b0, b1, b2, b3])
 
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
-    x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1e-16)(x)
+    x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1.e-32)(x)
     discriminator_spot = Activation('relu')(x)
     x = Dropout(0.1)(discriminator_spot)
 
@@ -113,22 +113,22 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(x)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
-    dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1e-16)(dec_skip_1)
+    dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1.e-32)(dec_skip_1)
     dec_skip_1 = Activation('relu')(dec_skip_1)
     x = Concatenate()([x, dec_skip_1])
 
-    x = SepConv_BN(x, 256, 'decoder_conv2', depth_activation = True, epsilon = 1e-16)
-    x = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1e-16)
+    x = SepConv_BN(x, 256, 'decoder_conv2', depth_activation = True, epsilon = 1.e-32)
+    x = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1.e-32)
 
     x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 2, method = 'bilinear', align_corners = True)(x)
 
     dec_skip_0 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection0')(skip_0)
-    dec_skip_0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1e-16)(dec_skip_0)
+    dec_skip_0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1.e-32)(dec_skip_0)
     dec_skip_0 = Activation('relu')(dec_skip_0)
     x = Concatenate()([x, dec_skip_0])
 
-    x = SepConv_BN(x, 128, 'decoder_conv0', depth_activation = True, epsilon = 1e-16)
-    x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1e-16)
+    x = SepConv_BN(x, 128, 'decoder_conv0', depth_activation = True, epsilon = 1.e-32)
+    x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1.e-32)
     x = Conv2D(num_class, (1, 1), padding = 'same', name = 'custom_logits_semantic')(x)
 
     size_before_3 = K.int_shape(img_input)
