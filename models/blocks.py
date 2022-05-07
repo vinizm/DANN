@@ -12,7 +12,7 @@ from tensorflow.keras.layers import ZeroPadding2D
 from tensorflow.keras.layers import Activation
 
 
-def SepConv_BN(x, filters, prefix, stride = 1, kernel_size = 3, rate = 1, depth_activation = False, epsilon = 1e-3):
+def SepConv_BN(x, filters, prefix, stride = 1, kernel_size = 3, rate = 1, depth_activation = False, epsilon = 1.e-32):
     """ SepConv with BN between depthwise & pointwise. Optionally add activation after BN
         Implements right "same" padding for even kernel sizes
         Args:
@@ -97,7 +97,7 @@ def _xception_block(inputs, depth_list, prefix, skip_connection_type, stride,
             skip = residual
     if skip_connection_type == 'conv':
         shortcut = _conv2d_same(inputs, depth_list[-1], prefix + '_shortcut', kernel_size = 1, stride = stride)
-        shortcut = BatchNormalization(name = prefix + '_shortcut_BN')(shortcut)
+        shortcut = BatchNormalization(name = prefix + '_shortcut_BN', epsilon = 1.e-32)(shortcut)
         outputs = Add()([residual, shortcut])
     elif skip_connection_type == 'sum':
         outputs = Add()([residual, inputs])
