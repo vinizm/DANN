@@ -3,7 +3,6 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-from re import X
 
 import tensorflow as tf
 from tensorflow.keras.models import Model
@@ -20,7 +19,6 @@ from tensorflow.keras.layers import GlobalAveragePooling2D
 from tensorflow.keras.layers import Flatten
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Activation
-from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras import backend as K
 
 from flip_gradient import flip_gradient

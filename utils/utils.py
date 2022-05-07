@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score, accuracy_score, average_precision_score
+from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score, average_precision_score
 from sklearn.feature_extraction.image import *
 import cv2
 
