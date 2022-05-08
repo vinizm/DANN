@@ -6,6 +6,7 @@ from models.deeplabv3plus import DeepLabV3Plus
 from models.layers import GradientReversalLayer
 from models.discriminators import DomainDiscriminator
 
+
 class DomainAdaptationModel(Model):
 
     def __init__(self, input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8,
@@ -41,3 +42,26 @@ class DomainAdaptationModel(Model):
     def build(self):
         super(DomainAdaptationModel, self).build(self.inputs.shape if tf.is_tensor(self.inputs) else self.inputs)
         self.call(self.inputs)
+
+
+def DomainAdaptationFunctional(input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8,
+                               activation: str = 'softmax'):
+
+    img_input = Input(shape = input_shape)
+    lambda_input = Input(shape = (1,))
+
+    raw_model = DomainAdaptationModel(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
+                                      activation = activation)
+    outputs = raw_model([img_input, lambda_input])
+
+    model = Model(inputs = [img_input, lambda_input], outputs = outputs)
+    return model
+
+
+def DomainDiscriminatorFunctional(input_shape: tuple, units = 1024):
+    img_input = Input(shape = input_shape)
+
+    outputs = DomainDiscriminator(units = units)(img_input)
+    model = Model(inputs = img_input, outputs = outputs)
+
+    return model
