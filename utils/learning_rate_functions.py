@@ -39,6 +39,7 @@ class LearningRateExpDecay(AbstractLearningRate):
         self.warmup = warmup
         self.alpha = alpha
         self.beta = beta
+        self.name = 'exp_decay'
 
     def calculate(self, p: float):
         if p <= self.warmup:
@@ -51,7 +52,8 @@ class LearningRateExpDecay(AbstractLearningRate):
                     'lr0': self.lr0,
                     'warmup': self.warmup,
                     'alpha': self.alpha,
-                    'beta': self.beta
+                    'beta': self.beta,
+                    'name': self.name
                 }
         return config
 
@@ -62,6 +64,7 @@ class LearningRateStepDecay(AbstractLearningRate):
         self.step_decay = step_decay
         self.num_steps = num_steps
         self.warmup = warmup
+        self.name = 'step_decay'
 
         points = np.linspace(self.warmup, 1, self.num_steps + 1)
         self.points = np.concatenate([np.asarray([0.]), points])
@@ -80,7 +83,8 @@ class LearningRateStepDecay(AbstractLearningRate):
                     'step_decay': self.step_decay,
                     'num_steps': self.num_steps,
                     'warmup': self.warmup,
-                    'points': self.points
+                    'points': self.points,
+                    'step_decay': self.name
                 }
         return config
 
@@ -91,6 +95,7 @@ class LearningRateLinear(AbstractLearningRate):
         self.start = start
         self.stop = stop
         self.warmup = warmup
+        self.name = 'linear'
 
         self.a = stop - start
         self.b = start
@@ -107,7 +112,8 @@ class LearningRateLinear(AbstractLearningRate):
                     'stop': self.stop,
                     'warmup': self.warmup,
                     'a': self.a,
-                    'b': self.b
+                    'b': self.b,
+                    'linear': self.name
                 }
         return config
 
@@ -118,6 +124,7 @@ class LearningRateLog(AbstractLearningRate):
         self.start = start
         self.stop = stop
         self.warmup = warmup
+        self.name = 'log'
 
         self.a = stop - start
         self.b = start
@@ -134,7 +141,8 @@ class LearningRateLog(AbstractLearningRate):
                     'stop': self.stop,
                     'warmup': self.warmup,
                     'a': self.a,
-                    'b': self.b
+                    'b': self.b,
+                    'name': self.name
                 }
         return config
 
@@ -150,7 +158,7 @@ class LearningRateFactory:
         elif name == 'exp_decay':
             return LearningRateExpDecay(**kwargs)
 
-        elif name == 'step':
+        elif name == 'step_decay':
             return LearningRateStepDecay(**kwargs)
 
         elif name == 'linear':
