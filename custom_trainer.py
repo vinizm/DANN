@@ -2,7 +2,7 @@ import glob
 import time
 import numpy as np
 
-from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy, SparseCategoricalAccuracy
 from tensorflow.keras.models import save_model
@@ -13,7 +13,8 @@ from utils.hyperparameters import *
 from utils.hyperparameters import LambdaGradientReversalLayer
 from utils.loss_functions import MaskedBinaryCrossentropy
 from utils.learning_rate_functions import LearningRateFactory as lrf
-from model_builder import DomainAdaptationModel, DeepLabV3Plus
+from models.builder import DomainAdaptationModel
+from models.deeplabv3plus import DeepLabV3Plus
 
 
 class Trainer():

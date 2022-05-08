@@ -1,13 +1,11 @@
-from turtle import back
 import numpy as np
 import glob
 
-from tensorflow.keras.models import load_model
-
-from utils.utils import load_array, compute_metrics, save_json
+from utils.utils import load_array, compute_metrics
 from utils.hyperparameters import *
-from model_builder import DeepLabV3Plus, DomainAdaptationModel
 from config import *
+from models.builder import DomainAdaptationModel
+from models.deeplabv3plus import DeepLabV3Plus
 
 
 class Predictor():
