@@ -72,8 +72,8 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     b4 = GlobalAveragePooling2D()(x)
 
     # from (batch_size, channels) -> (batch_size, 1, 1, channels)
-    b4 = ExpandDimensions()(b4)
-    b4 = ExpandDimensions()(b4)
+    b4 = ExpandDimensions(axis = 1)(b4)
+    b4 = ExpandDimensions(axis = 1)(b4)
 
     b4 = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'image_pooling')(b4)
     b4 = BatchNormalization(name = 'image_pooling_BN', epsilon = 1.e-32)(b4)

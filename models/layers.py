@@ -1,6 +1,6 @@
+from matplotlib.pyplot import axis
 import tensorflow as tf
 from tensorflow.keras.layers import Layer
-from tensorflow.keras import backend as K
 
 from flip_gradient import flip_gradient
 
@@ -53,15 +53,17 @@ class ReshapeTensor(Layer):
 
 class ExpandDimensions(Layer):
 
-    def __init__(self, **kwargs):
+    def __init__(self, axis = -1, **kwargs):
         super(ExpandDimensions, self).__init__(**kwargs)
+        self.axis = axis
     
     def call(self, inputs):
-        expanded = K.expand_dims(inputs, 1)
+        expanded = tf.expand_dims(inputs, axis = self.axis)
         return expanded
 
     def get_config(self):
         config = super(ExpandDimensions, self).get_config()
+        config.update({'axis': self.axis})
         return config
 
     def from_config(cls, config):
