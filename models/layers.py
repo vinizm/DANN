@@ -1,4 +1,3 @@
-from matplotlib.pyplot import axis
 import tensorflow as tf
 from tensorflow.keras.layers import Layer
 
