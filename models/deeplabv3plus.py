@@ -10,7 +10,6 @@ from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import GlobalAveragePooling2D
 from tensorflow.keras.layers import Activation
-from tensorflow.keras import backend as K
 
 from models.layers import ReshapeTensor, ExpandDimensions
 from models.blocks import SepConv_BN, _conv2d_same, _xception_block
@@ -81,7 +80,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     b4 = Activation('relu')(b4)
 
     # upsample; have to use compat because of the option align_corners
-    size_before = K.int_shape(x)
+    size_before = tuple(x.shape)
     b4 = ReshapeTensor(size_before[1:3], factor = 1, method = 'bilinear', align_corners = True)(b4)
     
     # simple 1x1
@@ -109,7 +108,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
 
     # DeepLabv3+ decoder
     # feature projection
-    size_before_2 = K.int_shape(discriminator_spot)
+    size_before_2 = tuple(discriminator_spot.shape)
     x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(x)
 
     dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
@@ -131,7 +130,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1.e-32)
     x = Conv2D(num_class, (1, 1), padding = 'same', name = 'custom_logits_semantic')(x)
 
-    size_before_3 = K.int_shape(img_input)
+    size_before_3 = tuple(img_input.shape)
     x = ReshapeTensor(size_before_3[1:3], factor = 1, method = 'bilinear', align_corners = True)(x)
 
     if activation in ['softmax', 'sigmoid']:
