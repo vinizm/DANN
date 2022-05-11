@@ -48,7 +48,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     # new skip connection
     x, skip_1 = _xception_block(x, [256, 256, 256], 'entry_flow_block2',
                                skip_connection_type = 'conv', stride = 2,
-                               depth_activation = False, return_skip  =True)
+                               depth_activation = False, return_skip = True)
 
     x = _xception_block(x, [728, 728, 728], 'entry_flow_block3',
                         skip_connection_type = 'conv', stride = entry_block3_stride,
