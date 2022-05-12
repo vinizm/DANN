@@ -13,6 +13,11 @@ _STRIDE_TEST = 512
 _NUM_CLASS = 2
 
 
+def switch_binary(array: np.ndarray):
+    switched = np.where(array == 1, 0, 1)
+    return switched
+
+
 def preprocess_images(dataset: str, test_index: list = None, resample: bool = False, one_channel: bool = True,
                       stride_train: int = _STRIDE_TRAIN, stride_test: int = _STRIDE_TEST, patch_size: int = _PATCH_SIZE):
 
@@ -21,6 +26,8 @@ def preprocess_images(dataset: str, test_index: list = None, resample: bool = Fa
 
     images_rlm = load_images(path_to_folder = path_to_dataset_rlm, normalize = False, one_channel = False)
     images_ref = load_images(path_to_folder = path_to_dataset_mask, normalize = True, one_channel = one_channel)
+
+    images_ref = [switch_binary(img) for img in images_ref]
 
     if test_index is None:
         resample = True
@@ -80,7 +87,7 @@ if __name__ == '__main__':
     # _STRIDE_TEST = sys.argv[4]
     # _PATCH_SIZE = sys.argv[5]
 
-    _DATASET = 'FeM'
+    _DATASET = 'Fe19'
     _TEST_INDEX = [1, 5, 11, 17]
     _STRIDE_TRAIN = 256
     _STRIDE_TEST = 512
