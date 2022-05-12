@@ -36,8 +36,8 @@ class Trainer():
 		
 		self.lr_factory = lrf()
 
-		self.lr_function_segmentation = self.lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0., alpha = 10., beta = 0.75)
-		self.lr_function_discriminator = self.lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0., alpha = 10., beta = 0.75)
+		self.lr_function_segmentation = self.lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0., alpha = 8., beta = 0.4)
+		self.lr_function_discriminator = self.lr_factory.get_function('exp_decay', lr0 = LR0, warmup = 0., alpha = 8., beta = 0.4)
 
 		self.lambda_function = LambdaGradientReversalLayer(warmup = 0.01, gamma = 10., lambda_scale = 1.)
 
