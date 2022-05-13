@@ -775,6 +775,9 @@ class Trainer():
 		print('Metrics saved successfuly.')
 
 	def set_test_index(self, test_index_source: list, test_index_target: list):
+		test_index_source = [int(i) for i in test_index_source]
+		test_index_target = [int(i) for i in test_index_target]
+
 		self.test_index_source = test_index_source
 		self.test_index_target = test_index_target
 
