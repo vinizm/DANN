@@ -3,12 +3,12 @@ import numpy as np
 from config import *
 
 
-LR_WARMUP = 0.4
-LAMBDA_WARMUP = 0.05
+LR_WARMUP = 0.
+LAMBDA_WARMUP = 0.
 LR0 = 5e-4
-ALPHA = 5.
+ALPHA = 2.25
 BETA = 0.75
-GAMMA = 7.
+GAMMA = 10.
 
 STEP_DECAY = 2.
 NUM_STEPS = 3
