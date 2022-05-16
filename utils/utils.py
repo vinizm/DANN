@@ -21,16 +21,25 @@ def flatten(array: np.ndarray, keep_dims: bool = True):
 
 
 def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
+
+	true_vector = flatten(np.argmax(true_labels, axis = -1), keep_dims = False)
+	pred_vector = flatten(np.argmax(predicted_labels, axis = -1), keep_dims = False)
+
+	accuracy = accuracy_score(true_vector, pred_vector)
+	precision = precision_score(true_vector, pred_vector)
+	recall = recall_score(true_vector, pred_vector)
+	f1 = f1_score(true_vector, pred_vector)
 	
-	avg_precision = average_precision_score(flatten(true_labels), flatten(predicted_labels))
+	ind = np.arange(rows)
+	rows = len(true_vector)
+	a = true_vector.reshape((rows, 1))
+	b = ind.reshape((rows, 1))
+	ind_pairs = np.concatenate([b, a], axis = 1)
+	
+	proba_pairs = flatten(predicted_labels, keep_dims = True)
+	proba_vector = proba_pairs[ind_pairs[:, 0], ind_pairs[:, 1]]
 
-	y_test_argmax = flatten(np.argmax(true_labels, axis = -1), keep_dims = False)
-	y_pred_argmax = flatten(np.argmax(predicted_labels, axis = -1), keep_dims = False)
-
-	accuracy = accuracy_score(y_test_argmax, y_pred_argmax)
-	precision = precision_score(y_test_argmax, y_pred_argmax)
-	recall = recall_score(y_test_argmax, y_pred_argmax)
-	f1 = f1_score(y_test_argmax, y_pred_argmax)
+	avg_precision = average_precision_score(true_vector, proba_vector)
 	
 	metrics = {
 				'average_precision': avg_precision,
