@@ -538,10 +538,11 @@ class Trainer():
 			l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
 
 			with self.segmentation_writer.as_default():
-				self.segmentation_writer('learning_rate', lr_1, epoch = epoch + 1)
-				self.discriminator_writer('learning_rate', lr_1, epoch = epoch + 1)
+				tf.summary.scalar('learning_rate', lr_1, epoch = epoch + 1)
 
-				self.discriminator_writer('lambda', l, epoch = epoch + 1)
+			with self.discriminator_writer.as_default():
+				tf.summary.scalar('learning_rate', lr_2, epoch = epoch + 1)
+				tf.summary.scalar('lambda', l, epoch = epoch + 1)
 
 			print('Start training...')
 			for batch in range(self.num_batches_train):
