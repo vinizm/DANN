@@ -67,6 +67,9 @@ class Trainer():
 		self.train_writer = tf.summary.create_file_writer('logs/train/')
 		self.val_writer = tf.summary.create_file_writer('logs/validation/')
 
+		self.segmentation_writer = tf.summary.create_file_writer('logs/segmentation/')
+		self.discriminator_writer = tf.summary.create_file_writer('logs/discriminator/')
+
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
 		self.best_model = None
@@ -531,6 +534,12 @@ class Trainer():
 			print(f'Lambda: {l}')
 			self.lambdas.append(l)
 			l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
+
+			with self.segmentation_writer.as_default():
+				self.segmentation_writer('learning_rate', lr_1, epoch = epoch + 1)
+				self.discriminator_writer('learning_rate', lr_1, epoch = epoch + 1)
+
+				self.discriminator_writer('lambda', l, epoch = epoch + 1)
 
 			print('Start training...')
 			for batch in range(self.num_batches_train):
