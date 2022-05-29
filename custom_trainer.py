@@ -67,9 +67,14 @@ class Trainer():
 		self.train_writer = tf.summary.create_file_writer('logs/train/')
 		self.val_writer = tf.summary.create_file_writer('logs/validation/')
 
+		self.segmentation_writer = tf.summary.create_file_writer('logs/segmentation/')
+		self.discriminator_writer = tf.summary.create_file_writer('logs/discriminator/')
+
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
+		self.progress_threshold = 0.5
 		self.best_model = None
+		self.best_epoch = None
 
 		self.patches_dir = None
 		self.train_data_dirs = []
@@ -532,6 +537,12 @@ class Trainer():
 			self.lambdas.append(l)
 			l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
 
+			with self.segmentation_writer.as_default():
+				self.segmentation_writer('learning_rate', lr_1, epoch = epoch + 1)
+				self.discriminator_writer('learning_rate', lr_1, epoch = epoch + 1)
+
+				self.discriminator_writer('lambda', l, epoch = epoch + 1)
+
 			print('Start training...')
 			for batch in range(self.num_batches_train):
 
@@ -571,6 +582,9 @@ class Trainer():
 			with self.train_writer.as_default():
 				tf.summary.scalar('loss_segmentation', loss_segmentation_train, step = epoch + 1)
 				tf.summary.scalar('loss_discriminator', loss_discriminator_train, step = epoch + 1)
+
+				tf.summary.scalar('accuracy_segmentation', acc_segmentation_train, step = epoch + 1)
+				tf.summary.scalar('accuracy_discriminator', acc_discriminator_train, step = epoch + 1)
 
 			print(f'Segmentation Loss: {loss_segmentation_train}')
 			print(f'Discriminator Loss: {loss_discriminator_train}')
@@ -627,16 +641,20 @@ class Trainer():
 				tf.summary.scalar('loss_segmentation', loss_segmentation_val, step = epoch + 1)
 				tf.summary.scalar('loss_discriminator', loss_discriminator_val, step = epoch + 1)
 
+				tf.summary.scalar('accuracy_segmentation', acc_segmentation_val, step = epoch + 1)
+				tf.summary.scalar('accuracy_discriminator', acc_discriminator_val, step = epoch + 1)				
+
 			print(f'Segmentation Loss: {loss_segmentation_val}')
 			print(f'Discriminator Loss: {loss_discriminator_val}')
 
 			print(f'Segmentation Accuracy: {acc_segmentation_val}')
 			print(f'Discriminator Accuracy: {acc_discriminator_val}')
 
-			if loss_segmentation_val < self.best_val_loss and persist_best_model and p >= 0.5:
+			if loss_segmentation_val < self.best_val_loss and persist_best_model and p >= self.progress_threshold:
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_segmentation_val
 				self.no_improvement_count = 0
+				self.best_epoch = epoch
 				
 				self.best_model = self.assembly_empty_model()
 				self.best_model.set_weights(self.model.get_weights())
@@ -728,10 +746,11 @@ class Trainer():
 			print(f'Validation Loss: {loss_global_val}')
 			print(f'Validation Accuracy: {acc_global_val}')
 
-			if loss_global_val < self.best_val_loss and persist_best_model and p >= 0.5:
+			if loss_global_val < self.best_val_loss and persist_best_model and p >= self.progress_threshold:
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_global_val
 				self.no_improvement_count = 0
+				self.best_epoch = epoch
 
 				self.best_model = self.assembly_empty_model()
 				self.best_model.set_weights(self.model.get_weights())
