@@ -572,6 +572,9 @@ class Trainer():
 				tf.summary.scalar('loss_segmentation', loss_segmentation_train, step = epoch + 1)
 				tf.summary.scalar('loss_discriminator', loss_discriminator_train, step = epoch + 1)
 
+				tf.summary.scalar('accuracy_segmentation', acc_segmentation_train, step = epoch + 1)
+				tf.summary.scalar('accuracy_discriminator', acc_discriminator_train, step = epoch + 1)
+
 			print(f'Segmentation Loss: {loss_segmentation_train}')
 			print(f'Discriminator Loss: {loss_discriminator_train}')
 
@@ -626,6 +629,9 @@ class Trainer():
 			with self.val_writer.as_default():
 				tf.summary.scalar('loss_segmentation', loss_segmentation_val, step = epoch + 1)
 				tf.summary.scalar('loss_discriminator', loss_discriminator_val, step = epoch + 1)
+
+				tf.summary.scalar('accuracy_segmentation', acc_segmentation_val, step = epoch + 1)
+				tf.summary.scalar('accuracy_discriminator', acc_discriminator_val, step = epoch + 1)				
 
 			print(f'Segmentation Loss: {loss_segmentation_val}')
 			print(f'Discriminator Loss: {loss_discriminator_val}')
