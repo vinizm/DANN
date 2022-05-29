@@ -566,7 +566,11 @@ class Trainer():
 			self.acc_segmentation_train_history.append(acc_segmentation_train)
 			
 			acc_discriminator_train = float(self.acc_function_discriminator.result())
-			self.acc_discriminator_train_history.append(acc_discriminator_train)			
+			self.acc_discriminator_train_history.append(acc_discriminator_train)
+
+			with self.train_writer.as_default():
+				tf.summary.scalar('loss_segmentation', loss_segmentation_train, step = epoch + 1)
+				tf.summary.scalar('loss_discriminator', loss_discriminator_train, step = epoch + 1)
 
 			print(f'Segmentation Loss: {loss_segmentation_train}')
 			print(f'Discriminator Loss: {loss_discriminator_train}')
