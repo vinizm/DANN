@@ -72,7 +72,9 @@ class Trainer():
 
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
+		self.progress_threshold = 0.5
 		self.best_model = None
+		self.best_epoch = None
 
 		self.patches_dir = None
 		self.train_data_dirs = []
@@ -648,10 +650,11 @@ class Trainer():
 			print(f'Segmentation Accuracy: {acc_segmentation_val}')
 			print(f'Discriminator Accuracy: {acc_discriminator_val}')
 
-			if loss_segmentation_val < self.best_val_loss and persist_best_model and p >= 0.5:
+			if loss_segmentation_val < self.best_val_loss and persist_best_model and p >= self.progress_threshold:
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_segmentation_val
 				self.no_improvement_count = 0
+				self.best_epoch = epoch
 				
 				self.best_model = self.assembly_empty_model()
 				self.best_model.set_weights(self.model.get_weights())
@@ -743,10 +746,11 @@ class Trainer():
 			print(f'Validation Loss: {loss_global_val}')
 			print(f'Validation Accuracy: {acc_global_val}')
 
-			if loss_global_val < self.best_val_loss and persist_best_model and p >= 0.5:
+			if loss_global_val < self.best_val_loss and persist_best_model and p >= self.progress_threshold:
 				print('[!] Persisting best model...')
 				self.best_val_loss = loss_global_val
 				self.no_improvement_count = 0
+				self.best_epoch = epoch
 
 				self.best_model = self.assembly_empty_model()
 				self.best_model.set_weights(self.model.get_weights())
