@@ -623,6 +623,10 @@ class Trainer():
 			acc_discriminator_val = float(self.acc_function_discriminator.result())
 			self.acc_discriminator_val_history.append(acc_discriminator_val)
 
+			with self.val_writer.as_default():
+				tf.summary.scalar('loss_segmentation', loss_segmentation_val, step = epoch + 1)
+				tf.summary.scalar('loss_discriminator', loss_discriminator_val, step = epoch + 1)
+
 			print(f'Segmentation Loss: {loss_segmentation_val}')
 			print(f'Discriminator Loss: {loss_discriminator_val}')
 
