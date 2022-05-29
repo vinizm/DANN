@@ -64,6 +64,9 @@ class Trainer():
 		self.lr_discriminator_history = []
 		self.lambdas = []
 
+		self.train_writer = tf.summary.create_file_writer('logs/train/')
+		self.val_writer = tf.summary.create_file_writer('logs/validation/')
+
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
 		self.best_model = None
