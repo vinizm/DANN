@@ -15,6 +15,7 @@ from utils.loss_functions import MaskedBinaryCrossentropy
 from utils.learning_rate_functions import LearningRateFactory as lrf
 from models.builder import DomainAdaptationModel
 from models.deeplabv3plus import DeepLabV3Plus
+from logger import TensorBoardLogger
 
 
 class Trainer():
@@ -64,11 +65,11 @@ class Trainer():
 		self.lr_discriminator_history = []
 		self.lambdas = []
 
-		self.train_writer = tf.summary.create_file_writer('logs/train/')
-		self.val_writer = tf.summary.create_file_writer('logs/validation/')
-
-		self.segmentation_writer = tf.summary.create_file_writer('logs/segmentation/')
-		self.discriminator_writer = tf.summary.create_file_writer('logs/discriminator/')
+		self.logger = TensorBoardLogger()
+		self.logger.create_writer('train_writer', 'logs/train/')
+		self.logger.create_writer('val_writer', 'logs/validation/')
+		self.logger.create_writer('segmentation_writer', 'logs/segmentation/')
+		self.logger.create_writer('discriminator_writer', 'logs/discriminator/')
 
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
@@ -537,12 +538,9 @@ class Trainer():
 			self.lambdas.append(l)
 			l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
 
-			with self.segmentation_writer.as_default():
-				tf.summary.scalar('learning_rate', lr_1, step = epoch + 1)
-
-			with self.discriminator_writer.as_default():
-				tf.summary.scalar('learning_rate', lr_2, step = epoch + 1)
-				tf.summary.scalar('lambda', l, step = epoch + 1)
+			self.logger.write('segmentation_writer', 'learning_rate', lr_1, epoch + 1)
+			self.logger.write('discriminator_writer', 'learning_rate', lr_2, epoch + 1)
+			self.logger.write('discriminator_writer', 'lambda', l, epoch + 1)
 
 			print('Start training...')
 			for batch in range(self.num_batches_train):
@@ -580,12 +578,10 @@ class Trainer():
 			acc_discriminator_train = float(self.acc_function_discriminator.result())
 			self.acc_discriminator_train_history.append(acc_discriminator_train)
 
-			with self.train_writer.as_default():
-				tf.summary.scalar('loss_segmentation', loss_segmentation_train, step = epoch + 1)
-				tf.summary.scalar('loss_discriminator', loss_discriminator_train, step = epoch + 1)
-
-				tf.summary.scalar('accuracy_segmentation', acc_segmentation_train, step = epoch + 1)
-				tf.summary.scalar('accuracy_discriminator', acc_discriminator_train, step = epoch + 1)
+			self.logger.write('train_writer', 'loss_segmentation', loss_segmentation_train, epoch + 1)
+			self.logger.write('train_writer', 'loss_discriminator', loss_discriminator_train, epoch + 1)
+			self.logger.write('train_writer', 'accuracy_segmentation', acc_segmentation_train, epoch + 1)
+			self.logger.write('train_writer', 'accuracy_discriminator', acc_discriminator_train, epoch + 1)
 
 			print(f'Segmentation Loss: {loss_segmentation_train}')
 			print(f'Discriminator Loss: {loss_discriminator_train}')
@@ -638,12 +634,10 @@ class Trainer():
 			acc_discriminator_val = float(self.acc_function_discriminator.result())
 			self.acc_discriminator_val_history.append(acc_discriminator_val)
 
-			with self.val_writer.as_default():
-				tf.summary.scalar('loss_segmentation', loss_segmentation_val, step = epoch + 1)
-				tf.summary.scalar('loss_discriminator', loss_discriminator_val, step = epoch + 1)
-
-				tf.summary.scalar('accuracy_segmentation', acc_segmentation_val, step = epoch + 1)
-				tf.summary.scalar('accuracy_discriminator', acc_discriminator_val, step = epoch + 1)				
+			self.logger.write('val_writer', 'loss_segmentation', loss_segmentation_val, epoch + 1)
+			self.logger.write('val_writer', 'loss_discriminator', loss_discriminator_val, epoch + 1)
+			self.logger.write('val_writer', 'accuracy_segmentation', acc_segmentation_val, epoch + 1)
+			self.logger.write('val_writer', 'accuracy_discriminator', acc_discriminator_val, epoch + 1)	
 
 			print(f'Segmentation Loss: {loss_segmentation_val}')
 			print(f'Discriminator Loss: {loss_discriminator_val}')
@@ -692,6 +686,8 @@ class Trainer():
 			self.lr_segmentation_history.append(lr)
 			print(f'Learning Rate: {lr}')
 
+			self.logger.write('segmentation_writer', 'learning_rate', lr, epoch + 1)
+
 			print('Start training...')
 			for batch in range(self.num_batches_train):
 
@@ -713,6 +709,9 @@ class Trainer():
 
 			acc_global_train = float(self.acc_function_segmentation.result())
 			self.acc_segmentation_train_history.append(acc_global_train)
+
+			self.logger.write('train_writer', 'loss_segmentation', loss_global_train, epoch + 1)
+			self.logger.write('train_writer', 'accuracy_segmentation', acc_global_train, epoch + 1)
 
 			print(f'Training Loss: {loss_global_train}')
 			print(f'Training Accuracy: {acc_global_train}')
@@ -743,6 +742,9 @@ class Trainer():
 
 			acc_global_val = float(self.acc_function_segmentation.result())
 			self.acc_segmentation_val_history.append(acc_global_val)
+
+			self.logger.write('val_writer', 'loss_segmentation', loss_global_val, epoch + 1)
+			self.logger.write('val_writer', 'accuracy_segmentation', acc_global_val, epoch + 1)
 
 			print(f'Validation Loss: {loss_global_val}')
 			print(f'Validation Accuracy: {acc_global_val}')
