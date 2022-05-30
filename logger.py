@@ -10,7 +10,7 @@ class TensorBoardLogger():
     def create_writer(self, writer_name: str, writer_path: str):
         self.writers[writer_name] = tf.summary.create_file_writer(writer_path)
 
-    def write(self, writer_name: str, graph_name: str, scalar: float, step: float):
+    def write_scalar(self, writer_name: str, graph_name: str, scalar: float, step: float):
         writer = self.writers.get(writer_name)
 
         with writer.as_default():
