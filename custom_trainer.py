@@ -73,7 +73,7 @@ class Trainer():
 
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
-		self.progress_threshold = 0.5
+		self.progress_threshold = 0.2
 		self.best_model = None
 		self.best_epoch = None
 
