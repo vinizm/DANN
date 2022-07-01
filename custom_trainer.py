@@ -1,4 +1,5 @@
 import glob
+from msilib.schema import Directory
 import time
 import numpy as np
 
@@ -828,8 +829,21 @@ class Trainer():
 	def set_lambda(self, **kwargs):
 		self.lambda_function = LambdaGradientReversalLayer(**kwargs)
 
+	def split_original_augmented(self, data_dirs: list):
+		original = [directory for directory in data_dirs if 'flip' not in directory and 'rotation' not in directory]
+		augmented = list(set(data_dirs) - set(original))
+		return original, augmented
+
 	@property
 	def parameters(self):
+		training_total_original, training_total_augmented = self.split_original_augmented(self.train_data_dirs)
+		training_source_original, training_source_augmented = self.split_original_augmented(self.train_data_dirs_source)
+		training_target_original, training_target_augmented = self.split_original_augmented(self.train_data_dirs_target)
+
+		validation_total_original, validation_total_augmented = self.split_original_augmented(self.val_data_dirs)
+		validation_source_original, validation_source_augmented = self.split_original_augmented(self.val_data_dirs_source)
+		validation_target_original, validation_target_augmented = self.split_original_augmented(self.val_data_dirs_target)
+
 		persist = {
 				'history':{
 					'training':{
@@ -848,13 +862,25 @@ class Trainer():
 							'discriminator': self.acc_discriminator_val_history}}},
 				'image_files':{
 					'training':{
-						'total': self.train_data_dirs,
-						'source': self.train_data_dirs_source,
-				   		'target': self.train_data_dirs_target},
+						'total':{
+							'original': training_total_original,
+							'augmented': training_total_augmented},
+						'source':{
+							'original': training_source_original,
+							'augmented': training_source_augmented},
+				   		'target':{
+							'original': training_target_original,
+							'augmented': training_target_augmented}},
 					'validation':{
-						'total': self.val_data_dirs,
-						'source': self.val_data_dirs_source,
-						'target': self.val_data_dirs_target}},
+						'total':{
+							'original': validation_total_original,
+							'augmented': validation_total_augmented},
+						'source':{
+							'original': validation_source_original,
+							'augmented': validation_source_augmented},
+						'target':{
+							'original': validation_target_original,
+							'augmented': validation_target_augmented}}},
 				'is_domain_adaptation': self.domain_adaptation,
 				'lr_segmentation': self.lr_segmentation_history,
 				'lr_discriminator': self.lr_discriminator_history,
