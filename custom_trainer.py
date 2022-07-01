@@ -1,5 +1,4 @@
 import glob
-from msilib.schema import Directory
 import time
 import numpy as np
 
