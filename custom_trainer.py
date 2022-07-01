@@ -829,20 +829,20 @@ class Trainer():
 	def set_lambda(self, **kwargs):
 		self.lambda_function = LambdaGradientReversalLayer(**kwargs)
 
-	def split_original_augmented(self, data_dirs: list):
+	def _split_original_augmented(self, data_dirs: list):
 		original = [directory for directory in data_dirs if 'flip' not in directory and 'rotation' not in directory]
 		augmented = list(set(data_dirs) - set(original))
 		return original, augmented
 
 	@property
 	def parameters(self):
-		training_total_original, training_total_augmented = self.split_original_augmented(self.train_data_dirs)
-		training_source_original, training_source_augmented = self.split_original_augmented(self.train_data_dirs_source)
-		training_target_original, training_target_augmented = self.split_original_augmented(self.train_data_dirs_target)
+		training_total_original, training_total_augmented = self._split_original_augmented(self.train_data_dirs)
+		training_source_original, training_source_augmented = self._split_original_augmented(self.train_data_dirs_source)
+		training_target_original, training_target_augmented = self._split_original_augmented(self.train_data_dirs_target)
 
-		validation_total_original, validation_total_augmented = self.split_original_augmented(self.val_data_dirs)
-		validation_source_original, validation_source_augmented = self.split_original_augmented(self.val_data_dirs_source)
-		validation_target_original, validation_target_augmented = self.split_original_augmented(self.val_data_dirs_target)
+		validation_total_original, validation_total_augmented = self._split_original_augmented(self.val_data_dirs)
+		validation_source_original, validation_source_augmented = self._split_original_augmented(self.val_data_dirs_source)
+		validation_target_original, validation_target_augmented = self._split_original_augmented(self.val_data_dirs_target)
 
 		persist = {
 				'history':{
