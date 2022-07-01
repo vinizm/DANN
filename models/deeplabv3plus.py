@@ -60,7 +60,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
                             depth_activation = False)
 
     x = _xception_block(x, [728, 1024, 1024], 'exit_flow_block1',
-                        skip_connection_type = 'conv', stride = 1, rate  =exit_block_rates[0],
+                        skip_connection_type = 'conv', stride = 1, rate = exit_block_rates[0],
                         depth_activation = False)
     x = _xception_block(x, [1536, 1536, 2048], 'exit_flow_block2',
                         skip_connection_type = 'none', stride = 1, rate = exit_block_rates[1],
