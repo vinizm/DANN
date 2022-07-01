@@ -160,7 +160,7 @@ class Trainer():
 	def _augment_images(self, data_dirs: list):
 		if self.rotate or self.flip:
 			augmented_dirs = augment_images(image_files = data_dirs, angles = [90, 180, 270],
-											 rotate = self.rotate, flip = self.flip, verbose = True)
+											 rotate = self.rotate, flip = self.flip, verbose = False)
 			data_dirs += augmented_dirs
 			np.random.shuffle(data_dirs)
 
