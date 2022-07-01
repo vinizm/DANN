@@ -30,15 +30,8 @@ def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
 	recall = recall_score(true_vector, pred_vector)
 	f1 = f1_score(true_vector, pred_vector)
 	
-	rows = len(true_vector)
-	ind = np.arange(rows)
-	a = true_vector.reshape((rows, 1))
-	b = ind.reshape((rows, 1))
-	ind_pairs = np.concatenate([b, a], axis = 1)
-	
 	proba_pairs = flatten(predicted_labels, keep_dims = True)
-	proba_vector = proba_pairs[ind_pairs[:, 0], ind_pairs[:, 1]]
-
+	proba_vector = proba_pairs[:, 1]
 	avg_precision = average_precision_score(true_vector, proba_vector)
 	
 	metrics = {
