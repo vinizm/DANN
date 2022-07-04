@@ -885,6 +885,10 @@ class Trainer():
 				'lr_discriminator': self.lr_discriminator_history,
 				'time': self.elapsed_time,
 				'lambdas': self.lambdas,
+				'function_config':{
+					'lr_segmentation': self.lr_function_segmentation.config,
+					'lr_discriminator': self.lr_function_discriminator.config,
+					'lambda': self.lambda_function.config},
 				'patch_size': self.patch_size,
 				'output_stride': self.output_stride,
 				'val_fraction': self.val_fraction,
