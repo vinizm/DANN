@@ -3,7 +3,6 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 
 
-
 def plot_map(wmap: np.ndarray):
     fig = plt.figure(1, figsize = (7, 7))
 
