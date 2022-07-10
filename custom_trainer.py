@@ -73,7 +73,7 @@ class Trainer():
 
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
-		self.progress_threshold = 0.2
+		self.progress_threshold = 0.1
 		self.best_model = None
 		self.best_epoch = None
 
@@ -496,13 +496,14 @@ class Trainer():
 
 			epoch += 1
 
-	def train_domain_adaptation(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True):
+	def train_domain_adaptation(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True, progress_threshold: float = 0.1):
 
 		self.reset_history()
 		time_init = time.time()
 
 		self.epochs = epochs
 		self.wait = wait
+		self.progress_threshold = progress_threshold
 
 		for epoch in range(self.epochs):
 			print(f'Epoch {epoch + 1} of {self.epochs}')
@@ -654,7 +655,7 @@ class Trainer():
 				self.best_model = self.assembly_empty_model()
 				self.best_model.set_weights(self.model.get_weights())
 
-			else:
+			elif p >= self.progress_threshold:
 				self.no_improvement_count += 1
 				if  self.no_improvement_count > self.wait:
 					print('[!] Performing early stopping.')
@@ -662,12 +663,13 @@ class Trainer():
 
 		self.elapsed_time = (time.time() - time_init) / 60
 
-	def train(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True):
+	def train(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True, progress_threshold: float = 0.1):
 
 		time_init = time.time()
 
 		self.epochs = epochs
 		self.wait = wait
+		self.progress_threshold = progress_threshold
 
 		for epoch in range(self.epochs):
 			print(f'Epoch {epoch + 1} of {self.epochs}')
@@ -758,7 +760,7 @@ class Trainer():
 				self.best_model = self.assembly_empty_model()
 				self.best_model.set_weights(self.model.get_weights())
 
-			else:
+			elif p >= self.progress_threshold:
 				self.no_improvement_count += 1
 				if  self.no_improvement_count > self.wait:
 					print('[!] Performing early stopping.')
