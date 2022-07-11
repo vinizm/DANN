@@ -646,20 +646,21 @@ class Trainer():
 			print(f'Segmentation Accuracy: {acc_segmentation_val}')
 			print(f'Discriminator Accuracy: {acc_discriminator_val}')
 
-			if loss_segmentation_val < self.best_val_loss and persist_best_model and p >= self.progress_threshold:
-				print('[!] Persisting best model...')
-				self.best_val_loss = loss_segmentation_val
-				self.no_improvement_count = 0
-				self.best_epoch = epoch
-				
-				self.best_model = self.assembly_empty_model()
-				self.best_model.set_weights(self.model.get_weights())
+			if self.persist_best_model and p >= self.progress_threshold:
+				if loss_segmentation_val <= self.best_val_loss:
+					print('[!] Persisting best model...')
+					self.best_val_loss = loss_segmentation_val
+					self.no_improvement_count = 0
+					self.best_epoch = epoch
+					
+					self.best_model = self.assembly_empty_model()
+					self.best_model.set_weights(self.model.get_weights())
 
-			elif p >= self.progress_threshold:
-				self.no_improvement_count += 1
-				if  self.no_improvement_count > self.wait:
-					print('[!] Performing early stopping.')
-					break
+				else:
+					self.no_improvement_count += 1
+					if  self.no_improvement_count > self.wait:
+						print('[!] Performing early stopping.')
+						break
 
 		self.elapsed_time = (time.time() - time_init) / 60
 
@@ -751,20 +752,21 @@ class Trainer():
 			print(f'Validation Loss: {loss_global_val}')
 			print(f'Validation Accuracy: {acc_global_val}')
 
-			if loss_global_val < self.best_val_loss and persist_best_model and p >= self.progress_threshold:
-				print('[!] Persisting best model...')
-				self.best_val_loss = loss_global_val
-				self.no_improvement_count = 0
-				self.best_epoch = epoch
+			if self.persist_best_model and p >= self.progress_threshold:
+				if loss_global_val <= self.best_val_loss:
+					print('[!] Persisting best model...')
+					self.best_val_loss = loss_global_val
+					self.no_improvement_count = 0
+					self.best_epoch = epoch
 
-				self.best_model = self.assembly_empty_model()
-				self.best_model.set_weights(self.model.get_weights())
+					self.best_model = self.assembly_empty_model()
+					self.best_model.set_weights(self.model.get_weights())
 
-			elif p >= self.progress_threshold:
-				self.no_improvement_count += 1
-				if  self.no_improvement_count > self.wait:
-					print('[!] Performing early stopping.')
-					break
+				else:
+					self.no_improvement_count += 1
+					if  self.no_improvement_count > self.wait:
+						print('[!] Performing early stopping.')
+						break
 
 		self.elapsed_time = (time.time() - time_init) / 60
 
