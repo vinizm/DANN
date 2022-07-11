@@ -908,6 +908,7 @@ class Trainer():
 				'test_index_source': self.test_index_source,
 				'test_index_target': self.test_index_target,
 				'persist_best': self.persist_best_model,
+    			'progress_threshold': self.progress_threshold,
     			'best_epoch': self.best_epoch}
 
 		return persist
