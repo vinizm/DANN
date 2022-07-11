@@ -505,6 +505,7 @@ class Trainer():
 		self.epochs = epochs
 		self.wait = wait
 		self.progress_threshold = progress_threshold
+		self.persist_best_model = persist_best_model
 
 		for epoch in range(self.epochs):
 			print(f'Epoch {epoch + 1} of {self.epochs}')
@@ -672,6 +673,7 @@ class Trainer():
 		self.epochs = epochs
 		self.wait = wait
 		self.progress_threshold = progress_threshold
+		self.persist_best_model = persist_best_model
 
 		for epoch in range(self.epochs):
 			print(f'Epoch {epoch + 1} of {self.epochs}')
@@ -905,7 +907,8 @@ class Trainer():
 				'flip': self.flip,
 				'test_index_source': self.test_index_source,
 				'test_index_target': self.test_index_target,
-				'best_epoch': self.best_epoch}
+				'persist_best': self.persist_best_model,
+    			'best_epoch': self.best_epoch}
 
 		return persist
 
