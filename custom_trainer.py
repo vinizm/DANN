@@ -70,6 +70,7 @@ class Trainer():
 		self.logger.create_writer('val_writer', 'logs/validation/')
 		self.logger.create_writer('segmentation_writer', 'logs/segmentation/')
 		self.logger.create_writer('discriminator_writer', 'logs/discriminator/')
+		self.logger.create_writer('histogram_writer', 'logs/histogram')
 
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
