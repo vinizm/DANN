@@ -1,6 +1,6 @@
-import glob
 import time
 import numpy as np
+import glob
 
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
