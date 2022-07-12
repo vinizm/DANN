@@ -158,13 +158,13 @@ class Trainer():
 			y_true_discriminator = tf.expand_dims(y_true_discriminator, axis = -1)
 			self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_discriminator)
 
-		gradients_bottleneck = None
+		bottleneck_gradients = None
 		if return_gradients:
-			gradients_bottleneck = tape.gradient(loss_discriminator, features)
+			bottleneck_gradients = tape.gradient(loss_discriminator, features)
 
 		del tape
 
-		return loss_segmentation, loss_discriminator, gradients_bottleneck
+		return loss_segmentation, loss_discriminator, bottleneck_gradients
 
 	def _augment_images(self, data_dirs: list):
 		if self.rotate or self.flip:
@@ -522,6 +522,8 @@ class Trainer():
 
 			loss_discriminator_train = 0.
 			loss_discriminator_val = 0.
+   
+			accum_gradients = 0.
 
 			self.acc_function_segmentation.reset_states()
 			self.acc_function_discriminator.reset_states()
@@ -573,10 +575,12 @@ class Trainer():
 
 				step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask,
 																	train_segmentation = True, train_discriminator = True, return_gradients = True)
-				loss_segmentation, loss_discriminator, gradients_bottleneck = step_output
+				loss_segmentation, loss_discriminator, bottleneck_gradients = step_output
 
 				loss_segmentation_train += float(loss_segmentation)
 				loss_discriminator_train += float(loss_discriminator)
+    
+				accum_gradients += bottleneck_gradients
 
 			loss_segmentation_train /= self.num_batches_train
 			self.loss_segmentation_train_history.append(loss_segmentation_train)
@@ -589,12 +593,14 @@ class Trainer():
 			
 			acc_discriminator_train = float(self.acc_function_discriminator.result())
 			self.acc_discriminator_train_history.append(acc_discriminator_train)
+   
+			accum_gradients /= self.num_batches_train
 
 			self.logger.write_scalar('train_writer', 'loss/segmentation', loss_segmentation_train, epoch + 1)
 			self.logger.write_scalar('train_writer', 'loss/discriminator', loss_discriminator_train, epoch + 1)
 			self.logger.write_scalar('train_writer', 'accuracy/segmentation', acc_segmentation_train, epoch + 1)
 			self.logger.write_scalar('train_writer', 'accuracy/discriminator', acc_discriminator_train, epoch + 1)
-			self.logger.write_histogram('histogram_writer', 'gradient/grl', gradients_bottleneck, epoch + 1)
+			self.logger.write_histogram('histogram_writer', 'gradient/grl', accum_gradients, epoch + 1)
 
 			print(f'Segmentation Loss: {loss_segmentation_train}')
 			print(f'Discriminator Loss: {loss_discriminator_train}')
