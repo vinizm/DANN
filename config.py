@@ -1,8 +1,8 @@
-import platform
+import os
 
-system = platform.system()
+CURRENT_PATH = os.path.realpath(__file__)
+BASE_FOLDER = '/'.join(CURRENT_PATH.split('/')[: -2])
 
-BASE_FOLDER = '/content' if system == 'Linux' else 'C:/Users/viniciusmartins/Documents/CCOMP/Projeto'
 PROCESSED_FOLDER = f'{BASE_FOLDER}/DANN/processed_images'
 MODELS_FOLDER = f'{BASE_FOLDER}/DANN/results'
 
