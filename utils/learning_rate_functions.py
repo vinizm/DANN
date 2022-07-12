@@ -44,7 +44,9 @@ class LearningRateExpDecay(AbstractLearningRate):
     def calculate(self, p: float):
         if p <= self.warmup:
             return self.lr0
-        return self.lr0 / ((1 + self.alpha * (p - self.warmup)) ** self.beta)
+        
+        u = (p - self.warmup) / (1 - self.warmup)
+        return self.lr0 / ((1 + self.alpha * u) ** self.beta)
 
     @property
     def config(self):
@@ -103,7 +105,9 @@ class LearningRateLinear(AbstractLearningRate):
     def calculate(self, p: float):
         if p <= self.warmup:
             return self.a
-        return self.a * (p - self.warmup) + self.b
+        
+        u = (p - self.warmup) / (1 - self.warmup)
+        return self.a * u + self.b
 
     @property
     def config(self):
@@ -132,7 +136,9 @@ class LearningRateLog(AbstractLearningRate):
     def calculate(self, p: float):
         if p <= self.warmup:
             return 10 ** self.a
-        return 10 ** (self.a * (p - self.warmup) + self.b)
+        
+        u = (p - self.warmup) / (1 - self.warmup)
+        return 10 ** (self.a * u + self.b)
 
     @property
     def config(self):

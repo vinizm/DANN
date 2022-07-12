@@ -32,7 +32,9 @@ class LambdaGradientReversalLayer():
 	def calculate(self, p: float):
 		if p <= self.warmup:
 			return 0.
-		return self.lambda_scale * ((2 / (1 + np.exp(- self.gamma * (p - self.warmup)))) - 1)
+
+		u = (p - self.warmup) / (1 - self.warmup)
+		return self.lambda_scale * ((2 / (1 + np.exp(- self.gamma * u))) - 1)
 
 	@property
 	def config(self):
