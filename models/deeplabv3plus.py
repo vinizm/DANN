@@ -46,9 +46,9 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
                                depth_activation = False, return_skip = True)
     
     # new skip connection
-    x, skip_1 = _xception_block(x, [256, 256, 256], 'entry_flow_block2',
+    x = _xception_block(x, [256, 256, 256], 'entry_flow_block2',
                                skip_connection_type = 'conv', stride = 2,
-                               depth_activation = False, return_skip = True)
+                               depth_activation = False, return_skip = False)
 
     x = _xception_block(x, [728, 728, 728], 'entry_flow_block3',
                         skip_connection_type = 'conv', stride = entry_block3_stride,
@@ -108,13 +108,8 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
 
     # DeepLabv3+ decoder
     # feature projection
-    size_before_2 = tuple(discriminator_spot.shape)
+    size_before_2 = tuple(x.shape)
     x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(x)
-
-    dec_skip_1 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection1')(skip_1)
-    dec_skip_1 = BatchNormalization(name = 'feature_projection1_BN', epsilon = 1.e-32)(dec_skip_1)
-    dec_skip_1 = Activation('relu')(dec_skip_1)
-    x = Concatenate()([x, dec_skip_1])
 
     x = SepConv_BN(x, 256, 'decoder_conv2', depth_activation = True, epsilon = 1.e-32)
     x = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1.e-32)
