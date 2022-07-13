@@ -1,5 +1,3 @@
-import sys
-import os
 import numpy as np
 import cv2
 
@@ -7,15 +5,19 @@ from utils.utils import load_images, extract_patches_from_images, save_arrays, c
 from config import PATH_TO_FOLDER
 
 
-_PATCH_SIZE = 512
-_STRIDE_TRAIN = 256
-_STRIDE_TEST = 512
+_PATCH_SIZE = 256
+_STRIDE_TRAIN = _PATCH_SIZE // 2
+_STRIDE_TEST = _PATCH_SIZE
 _NUM_CLASS = 2
 
 
 def switch_binary(array: np.ndarray):
     switched = np.where(array == 1, 0, 1)
     return switched
+
+
+def remove_augmented_images():
+    pass
 
 
 def preprocess_images(dataset: str, test_index: list = None, resample: bool = False, one_channel: bool = True,
