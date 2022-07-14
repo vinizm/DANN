@@ -817,11 +817,11 @@ class Trainer():
 
 		print('Weights loaded successfuly.')
 
-	def save_model(self, model_path: str, best: bool = True):
+	def save_model(self, model_path: str, best: bool = True): # save model
 		if best:
-			save_model(self.best_model, model_path) # save model
+			save_model(self.best_model, model_path) 
 		else:
-			save_model(self.model, model_path) # save model
+			save_model(self.model, model_path)
 		print('Model saved successfuly.')
 		
 	def save_info(self, history_path):
