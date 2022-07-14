@@ -11,4 +11,4 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     dataset = CASE.get('dataset')
     patch_size = CASE.get('patch_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('patch_size'))
     
-    print(patch_size)
+    
