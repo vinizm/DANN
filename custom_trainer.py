@@ -1,4 +1,3 @@
-from operator import truediv
 import time
 import numpy as np
 import glob
