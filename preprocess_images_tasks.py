@@ -1,4 +1,4 @@
-from preprocess_images import preprocess_images
+from preprocess_images import create_patches
 from config import TEST_INDEX
 
 
@@ -10,22 +10,29 @@ STRIDE_TEST = PATCH_SIZE
 STRIDE_TRAIN = PATCH_SIZE // 2
 
 
-DATASET = 'Fe19'
-IMAGES_FOR_TEST = TEST_INDEX.get(DATASET)
-preprocess_images(dataset = DATASET, test_index = IMAGES_FOR_TEST, resample = RESAMPLE, one_channel = ONE_CHANNEL,
-                  stride_train = STRIDE_TRAIN, stride_test = STRIDE_TEST, patch_size = PATCH_SIZE)
+def create_patches_Fe19(IMAGES_FOR_TEST: list = TEST_INDEX.get('Fe19')):
+    create_patches(dataset = 'Fe19', test_index = IMAGES_FOR_TEST, resample = RESAMPLE, one_channel = ONE_CHANNEL,
+                   stride_train = STRIDE_TRAIN, stride_test = STRIDE_TEST, patch_size = PATCH_SIZE)
 
-DATASET = 'Fe120'
-IMAGES_FOR_TEST = TEST_INDEX.get(DATASET)
-preprocess_images(dataset = DATASET, test_index = IMAGES_FOR_TEST, resample = RESAMPLE, one_channel = ONE_CHANNEL,
-                  stride_train = STRIDE_TRAIN, stride_test = STRIDE_TEST, patch_size = PATCH_SIZE)
+def create_patches_Fe120(IMAGES_FOR_TEST: list = TEST_INDEX.get('Fe120')):
+    create_patches(dataset = 'Fe120', test_index = IMAGES_FOR_TEST, resample = RESAMPLE, one_channel = ONE_CHANNEL,
+                   stride_train = STRIDE_TRAIN, stride_test = STRIDE_TEST, patch_size = PATCH_SIZE)
+    
+def create_patches_FeM(IMAGES_FOR_TEST: list = TEST_INDEX.get('FeM')):
+    create_patches(dataset = 'FeM', test_index = IMAGES_FOR_TEST, resample = RESAMPLE, one_channel = ONE_CHANNEL,
+                   stride_train = STRIDE_TRAIN, stride_test = STRIDE_TEST, patch_size = PATCH_SIZE)
+    
+def create_patches_Cu(IMAGES_FOR_TEST: list = TEST_INDEX.get('Cu')):
+    create_patches(dataset = 'Cu', test_index = IMAGES_FOR_TEST, resample = RESAMPLE, one_channel = ONE_CHANNEL,
+                   stride_train = STRIDE_TRAIN, stride_test = STRIDE_TEST, patch_size = PATCH_SIZE)
 
-DATASET = 'FeM'
-IMAGES_FOR_TEST = TEST_INDEX.get(DATASET)
-preprocess_images(dataset = DATASET, test_index = IMAGES_FOR_TEST, resample = RESAMPLE, one_channel = ONE_CHANNEL,
-                  stride_train = STRIDE_TRAIN, stride_test = STRIDE_TEST, patch_size = PATCH_SIZE)
+def create_all_patches():
+    create_patches_Fe19()
+    create_patches_Fe120()
+    create_patches_FeM()
+    create_patches_Cu() 
 
-DATASET = 'Cu'
-IMAGES_FOR_TEST = TEST_INDEX.get(DATASET)
-preprocess_images(dataset = DATASET, test_index = IMAGES_FOR_TEST, resample = RESAMPLE, one_channel = ONE_CHANNEL,
-                  stride_train = STRIDE_TRAIN, stride_test = STRIDE_TEST, patch_size = PATCH_SIZE)
+
+if __name__ == '__main__':
+    
+    create_all_patches()
