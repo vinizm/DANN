@@ -824,7 +824,7 @@ class Trainer():
 			save_model(self.model, model_path)
 		print('Model saved successfuly.')
 		
-	def save_info(self, history_path):
+	def save_info(self, history_path: str):
 		persist = self.parameters
 		save_json(persist, history_path) # save metrics and parameters
 		print('Metrics saved successfuly.')
