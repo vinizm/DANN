@@ -1,5 +1,3 @@
-import sys
-import os
 import numpy as np
 import cv2
 
@@ -7,9 +5,9 @@ from utils.utils import load_images, extract_patches_from_images, save_arrays, c
 from config import PATH_TO_FOLDER
 
 
-_PATCH_SIZE = 512
-_STRIDE_TRAIN = 256
-_STRIDE_TEST = 512
+_PATCH_SIZE = 256
+_STRIDE_TRAIN = _PATCH_SIZE // 2
+_STRIDE_TEST = _PATCH_SIZE
 _NUM_CLASS = 2
 
 
@@ -18,8 +16,12 @@ def switch_binary(array: np.ndarray):
     return switched
 
 
-def preprocess_images(dataset: str, test_index: list = None, resample: bool = False, one_channel: bool = True,
-                      stride_train: int = _STRIDE_TRAIN, stride_test: int = _STRIDE_TEST, patch_size: int = _PATCH_SIZE):
+def remove_augmented_images():
+    pass
+
+
+def create_patches(dataset: str, test_index: list = None, resample: bool = False, one_channel: bool = True,
+                   stride_train: int = _STRIDE_TRAIN, stride_test: int = _STRIDE_TEST, patch_size: int = _PATCH_SIZE):
 
     path_to_dataset_rlm = PATH_TO_FOLDER.get(dataset).get('RLM')
     path_to_dataset_mask = PATH_TO_FOLDER.get(dataset).get('MASK')
@@ -98,5 +100,5 @@ if __name__ == '__main__':
     print(f'stride_test: {_STRIDE_TEST}')
     print(f'patch_size: {_PATCH_SIZE}')
 
-    preprocess_images(dataset = _DATASET, test_index = _TEST_INDEX, resample = False, one_channel = True,
+    create_patches(dataset = _DATASET, test_index = _TEST_INDEX, resample = False, one_channel = True,
                       stride_train = _STRIDE_TRAIN, stride_test = _STRIDE_TEST, patch_size = _PATCH_SIZE)

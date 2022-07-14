@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Layer
 
-from flip_gradient import flip_gradient
+from models.flip_gradient import flip_gradient
 
 
 class GradientReversalLayer(Layer):
