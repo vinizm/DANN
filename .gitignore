@@ -1,1 +1,5 @@
+# ignore folders
 processed_images
+\"/
+utils/__pycache__
+__pycache__
