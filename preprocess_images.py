@@ -80,25 +80,3 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
                 suffix = '', ext = '.npy', clean_all = True)
     save_arrays(patches_test, f'./processed_images/{dataset}_patch{patch_size}_stride{stride_test}_Test/',
                 suffix = '', ext = '.npy', clean_all = True)
-
-
-if __name__ == '__main__':
-    # _DATASET = sys.argv[1]
-    # _TEST_INDEX = eval(sys.argv[2])
-    # _STRIDE_TRAIN = sys.argv[3]
-    # _STRIDE_TEST = sys.argv[4]
-    # _PATCH_SIZE = sys.argv[5]
-
-    _DATASET = 'Fe19'
-    _TEST_INDEX = [1, 5, 11, 17]
-    _STRIDE_TRAIN = 256
-    _STRIDE_TEST = 512
-    _PATCH_SIZE = 512
-    print(f'dataset: {_DATASET}')
-    print(f'test_index: {_TEST_INDEX}')
-    print(f'stride_train: {_STRIDE_TRAIN}')
-    print(f'stride_test: {_STRIDE_TEST}')
-    print(f'patch_size: {_PATCH_SIZE}')
-
-    create_patches(dataset = _DATASET, test_index = _TEST_INDEX, resample = False, one_channel = True,
-                      stride_train = _STRIDE_TRAIN, stride_test = _STRIDE_TEST, patch_size = _PATCH_SIZE)
