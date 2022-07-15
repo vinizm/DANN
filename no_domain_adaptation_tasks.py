@@ -6,8 +6,8 @@ from datetime import datetime
 import os
 
 
-now = datetime.now()
-EXP_DIR = f'{now.strftime("%Y-%m-%d_%H-%M-%S")}_no_da'
+now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+EXP_DIR = f'{now}_no_da'
 
 for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     
@@ -39,7 +39,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     lr0 = CASE.get('lr0', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr0'))
     lr_warmup = CASE.get('lr_warmup', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_warmup'))
     
-    prefix = f'DL_os{output_stride}_patch{patch_size}_{dataset}'
+    PREFIX = f'DL_os{output_stride}_patch{patch_size}_{dataset}'
     
     for i in range(num_runs):
     
@@ -47,7 +47,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
         remove_augmented_images(patches_dir)
         
         trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, output_stride = output_stride, backbone_size = backbone_size,
-                          domain_adaptation = False)
+                          domain_adaptation = False, name = f'{now}_{dataset}_v{i + 1:02}')
         trainer.set_test_index(test_index_source = TEST_INDEX.get(dataset), test_index_target = [])
         trainer.compile_model()
         trainer.preprocess_images(patches_dir = patches_dir, batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
@@ -56,16 +56,16 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
         config_segmentation = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup}
         trainer.set_learning_rate(**{'segmentation': config_segmentation})
         
-        trainer.train(epochs = max_epochs, wait = patience, persist_best_model = True)
+        # trainer.train(epochs = max_epochs, wait = patience, persist_best_model = True)
         
-        LOW_LEVEL_DIR = f'{RESULTS_FOLDER}/{EXP_DIR}/{dataset}/v{{i + 1:02}}'
+        LOW_LEVEL_DIR = f'{RESULTS_FOLDER}/{EXP_DIR}/{dataset}/v{i + 1:02}'
         if not os.path.exists(LOW_LEVEL_DIR):
-            os.mkdirs(LOW_LEVEL_DIR)    
+            os.makedirs(LOW_LEVEL_DIR)    
         
-        weights_path = f'{LOW_LEVEL_DIR}/{prefix}_v{i}_weights'
+        weights_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_weights'
         trainer.save_weights(weights_path = weights_path, best = True, piece = None)
         
-        history_path = f'{LOW_LEVEL_DIR}/{prefix}_v{i}_history'
+        history_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_history'
         trainer.save_info(history_path = history_path)
         
         del trainer
