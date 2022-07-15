@@ -21,8 +21,9 @@ from logger import TensorBoardLogger
 class Trainer():
 
 	def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8,
-				backbone_size: int = 16, domain_adaptation: bool = False):
+				backbone_size: int = 16, domain_adaptation: bool = False, name: str = ''):
 
+		self.name = name if name == '' else f'_{name}'
 		self.patch_size = patch_size
 		self.channels = channels
 		self.num_class = num_class
@@ -36,7 +37,6 @@ class Trainer():
 		self.optimizer_discriminator = Adam()
 		
 		self.lr_factory = lrf()
-
 		self.lr_function_segmentation = self.lr_factory.get_function('exp_decay', lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA)
 		self.lr_function_discriminator = self.lr_factory.get_function('exp_decay', lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA)
 
@@ -66,11 +66,11 @@ class Trainer():
 		self.lambdas = []
 
 		self.logger = TensorBoardLogger()
-		self.logger.create_writer('train_writer', 'logs/train/')
-		self.logger.create_writer('val_writer', 'logs/validation/')
-		self.logger.create_writer('segmentation_writer', 'logs/segmentation/')
-		self.logger.create_writer('discriminator_writer', 'logs/discriminator/')
-		self.logger.create_writer('histogram_writer', 'logs/histogram/')
+		self.logger.create_writer('train_writer', f'logs/train{self.name}/')
+		self.logger.create_writer('val_writer', f'logs/validation{self.name}/')
+		self.logger.create_writer('segmentation_writer', f'logs/segmentation{self.name}/')
+		self.logger.create_writer('discriminator_writer', f'logs/discriminator{self.name}/')
+		self.logger.create_writer('histogram_writer', f'logs/histogram{self.name}/')
 
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
