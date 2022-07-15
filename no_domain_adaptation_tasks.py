@@ -1,14 +1,71 @@
-from experiments.model_config.no_domain_adaptation import NO_DOMAIN_ADAPTATION_CONFIG, NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS
+from experiments.model_config.no_domain_adaptation_config import NO_DOMAIN_ADAPTATION_CONFIG, NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS
+from config import PROCESSED_FOLDER, RESULTS_FOLDER, TEST_INDEX
+from preprocess_images import remove_augmented_images
 from custom_trainer import Trainer
+from datetime import datetime
+import os
 
+
+now = datetime.now()
+EXP_DIR = f'{now.strftime("%Y-%m-%d_%H-%M-%S")}_no_da'
 
 for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     
     run_training = CASE.get('run_training')
     if not run_training:
-        continue  
+        continue
     
     dataset = CASE.get('dataset')
     patch_size = CASE.get('patch_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('patch_size'))
+    stride_train = patch_size // 2
+    channels = CASE.get('channels', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('channels'))
+    num_class = CASE.get('num_class', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_class'))
+    output_stride = CASE.get('output_stride', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
+    backbone_size = CASE.get('backbone_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('backbone_size'))
+    num_runs = CASE.get('num_runs', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_runs'))
     
+    batch_size = CASE.get('batch_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('batch_size'))
+    val_fraction = CASE.get('val_fraction', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('val_fraction'))
+    num_images_train = CASE.get('num_images_train', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_images_train'))
+    rotate = CASE.get('rotate', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('rotate'))
+    flip = CASE.get('flip', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('flip'))
+    max_epochs = CASE.get('max_epochs', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('max_epochs'))
+    patience = CASE.get('patience', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('patience'))
+    progress_threshold = CASE.get('progress_threshold', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('progress_threshold'))
     
+    lr_name = CASE.get('lr_name', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_name'))
+    alpha = CASE.get('alpha', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('alpha'))
+    beta = CASE.get('beta', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('beta'))
+    lr0 = CASE.get('lr0', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr0'))
+    lr_warmup = CASE.get('lr_warmup', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_warmup'))
+    
+    prefix = f'DL_os{output_stride}_patch{patch_size}_{dataset}'
+    
+    for i in range(num_runs):
+    
+        patches_dir = f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_train}_Train'
+        remove_augmented_images(patches_dir)
+        
+        trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, output_stride = output_stride, backbone_size = backbone_size,
+                          domain_adaptation = False)
+        trainer.set_test_index(test_index_source = TEST_INDEX.get(dataset), test_index_target = [])
+        trainer.compile_model()
+        trainer.preprocess_images(patches_dir = patches_dir, batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
+                                  rotate = rotate, flip = flip)
+        
+        config_segmentation = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup}
+        trainer.set_learning_rate(**{'segmentation': config_segmentation})
+        
+        trainer.train(epochs = max_epochs, wait = patience, persist_best_model = True)
+        
+        LOW_LEVEL_DIR = f'{RESULTS_FOLDER}/{EXP_DIR}/{dataset}/v{{i + 1:02}}'
+        if not os.path.exists(LOW_LEVEL_DIR):
+            os.mkdirs(LOW_LEVEL_DIR)    
+        
+        weights_path = f'{LOW_LEVEL_DIR}/{prefix}_v{i}_weights'
+        trainer.save_weights(weights_path = weights_path, best = True, piece = None)
+        
+        history_path = f'{LOW_LEVEL_DIR}/{prefix}_v{i}_history'
+        trainer.save_info(history_path = history_path)
+        
+        del trainer
