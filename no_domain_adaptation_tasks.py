@@ -1,10 +1,19 @@
-from experiments.model_config.no_domain_adaptation_config import NO_DOMAIN_ADAPTATION_CONFIG, NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS
+from experiment_config.no_domain_adaptation_config import NO_DOMAIN_ADAPTATION_CONFIG, NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS
 from config import PROCESSED_FOLDER, RESULTS_FOLDER, TEST_INDEX
 from preprocess_images import remove_augmented_images
 from custom_trainer import Trainer
+
 from datetime import datetime
+import tensorflow as tf
+import time
 import os
 import gc
+
+physical_devices = tf.config.list_physical_devices('GPU')
+try:
+  tf.config.experimental.set_memory_growth(physical_devices[0], True)
+except:
+    print('Invalid device or cannot modify virtual devices once initialized.')
 
 now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 EXP_DIR = f'{now}_no_da'
@@ -62,11 +71,13 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
         if not os.path.exists(LOW_LEVEL_DIR):
             os.makedirs(LOW_LEVEL_DIR)    
         
-        weights_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_weights'
+        weights_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_weights.h5'
         trainer.save_weights(weights_path = weights_path, best = True, piece = None)
         
-        history_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_history'
+        history_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_history.json'
         trainer.save_info(history_path = history_path)
         
         del trainer
         gc.collect()
+        
+        time.sleep(30)
