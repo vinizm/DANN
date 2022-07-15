@@ -4,7 +4,7 @@ from preprocess_images import remove_augmented_images
 from custom_trainer import Trainer
 from datetime import datetime
 import os
-
+import gc
 
 now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 EXP_DIR = f'{now}_no_da'
@@ -69,3 +69,4 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
         trainer.save_info(history_path = history_path)
         
         del trainer
+        gc.collect()
