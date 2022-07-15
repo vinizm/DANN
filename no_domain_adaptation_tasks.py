@@ -65,7 +65,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
         config_segmentation = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup}
         trainer.set_learning_rate(**{'segmentation': config_segmentation})
         
-        trainer.train(epochs = max_epochs, wait = patience, persist_best_model = True)
+        trainer.train(epochs = max_epochs, wait = patience, persist_best_model = True, progress_threshold = progress_threshold)
         
         LOW_LEVEL_DIR = f'{RESULTS_FOLDER}/{EXP_DIR}/{dataset}/v{i + 1:02}'
         if not os.path.exists(LOW_LEVEL_DIR):
