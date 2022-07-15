@@ -3,3 +3,5 @@ processed_images
 \"/
 utils/__pycache__
 __pycache__
+results
+logs
