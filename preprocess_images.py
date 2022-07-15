@@ -20,7 +20,7 @@ def switch_binary(array: np.ndarray):
 def remove_augmented_images(directory: str):
     if os.path.isdir(directory):
         file_names = os.listdir(directory)
-        file_names = [f'{directory}/{file_name}' for file_name in file_names if 'rotation' in file_name and 'flip' in file_name]
+        file_names = [f'{directory}/{file_name}' for file_name in file_names if 'rotation' in file_name or 'flip' in file_name]
         
         for augmented_file in file_names:
             print(f'removing {augmented_file}')
