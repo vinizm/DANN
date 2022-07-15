@@ -80,4 +80,4 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
         del trainer
         gc.collect()
         
-        time.sleep(30)
+        time.sleep(15)
