@@ -78,6 +78,7 @@ DOMAIN_ADAPTATION_CONFIG = [
 ]
 
 
-DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 1, 'num_class': 2, 'output_stride': 16, 'max_epochs': 250, 'batch_size': 2, 'val_fraction': 0.1,
-                                   'num_images_train': 200, 'patience': 25, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'alpha': 2.25,
-                                   'beta': 0.75, 'lr0': 5.e-4, 'lr_warmup': 0., 'lr_name': 'exp_decay', 'backbone_size': 16}
+DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 1, 'num_class': 2, 'output_stride': 16, 'max_epochs': 200, 'batch_size': 2, 'val_fraction': 0.1,
+                                   'num_images_train': 200, 'patience': 25, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'backbone_size': 16,
+                                   'alpha': 2.25, 'beta': 0.75, 'lr0': 5.e-4, 'lr_warmup': 0., 'lr_name': 'exp_decay', 'gamma': 10., 'lambda_scale': 1.,
+                                   'lambda_warmup': 0.04}

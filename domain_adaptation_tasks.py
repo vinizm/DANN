@@ -11,12 +11,12 @@ import gc
 
 physical_devices = tf.config.list_physical_devices('GPU')
 try:
-  tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 except:
     print('Invalid device or cannot modify virtual devices once initialized.')
 
 now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-EXP_DIR = f'{now}_no_da'
+EXP_DIR = f'{now}'
 
 for CASE in DOMAIN_ADAPTATION_CONFIG:
     
@@ -49,6 +49,10 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     lr0 = CASE.get('lr0', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr0'))
     lr_warmup = CASE.get('lr_warmup', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_warmup'))
     
+    gamma = CASE.get('gamma', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('gamma'))
+    lambda_scale = CASE.get('lambda_scale', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lambda_scale'))
+    lambda_warmup = CASE.get('lambda_warmup', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lambda_warmup'))
+    
     PREFIX = f'DL_os{output_stride}_patch{patch_size}_{source_set}_{target_set}'
     
     for i in range(num_runs):
@@ -67,7 +71,11 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
                                   rotate = rotate, flip = flip)
         
         config_segmentation = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup}
-        trainer.set_learning_rate(**{'segmentation': config_segmentation})
+        config_discriminator = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup}
+        trainer.set_learning_rate(**{'segmentation': config_segmentation, 'discriminator': config_discriminator})
+        
+        config_lambda = {'warmup': lambda_warmup, 'gamma': gamma, 'lambda_scale': lambda_scale}
+        trainer.set_lambda(config_lambda)
         
         trainer.train_domain_adaptation(epochs = max_epochs, wait = patience, persist_best_model = True, progress_threshold = progress_threshold)
         
