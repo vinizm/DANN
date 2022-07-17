@@ -75,7 +75,7 @@ class Trainer():
 		self.no_improvement_count = 0
 		self.best_val_loss = 1.e8
 		self.progress_threshold = 0.1
-		self.best_model = None
+		self.best_weights = None
 		self.best_epoch = None
 
 		self.patches_dir = None
@@ -669,9 +669,7 @@ class Trainer():
 					self.best_val_loss = loss_segmentation_val
 					self.no_improvement_count = 0
 					self.best_epoch = epoch
-					
-					self.best_model = self.assembly_empty_model()
-					self.best_model.set_weights(self.model.get_weights())
+					self.best_weights = self.model.get_weights()
 
 				else:
 					self.no_improvement_count += 1
@@ -776,9 +774,7 @@ class Trainer():
 					self.best_val_loss = loss_global_val
 					self.no_improvement_count = 0
 					self.best_epoch = epoch
-
-					self.best_model = self.assembly_empty_model()
-					self.best_model.set_weights(self.model.get_weights())
+					self.best_weights = self.model.get_weights()
 
 				else:
 					self.no_improvement_count += 1
@@ -790,7 +786,8 @@ class Trainer():
 
 	def save_weights(self, weights_path: str, best: bool = True, piece: str = None):
 		if best:
-			model_to_save = self.best_model
+      		model_to_save = self.assembly_empty_model()
+			model_to_save = model_to_save.set_weighs(self.best_weights)
 		else:
 			model_to_save = self.model
 
@@ -819,7 +816,7 @@ class Trainer():
 
 	def save_model(self, model_path: str, best: bool = True): # save model
 		if best:
-			save_model(self.best_model, model_path) 
+			save_model(self.best_weights, model_path) 
 		else:
 			save_model(self.model, model_path)
 		print('Model saved successfuly.')
