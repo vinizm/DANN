@@ -790,7 +790,7 @@ class Trainer():
     def save_weights(self, weights_path: str, best: bool = True, piece: str = None):
         if best:
             model_to_save = self.assembly_empty_model()
-            model_to_save = model_to_save.set_weights(self.best_weights)
+            model_to_save.set_weights(self.best_weights)
         else:
             model_to_save = self.model
 
@@ -820,7 +820,7 @@ class Trainer():
     def save_model(self, model_path: str, best: bool = True): # save model
         if best:
             model_to_save = self.assembly_empty_model()
-            model_to_save = model_to_save.set_weights(self.best_weights)
+            model_to_save.set_weights(self.best_weights)
             save_model(model_to_save, model_path) 
         else:
             save_model(self.model, model_path)
