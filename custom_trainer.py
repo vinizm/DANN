@@ -6,6 +6,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy, SparseCategoricalAccuracy
 from tensorflow.keras.models import save_model
+from tensorflow.keras.backend import clear_session
 import tensorflow as tf
 
 from utils.utils import load_array, save_json, augment_images
@@ -767,6 +768,8 @@ class Trainer():
 
             print(f'Validation Loss: {loss_global_val}')
             print(f'Validation Accuracy: {acc_global_val}')
+            
+            clear_session()
 
             if self.persist_best_model and p >= self.progress_threshold:
                 if loss_global_val <= self.best_val_loss:
