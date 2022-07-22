@@ -16,7 +16,7 @@ except:
     print('Invalid device or cannot modify virtual devices once initialized.')
 
 now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-EXP_DIR = f'{now}'
+EXP_DIR = f'{now}_da'
 
 for CASE in DOMAIN_ADAPTATION_CONFIG:
     
@@ -67,24 +67,28 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
                           domain_adaptation = True, name = f'{now}_{source_set}_{target_set}_v{i + 1:02}')
         trainer.set_test_index(test_index_source = TEST_INDEX.get(source_set), test_index_target = TEST_INDEX.get(target_set))
         trainer.compile_model()
-        trainer.preprocess_images(patches_dir = [source_dir, target_dir], batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
-                                  rotate = rotate, flip = flip)
+        trainer.preprocess_images_domain_adaptation(patches_dir = [source_dir, target_dir], batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
+                                                    rotate = rotate, flip = flip)
         
         config_segmentation = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup}
         config_discriminator = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup}
         trainer.set_learning_rate(**{'segmentation': config_segmentation, 'discriminator': config_discriminator})
         
         config_lambda = {'warmup': lambda_warmup, 'gamma': gamma, 'lambda_scale': lambda_scale}
-        trainer.set_lambda(config_lambda)
+        trainer.set_lambda(**config_lambda)
+
+        print(trainer.lr_function_segmentation.config)
+        print(trainer.lr_function_discriminator.config)
+        print(trainer.lambda_function.config)
         
         trainer.train_domain_adaptation(epochs = max_epochs, wait = patience, persist_best_model = True, progress_threshold = progress_threshold)
-        
+
         LOW_LEVEL_DIR = f'{RESULTS_FOLDER}/{EXP_DIR}/{source_set}_{target_set}/v{i + 1:02}'
         if not os.path.exists(LOW_LEVEL_DIR):
-            os.makedirs(LOW_LEVEL_DIR)    
+            os.makedirs(LOW_LEVEL_DIR)
         
         weights_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_weights.h5'
-        trainer.save_weights(weights_path = weights_path, best = True, piece = None)
+        trainer.save_weights(weights_path = weights_path, best = True, piece = 'segmentation')
         
         history_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_history.json'
         trainer.save_info(history_path = history_path)
