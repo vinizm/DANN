@@ -663,6 +663,8 @@ class Trainer():
 
             print(f'Segmentation Accuracy: {acc_segmentation_val}')
             print(f'Discriminator Accuracy: {acc_discriminator_val}')
+            
+            clear_session()
 
             if self.persist_best_model and p >= self.progress_threshold:
                 if loss_segmentation_val <= self.best_val_loss:
