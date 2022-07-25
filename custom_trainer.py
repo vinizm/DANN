@@ -673,6 +673,9 @@ class Trainer():
                     self.no_improvement_count = 0
                     self.best_epoch = epoch
                     self.best_weights = self.model.get_weights()
+                    
+                    self.logger.write_scalar('val_writer', 'best/epoch', self.best_epoch, epoch + 1)
+                    self.logger.write_scalar('val_writer', 'best/loss', self.best_val_loss, epoch + 1)
 
                 else:
                     self.no_improvement_count += 1
