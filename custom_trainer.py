@@ -9,7 +9,9 @@ from tensorflow.keras.models import save_model
 from tensorflow.keras.backend import clear_session
 import tensorflow as tf
 
-from utils.utils import load_array, save_json, augment_images
+from sklearn.metrics import average_precision_score, f1_score
+
+from utils.utils import load_array, save_json, augment_images, flatten
 from utils.hyperparameters import *
 from utils.hyperparameters import LambdaGradientReversalLayer
 from utils.loss_functions import MaskedBinaryCrossentropy
@@ -61,6 +63,11 @@ class Trainer():
 
         self.acc_discriminator_train_history = []
         self.acc_discriminator_val_history = []
+        
+        self.source_f1 = []
+        self.source_ap = []
+        self.target_f1 = []
+        self.target_ap = []
 
         self.lr_segmentation_history = []
         self.lr_discriminator_history = []
@@ -222,6 +229,17 @@ class Trainer():
 
     def _generate_acc_mask(self, samples: list):
         return np.asarray([self._generate_discriminator_mask(domain) for domain in samples]).reshape(-1)
+    
+    def _calculate_general_metrics(self, true, pred):
+        
+        true_vector = flatten(np.argmax(true, axis = -1), keep_dims = False)
+        pred_vector = flatten(np.argmax(pred, axis = -1), keep_dims = False)
+        proba_pairs = flatten(proba_pairs, keep_dims = True)            
+        
+        ap = average_precision_score(true_vector, proba_pairs[1])
+        f1 = f1_score(true_vector, pred_vector)
+        
+        return {'avg_precision': ap, 'f1_score': f1}
 
     def reset_history(self):
         self.acc_function_segmentation.reset_states()
@@ -527,6 +545,12 @@ class Trainer():
 
             self.acc_function_segmentation.reset_states()
             self.acc_function_discriminator.reset_states()
+            
+            true_source = []
+            true_target = []
+            
+            proba_source = []
+            proba_target = []
 
             np.random.shuffle(self.train_data_dirs)
             np.random.shuffle(self.val_data_dirs)
@@ -638,6 +662,16 @@ class Trainer():
                 self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = acc_mask)
                 self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
 
+                if 0 in y_discriminator_val:
+                    idx = np.argwhere(y_discriminator_val == 0).reshape(-1)
+                    true_source.append(y_segmentation_val[idx])
+                    proba_source.append(y_segmentation_pred[idx])
+                
+                if 1 in y_discriminator_val:
+                    idx = np.argwhere(y_discriminator_val == 1).reshape(-1)
+                    true_target.append(y_segmentation_val[idx])
+                    proba_target.append(y_segmentation_pred[idx])
+
                 loss_segmentation_val += float(loss_segmentation)
                 loss_discriminator_val += float(loss_discriminator)
 
@@ -652,11 +686,26 @@ class Trainer():
 
             acc_discriminator_val = float(self.acc_function_discriminator.result())
             self.acc_discriminator_val_history.append(acc_discriminator_val)
+            
+            true_source = tf.concat(true_source, axis = 0)
+            proba_source = tf.concat(true_source, axis = 0)
+            
+            true_target = tf.concat(true_target, axis = 0)
+            proba_target = tf.concat(proba_target, axis = 0)
+            
+            source_metrics = self._calculate_general_metrics(true_source, proba_source)
+            target_metrics = self._calculate_general_metrics(true_target, proba_target)    
 
             self.logger.write_scalar('val_writer', 'loss/segmentation', loss_segmentation_val, epoch + 1)
             self.logger.write_scalar('val_writer', 'loss/discriminator', loss_discriminator_val, epoch + 1)
             self.logger.write_scalar('val_writer', 'accuracy/segmentation', acc_segmentation_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'accuracy/discriminator', acc_discriminator_val, epoch + 1)	
+            self.logger.write_scalar('val_writer', 'accuracy/discriminator', acc_discriminator_val, epoch + 1)
+            
+            self.logger.write_scalar('val_writer', 'avg_precision/source', source_metrics.get('avg_precision'), epoch + 1)
+            self.logger.write_scalar('val_writer', 'avg_precision/target', target_metrics.get('avg_precision'), epoch + 1)            
+            
+            self.logger.write_scalar('val_writer', 'f1_score/source', source_metrics.get('f1_score'), epoch + 1)
+            self.logger.write_scalar('val_writer', 'f1_score/target', target_metrics.get('f1_score'), epoch + 1)
 
             print(f'Segmentation Loss: {loss_segmentation_val}')
             print(f'Discriminator Loss: {loss_discriminator_val}')
