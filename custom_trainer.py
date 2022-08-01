@@ -64,10 +64,10 @@ class Trainer():
         self.acc_discriminator_train_history = []
         self.acc_discriminator_val_history = []
         
-        self.source_f1 = []
-        self.source_ap = []
-        self.target_f1 = []
-        self.target_ap = []
+        self.f1_source_history = []
+        self.ap_source_history = []
+        self.f1_target_history = []
+        self.ap_target_history = []
 
         self.lr_segmentation_history = []
         self.lr_discriminator_history = []
@@ -694,18 +694,30 @@ class Trainer():
             proba_target = tf.concat(proba_target, axis = 0)
             
             source_metrics = self._calculate_general_metrics(true_source, proba_source)
-            target_metrics = self._calculate_general_metrics(true_target, proba_target)    
+            target_metrics = self._calculate_general_metrics(true_target, proba_target)
+            
+            ap_source = source_metrics.get('avg_precision')
+            ap_target = target_metrics.get('avg_precision')
+            
+            f1_source = source_metrics.get('f1_score')
+            f1_target = target_metrics.get('f1_score')
+            
+            self.ap_source_history.append(ap_source)
+            self.ap_target_history.append(ap_target)
+            
+            self.f1_source_history.append(f1_source)
+            self.f1_target_history.append(f1_target)            
 
             self.logger.write_scalar('val_writer', 'loss/segmentation', loss_segmentation_val, epoch + 1)
             self.logger.write_scalar('val_writer', 'loss/discriminator', loss_discriminator_val, epoch + 1)
             self.logger.write_scalar('val_writer', 'accuracy/segmentation', acc_segmentation_val, epoch + 1)
             self.logger.write_scalar('val_writer', 'accuracy/discriminator', acc_discriminator_val, epoch + 1)
             
-            self.logger.write_scalar('val_writer', 'avg_precision/source', source_metrics.get('avg_precision'), epoch + 1)
-            self.logger.write_scalar('val_writer', 'avg_precision/target', target_metrics.get('avg_precision'), epoch + 1)            
+            self.logger.write_scalar('val_writer', 'avg_precision/source', ap_source, epoch + 1)
+            self.logger.write_scalar('val_writer', 'avg_precision/target', ap_target, epoch + 1)            
             
-            self.logger.write_scalar('val_writer', 'f1_score/source', source_metrics.get('f1_score'), epoch + 1)
-            self.logger.write_scalar('val_writer', 'f1_score/target', target_metrics.get('f1_score'), epoch + 1)
+            self.logger.write_scalar('val_writer', 'f1_score/source', f1_source, epoch + 1)
+            self.logger.write_scalar('val_writer', 'f1_score/target', f1_target, epoch + 1)
 
             print(f'Segmentation Loss: {loss_segmentation_val}')
             print(f'Discriminator Loss: {loss_discriminator_val}')
@@ -936,7 +948,13 @@ class Trainer():
                             'discriminator': self.loss_discriminator_val_history},
                         'accuracy':{
                             'segmentation': self.acc_segmentation_val_history,
-                            'discriminator': self.acc_discriminator_val_history}}},
+                            'discriminator': self.acc_discriminator_val_history},
+                        'f1_score':{
+                            'source': self.f1_source_history,
+                            'target': self.f1_target_history},
+                        'avg_precision':{
+                            'source': self.ap_source_history,
+                            'target': self.ap_target_history}}},
                 'image_files':{
                     'training':{
                         'total':{
