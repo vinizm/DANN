@@ -689,7 +689,7 @@ class Trainer():
             self.acc_discriminator_val_history.append(acc_discriminator_val)
             
             true_source = tf.concat(true_source, axis = 0)
-            proba_source = tf.concat(true_source, axis = 0)
+            proba_source = tf.concat(proba_source, axis = 0)
             
             true_target = tf.concat(true_target, axis = 0)
             proba_target = tf.concat(proba_target, axis = 0)
