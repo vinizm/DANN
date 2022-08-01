@@ -17,7 +17,7 @@ def flatten(array: np.ndarray, keep_dims: bool = True):
     new_shape = (np.prod(array.shape[: -1]), last_dim)
   else:
     new_shape = -1
-  return array.reshape(new_shape)
+  return np.reshape(array, new_shape)
 
 
 def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):

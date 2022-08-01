@@ -234,9 +234,9 @@ class Trainer():
         
         true_vector = flatten(np.argmax(true, axis = -1), keep_dims = False)
         pred_vector = flatten(np.argmax(pred, axis = -1), keep_dims = False)
-        proba_pairs = flatten(proba_pairs, keep_dims = True)            
+        proba_pairs = flatten(pred, keep_dims = True)            
         
-        ap = average_precision_score(true_vector, proba_pairs[1])
+        ap = average_precision_score(true_vector, proba_pairs[:, 1])
         f1 = f1_score(true_vector, pred_vector)
         
         return {'avg_precision': ap, 'f1_score': f1}
@@ -662,15 +662,16 @@ class Trainer():
                 self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = acc_mask)
                 self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
 
+                y_discriminator_val = np.reshape(y_discriminator_val, -1)
                 if 0 in y_discriminator_val:
-                    idx = np.argwhere(y_discriminator_val == 0).reshape(-1)
-                    true_source.append(y_segmentation_val[idx])
-                    proba_source.append(y_segmentation_pred[idx])
+                    idx = tf.cast(np.argwhere(y_discriminator_val == 0).reshape(-1), 'int32')
+                    true_source.append(tf.gather(y_segmentation_val, indices = idx, axis = 0))
+                    proba_source.append(tf.gather(y_segmentation_pred, indices = idx, axis = 0))
                 
                 if 1 in y_discriminator_val:
-                    idx = np.argwhere(y_discriminator_val == 1).reshape(-1)
-                    true_target.append(y_segmentation_val[idx])
-                    proba_target.append(y_segmentation_pred[idx])
+                    idx = list(np.argwhere(y_discriminator_val == 1).reshape(-1))
+                    true_target.append(tf.gather(y_segmentation_val, indices = idx, axis = 0))
+                    proba_target.append(tf.gather(y_segmentation_pred, indices = idx, axis = 0))
 
                 loss_segmentation_val += float(loss_segmentation)
                 loss_discriminator_val += float(loss_discriminator)
