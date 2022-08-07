@@ -7,8 +7,10 @@ import cv2
 from tensorflow import one_hot
 import tensorflow as tf
 import json
+import random as rd
 
 from config import *
+from utils.plot import compare_images
 
 
 def flatten(array: np.ndarray, keep_dims: bool = True):
@@ -239,3 +241,20 @@ def generate_weight_maps(y_true, epsilon: float):
 
     wmaps = tf.convert_to_tensor(np.asarray(wmaps), dtype = tf.float32)
     return wmaps
+
+def classify_image(array, threshold):
+  classified_array = np.where(array >= threshold, 1., 0.)
+  return classified_array
+
+def plot_images(rgb, gray, true, pred, n, threshold = 0.5, patch_idx = []):
+
+  if len(patch_idx) == 0:
+    patch_idx = rd.sample(range(0, len(true)), n)
+
+  for i in patch_idx:
+    rgb_i = rgb[i]
+    gray_i = gray[i, :, :, 0]
+    true_i = true[i, :, :, 1]
+    proba_i = np.log10(pred[i, :, :, 1])
+    pred_i = classify_image(pred[i, :, :, 1], threshold)
+    compare_images(rgb_i, gray_i, true_i, pred_i, proba_i, i)
