@@ -123,6 +123,8 @@ class DomainDiscriminatorHybridv1(Model):
     def __init__(self, **kwargs):
         super(DomainDiscriminatorHybridv1, self).__init__(**kwargs)
         
+        self.batch_norm = BatchNormalization(epsilon = 1.e-32)
+        
         self.conv_1 = Conv2D(filters = 256, kernel_size = 5, strides = 1, padding = 'same')
         self.activ_1 = Activation('relu')
 
@@ -139,6 +141,7 @@ class DomainDiscriminatorHybridv1(Model):
         self.activ_5 = Activation('relu')
 
         self.flat = Flatten()
+        
         self.dense_1 = Dense(units = 192)
         self.activ_6 = Activation('relu')
 
@@ -149,6 +152,8 @@ class DomainDiscriminatorHybridv1(Model):
         self.activ_8 = Activation('softmax')
 
     def call(self, x):
+        
+        x = self.batch_norm(x)
         
         x = self.conv_1(x)
         x = self.activ_1(x)
