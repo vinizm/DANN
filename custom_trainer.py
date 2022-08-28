@@ -596,7 +596,7 @@ class Trainer():
 
                 loss_mask = self._generate_loss_mask(y_discriminator_train)
                 acc_mask = self._generate_acc_mask(y_discriminator_train)
-
+                
                 step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask,
                                                                     train_segmentation = True, train_discriminator = True, return_gradients = True)
                 loss_segmentation, loss_discriminator, bottleneck_gradients = step_output
