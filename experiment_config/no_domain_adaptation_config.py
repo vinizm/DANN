@@ -2,12 +2,12 @@ NO_DOMAIN_ADAPTATION_CONFIG = [
     {
         'dataset': 'Fe19',
         'num_runs': 5,
-        'run_training': False
+        'run_training': True
     },
     {
         'dataset': 'Fe120',
         'num_runs': 5,
-        'run_training': True
+        'run_training': False
     },
     {
         'dataset': 'FeM',
