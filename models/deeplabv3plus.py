@@ -16,7 +16,7 @@ from models.blocks import SepConv_BN, _conv2d_same, _xception_block
 
 
 def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8, activation: str = 'softmax',
-                  backbone_size: int = 16, domain_adaptation: bool = False):
+                  backbone_size: int = 16, custom_atrous_rates: tuple = None, domain_adaptation: bool = False):
     """ Instantiates the Deeplabv3+ architecture
     """
     img_input = Input(shape = input_shape)
@@ -25,13 +25,13 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
         entry_block3_stride = 1
         middle_block_rate = 2 # not mentioned in paper; but required
         exit_block_rates = (2, 4)
-        atrous_rates = (12, 24, 36)
+        atrous_rates = (12, 24, 36) if custom_atrous_rates is None else custom_atrous_rates
 
     elif output_stride == 16:
         entry_block3_stride = 2
         middle_block_rate = 1
         exit_block_rates = (1, 2)
-        atrous_rates = (6, 12, 18)
+        atrous_rates = (6, 12, 18) if custom_atrous_rates is None else custom_atrous_rates
 
     x = Conv2D(32, (3, 3), strides = (2, 2), name = 'entry_flow_conv1_1', use_bias = False, padding = 'same')(img_input)
     x = BatchNormalization(name = 'entry_flow_conv1_1_BN', epsilon = 1.e-32)(x)
