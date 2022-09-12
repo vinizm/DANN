@@ -44,146 +44,42 @@ class DomainDiscriminatorFullyConnected(Model):
         return cls(**config)
 
 
-class DomainDiscriminatorLeNet5(Model):
-
-    def __init__(self, **kwargs):
-        super(DomainDiscriminatorLeNet5, self).__init__(**kwargs)
-        
-        self.conv_1 = Conv2D(filters = 192, kernel_size = 5, strides = 1, padding = 'same')
-        self.activ_1 = Activation('relu')
-        
-        self.conv_2 = Conv2D(filters = 128, kernel_size = 5, strides = 1, padding = 'same')
-        self.activ_2 = Activation('relu')
-        
-        self.conv_3 = Conv2D(filters = 128, kernel_size = 5, strides = 1, padding = 'valid')
-        self.activ_3 = Activation('relu')
-        
-        self.avg_pool_1 = AveragePooling2D(pool_size = 2, strides = 2)
-        
-        self.conv_4 = Conv2D(filters = 128, kernel_size = 5, strides = 1)
-        self.activ_4 = Activation('relu')
-        
-        self.avg_pool_2 = AveragePooling2D(pool_size = 2, strides = 2)
-        
-        self.conv_5 = Conv2D(filters = 128, kernel_size = 5, strides = 1)
-        self.activ_5 = Activation('relu')
-        
-        self.flat = Flatten()
-        self.dense_1 = Dense(units = 96)
-        self.activ_6 = Activation('relu')
-        
-        self.dense_2 = Dense(units = 32)
-        self.activ_7 = Activation('relu')        
-        
-        self.dense_3 = Dense(units = 2)
-        self.activ_8 = Activation('softmax')
-
-    def call(self, x):
-        
-        x = self.conv_1(x)
-        x = self.activ_1(x)
-        
-        x = self.conv_2(x)
-        x = self.activ_2(x)
-        
-        x = self.conv_3(x)
-        x = self.activ_3(x)
-        
-        x = self.avg_pool_1(x)
-        
-        x = self.conv_4(x)
-        x = self.activ_4(x)
-        
-        x = self.avg_pool_2(x)
-        
-        x = self.conv_5(x)
-        x = self.activ_5(x)
-        
-        x = self.flat(x)
-        x = self.dense_1(x)
-        x = self.activ_6(x)
-        
-        x = self.dense_2(x)
-        x = self.activ_7(x)
-        
-        x = self.dense_3(x)
-        x = self.activ_8(x)
-
-        return x
-
-    def get_config(self):
-        config = super(DomainDiscriminatorLeNet5, self).get_config()
-        return config
-
-    def from_config(cls, config):
-        return cls(**config)
+class DomainDiscriminatorPixelwise(Model):
     
-class DomainDiscriminatorHybridv1(Model):
-
     def __init__(self, **kwargs):
-        super(DomainDiscriminatorHybridv1, self).__init__(**kwargs)
-        
-        self.batch_norm = BatchNormalization(epsilon = 1.e-32)
-        
-        self.conv_1 = Conv2D(filters = 256, kernel_size = 5, strides = 1, padding = 'same')
-        self.activ_1 = Activation('relu')
-
-        self.conv_2 = Conv2D(filters = 192, kernel_size = 5, strides = 1, padding = 'valid')
-        self.activ_2 = Activation('relu')
-
-        self.conv_3 = Conv2D(filters = 128, kernel_size = 5, strides = 1, padding = 'valid')
-        self.activ_3 = Activation('relu')
-        
-        self.conv_4 = Conv2D(filters = 96, kernel_size = 5, strides = 1, padding = 'valid')
-        self.activ_4 = Activation('relu')
-
-        self.conv_5 = Conv2D(filters = 64, kernel_size = 3, strides = 1, padding = 'valid')
-        self.activ_5 = Activation('relu')
-
-        self.flat = Flatten()
-        
-        self.dense_1 = Dense(units = 192)
-        self.activ_6 = Activation('relu')
-
-        self.dense_2 = Dense(units = 96)
-        self.activ_7 = Activation('relu')
-
-        self.dense_3 = Dense(units = 2)
-        self.activ_8 = Activation('softmax')
+        super(DomainDiscriminatorPixelwise, self).__init__(**kwargs)
 
     def call(self, x):
         
-        x = self.batch_norm(x)
-        
-        x = self.conv_1(x)
-        x = self.activ_1(x)
-        
-        x = self.conv_2(x)
-        x = self.activ_2(x)
-        
-        x = self.conv_3(x)
-        x = self.activ_3(x)
-        
-        x = self.conv_4(x)
-        x = self.activ_4(x)
-        
-        x = self.conv_5(x)
-        x = self.activ_5(x)
-        
-        x = self.flat(x)
-        x = self.dense_1(x)
-        x = self.activ_6(x)
-        
-        x = self.dense_2(x)
-        x = self.activ_7(x)
-        
-        x = self.dense_3(x)
-        x = self.activ_8(x)
+        #x = BatchNormalization(epsilon = 1.e-32)(x)
 
-        return x
+        x = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid')(x)
+        x = LeakyReLU(alpha = 0.2)(x)
 
+        #x = BatchNormalization(epsilon = 1.e-32)(x)
+
+        x = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid')(x)
+        x = LeakyReLU(alpha = 0.2)(x)
+
+        #x = BatchNormalization(epsilon = 1.e-32)(x)
+
+        x = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid')(x)
+        x = LeakyReLU(alpha = 0.2)(x)
+
+        #x = BatchNormalization(epsilon = 1.e-32)(x)
+
+        x = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid')(x)
+        x = LeakyReLU(alpha = 0.2)(x)
+
+        #x = BatchNormalization(epsilon = 1.e-32)(x)
+
+        x = Conv2D(filters = 1, kernel_size = 1, strides = 1, padding = 'valid')(x)
+        output_proba = Activation(activation = 'sigmoid')(x)
+        
+        return output_proba
+    
     def get_config(self):
-        config = super(DomainDiscriminatorHybridv1, self).get_config()
+        config = super(DomainDiscriminatorPixelwise, self).get_config()
         return config
 
     def from_config(cls, config):
