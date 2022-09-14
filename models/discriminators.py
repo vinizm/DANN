@@ -5,6 +5,7 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import AveragePooling2D
+from tensorflow.keras.layers import LeakyReLU
 
 
 class DomainDiscriminatorFullyConnected(Model):
