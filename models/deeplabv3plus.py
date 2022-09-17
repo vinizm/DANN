@@ -81,7 +81,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
 
     # upsample; have to use compat because of the option align_corners
     size_before = tuple(x.shape)
-    b4 = ReshapeTensor(size_before[1:3], factor = 1, method = 'bilinear', align_corners = True)(b4)
+    b4 = ReshapeTensor(size_before[1:3], factor = 1, method = 'bilinear', align_corners = True, name = 'reshape_aspp')(b4)
     
     # simple 1x1
     b0 = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'aspp0')(x)
@@ -99,7 +99,7 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     b3 = SepConv_BN(x, 256, 'aspp3', rate = atrous_rates[2], depth_activation = True, epsilon = 1.e-32)
 
     # concatenate ASPP branches and project
-    x = Concatenate()([b4, b0, b1, b2, b3])
+    x = Concatenate(name = 'concat_aspp')([b4, b0, b1, b2, b3])
 
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
     x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1.e-32)(x)
@@ -109,24 +109,24 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     # DeepLabv3+ decoder
     # feature projection
     size_before_2 = tuple(x.shape)
-    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True)(x)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 4, method = 'bilinear', align_corners = True, name = 'reshape_bottleneck')(x)
 
     x = SepConv_BN(x, 256, 'decoder_conv2', depth_activation = True, epsilon = 1.e-32)
     x = SepConv_BN(x, 256, 'decoder_conv3', depth_activation = True, epsilon = 1.e-32)
 
-    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 2, method = 'bilinear', align_corners = True)(x)
+    x = ReshapeTensor(size_before_2[1:3], factor = output_stride // 2, method = 'bilinear', align_corners = True, name = 'reshape_decoder')(x)
 
     dec_skip_0 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection0')(skip_0)
     dec_skip_0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1.e-32)(dec_skip_0)
     dec_skip_0 = Activation('relu')(dec_skip_0)
-    discriminator_spot = Concatenate()([x, dec_skip_0])
+    discriminator_spot = Concatenate(name = 'concat_skip_connection_bottleneck')([x, dec_skip_0])
 
     x = SepConv_BN(discriminator_spot, 128, 'decoder_conv0', depth_activation = True, epsilon = 1.e-32)
     x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1.e-32)
     x = Conv2D(num_class, (1, 1), padding = 'same', name = 'custom_logits_semantic')(x)
 
     size_before_3 = tuple(img_input.shape)
-    x = ReshapeTensor(size_before_3[1:3], factor = 1, method = 'bilinear', align_corners = True)(x)
+    x = ReshapeTensor(size_before_3[1:3], factor = 1, method = 'bilinear', align_corners = True, name = 'reshape_final')(x)
 
     if activation in ['softmax', 'sigmoid']:
         outputs = Activation(activation)(x)
