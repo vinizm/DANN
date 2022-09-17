@@ -103,8 +103,8 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
 
     x = Conv2D(256, (1, 1), padding = 'same', use_bias = False, name = 'concat_projection')(x)
     x = BatchNormalization(name = 'concat_projection_BN', epsilon = 1.e-32)(x)
-    discriminator_spot = Activation('relu')(x)
-    x = Dropout(0.1)(discriminator_spot)
+    x = Activation('relu')(x)
+    x = Dropout(0.1)(x)
 
     # DeepLabv3+ decoder
     # feature projection
@@ -119,9 +119,9 @@ def DeepLabV3Plus(input_shape: tuple = (256, 256, 1), num_class: int = 2, output
     dec_skip_0 = Conv2D(48, (1, 1), padding = 'same', use_bias = False, name = 'feature_projection0')(skip_0)
     dec_skip_0 = BatchNormalization(name = 'feature_projection0_BN', epsilon = 1.e-32)(dec_skip_0)
     dec_skip_0 = Activation('relu')(dec_skip_0)
-    x = Concatenate()([x, dec_skip_0])
+    discriminator_spot = Concatenate()([x, dec_skip_0])
 
-    x = SepConv_BN(x, 128, 'decoder_conv0', depth_activation = True, epsilon = 1.e-32)
+    x = SepConv_BN(discriminator_spot, 128, 'decoder_conv0', depth_activation = True, epsilon = 1.e-32)
     x = SepConv_BN(x, 128, 'decoder_conv1', depth_activation = True, epsilon = 1.e-32)
     x = Conv2D(num_class, (1, 1), padding = 'same', name = 'custom_logits_semantic')(x)
 
