@@ -10,11 +10,11 @@ from models.discriminators import DomainDiscriminatorFullyConnected, DomainDiscr
 class DomainAdaptationModel(Model):
 
     def __init__(self, input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8,
-                 backbone_size: int = 16, activation: str = 'softmax', **kwargs):
+                 backbone_size: int = 16, activation: str = 'softmax', atrous_rates: tuple = None, **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
         self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
-                            activation = activation, backbone_size = backbone_size, domain_adaptation = True)
+                            activation = activation, backbone_size = backbone_size, domain_adaptation = True, custom_atrous_rates = atrous_rates)
         self.gradient_reversal_layer = GradientReversalLayer()
         self.domain_discriminator = DomainDiscriminatorFullyConnected(units = 1024)
 

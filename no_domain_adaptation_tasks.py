@@ -31,6 +31,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     num_class = CASE.get('num_class', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_class'))
     output_stride = CASE.get('output_stride', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
     backbone_size = CASE.get('backbone_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('backbone_size'))
+    atrous_rates = CASE.get('atrous_rates', NO_DOMAIN_ADAPTATION_CONFIG.get('atrous_rates'))
     num_runs = CASE.get('num_runs', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_runs'))
     
     batch_size = CASE.get('batch_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('batch_size'))
@@ -56,7 +57,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
         remove_augmented_images(patches_dir)
         
         trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, output_stride = output_stride, backbone_size = backbone_size,
-                          domain_adaptation = False, name = f'{now}_{dataset}_v{i + 1:02}')
+                          domain_adaptation = False, name = f'{now}_{dataset}_v{i + 1:02}', atrous_rates = atrous_rates)
         trainer.set_test_index(test_index_source = TEST_INDEX.get(dataset), test_index_target = [])
         trainer.compile_model()
         trainer.preprocess_images(patches_dir = patches_dir, batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
