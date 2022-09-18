@@ -925,6 +925,8 @@ class Trainer():
                     'lambda': self.lambda_function.config},
                 'patch_size': self.patch_size,
                 'output_stride': self.output_stride,
+                'backbone_size': self.backbone_size,
+                'atrous_rates': self.atrous_rates,
                 'val_fraction': self.val_fraction,
                 'batch_size': self.batch_size,
                 'num_images': self.num_images,
