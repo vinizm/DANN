@@ -23,5 +23,5 @@ NO_DOMAIN_ADAPTATION_CONFIG = [
 
 
 NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 1, 'num_class': 2, 'output_stride': 16, 'max_epochs': 150, 'batch_size': 2, 'val_fraction': 0.1,
-                                      'num_images_train': 200, 'patience': 20, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'alpha': 2.25,
+                                      'num_images_train': 200, 'patience': 50, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'alpha': 2.25,
                                       'beta': 0.75, 'lr0': 5.e-4, 'lr_warmup': 0., 'lr_name': 'exp_decay', 'backbone_size': 16, 'atrous_rates': (1, 2, 3)}
