@@ -29,9 +29,6 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     stride_train = patch_size // 2
     channels = CASE.get('channels', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('channels'))
     num_class = CASE.get('num_class', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_class'))
-    # output_stride = CASE.get('output_stride', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
-    # backbone_size = CASE.get('backbone_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('backbone_size'))
-    # atrous_rates = CASE.get('atrous_rates', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('atrous_rates'))
     num_runs = CASE.get('num_runs', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_runs'))
     
     batch_size = CASE.get('batch_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('batch_size'))

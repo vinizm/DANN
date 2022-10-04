@@ -30,8 +30,6 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     stride_train = patch_size // 2
     channels = CASE.get('channels', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('channels'))
     num_class = CASE.get('num_class', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_class'))
-    # output_stride = CASE.get('output_stride', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
-    # backbone_size = CASE.get('backbone_size', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('backbone_size'))
     num_runs = CASE.get('num_runs', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_runs'))
     
     batch_size = CASE.get('batch_size', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('batch_size'))
