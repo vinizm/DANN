@@ -30,8 +30,8 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     stride_train = patch_size // 2
     channels = CASE.get('channels', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('channels'))
     num_class = CASE.get('num_class', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_class'))
-    output_stride = CASE.get('output_stride', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
-    backbone_size = CASE.get('backbone_size', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('backbone_size'))
+    # output_stride = CASE.get('output_stride', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
+    # backbone_size = CASE.get('backbone_size', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('backbone_size'))
     num_runs = CASE.get('num_runs', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_runs'))
     
     batch_size = CASE.get('batch_size', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('batch_size'))
@@ -53,7 +53,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     lambda_scale = CASE.get('lambda_scale', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lambda_scale'))
     lambda_warmup = CASE.get('lambda_warmup', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lambda_warmup'))
     
-    PREFIX = f'DL_os{output_stride}_patch{patch_size}_{source_set}_{target_set}'
+    PREFIX = f'DL_patch{patch_size}_{source_set}_{target_set}'
     
     for i in range(num_runs):
     
@@ -63,8 +63,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
         remove_augmented_images(source_dir)
         remove_augmented_images(target_dir)
         
-        trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, output_stride = output_stride, backbone_size = backbone_size,
-                          domain_adaptation = True, name = f'{now}_{source_set}_{target_set}_v{i + 1:02}')
+        trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, domain_adaptation = True, name = f'{now}_{source_set}_{target_set}_v{i + 1:02}')
         trainer.set_test_index(test_index_source = TEST_INDEX.get(source_set), test_index_target = TEST_INDEX.get(target_set))
         trainer.compile_model()
         trainer.preprocess_images_domain_adaptation(patches_dir = [source_dir, target_dir], batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,

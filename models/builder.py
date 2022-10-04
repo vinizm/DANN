@@ -9,12 +9,10 @@ from models.discriminators import DomainDiscriminatorFullyConnected, DomainDiscr
 
 class DomainAdaptationModel(Model):
 
-    def __init__(self, input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8,
-                 backbone_size: int = 16, activation: str = 'softmax', atrous_rates: tuple = None, **kwargs):
+    def __init__(self, input_shape: tuple = (256, 256, 1), num_class: int = 2, **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
-        self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
-                            activation = activation, backbone_size = backbone_size, domain_adaptation = True, custom_atrous_rates = atrous_rates)
+        self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
         self.domain_discriminator = DomainDiscriminatorFullyConnected(units = 1024)
 
@@ -42,26 +40,3 @@ class DomainAdaptationModel(Model):
     def build(self):
         super(DomainAdaptationModel, self).build(self.inputs.shape if tf.is_tensor(self.inputs) else self.inputs)
         self.call(self.inputs)
-
-
-def DomainAdaptationFunctional(input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8,
-                               activation: str = 'softmax'):
-
-    img_input = Input(shape = input_shape)
-    lambda_input = Input(shape = (1,))
-
-    raw_model = DomainAdaptationModel(input_shape = input_shape, num_class = num_class, output_stride = output_stride,
-                                      activation = activation)
-    outputs = raw_model([img_input, lambda_input])
-
-    model = Model(inputs = [img_input, lambda_input], outputs = outputs)
-    return model
-
-
-def DomainDiscriminatorFunctional(input_shape: tuple, units = 1024):
-    img_input = Input(shape = input_shape)
-
-    outputs = DomainDiscriminatorFullyConnected(units = units)(img_input)
-    model = Model(inputs = img_input, outputs = outputs)
-
-    return model

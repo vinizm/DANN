@@ -16,7 +16,7 @@ from models.layers import ReshapeTensor
 from models.blocks import AtrousSeparableConv
 
 
-def deeplabv3plus(input_shape: tuple, num_class: int, domain_adaptation: bool):
+def DeepLabV3Plus(input_shape: tuple, num_class: int, domain_adaptation: bool):
 
     input_img = Input(shape = input_shape)
 

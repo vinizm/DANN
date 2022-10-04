@@ -29,9 +29,9 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     stride_train = patch_size // 2
     channels = CASE.get('channels', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('channels'))
     num_class = CASE.get('num_class', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_class'))
-    output_stride = CASE.get('output_stride', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
-    backbone_size = CASE.get('backbone_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('backbone_size'))
-    atrous_rates = CASE.get('atrous_rates', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('atrous_rates'))
+    # output_stride = CASE.get('output_stride', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
+    # backbone_size = CASE.get('backbone_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('backbone_size'))
+    # atrous_rates = CASE.get('atrous_rates', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('atrous_rates'))
     num_runs = CASE.get('num_runs', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_runs'))
     
     batch_size = CASE.get('batch_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('batch_size'))
@@ -49,15 +49,14 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     lr0 = CASE.get('lr0', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr0'))
     lr_warmup = CASE.get('lr_warmup', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_warmup'))
     
-    PREFIX = f'DL_os{output_stride}_patch{patch_size}_{dataset}'
-    
+    PREFIX = f'DL_patch{patch_size}_{dataset}'
+
     for i in range(num_runs):
     
         patches_dir = f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_train}_Train'
         remove_augmented_images(patches_dir)
         
-        trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, output_stride = output_stride, backbone_size = backbone_size,
-                          domain_adaptation = False, name = f'{now}_{dataset}_v{i + 1:02}', atrous_rates = atrous_rates)
+        trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, domain_adaptation = False, name = f'{now}_{dataset}_v{i + 1:02}')
         trainer.set_test_index(test_index_source = TEST_INDEX.get(dataset), test_index_target = [])
         trainer.compile_model()
         trainer.preprocess_images(patches_dir = patches_dir, batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
