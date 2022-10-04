@@ -116,9 +116,9 @@ def DeepLabV3Plus(input_shape: tuple, num_class: int, domain_adaptation: bool):
     x = ReshapeTensor(skip_conn_size[1:3], factor = 1, method = 'bilinear', align_corners = True)(features)
     x = Concatenate()([x, skip_conn])
 
-    x = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'same')(x)
-    x = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'same')(x)
-    x = Conv2D(filters = num_class, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'same')(x)
+    x = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
+    x = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
+    x = Conv2D(filters = num_class, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
 
     original_shape = tuple(input_img.shape)
     output_proba = ReshapeTensor(original_shape[1:3], factor = 1, method = 'bilinear', align_corners = True)(x)
