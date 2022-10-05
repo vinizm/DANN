@@ -12,7 +12,7 @@ from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Add
 from tensorflow.keras.layers import MaxPool2D
 
-from models.layers import ReshapeTensor
+from models.layers import ReshapeTensor, ExpandDimensions
 from models.blocks import AtrousSeparableConv
 
 
@@ -94,7 +94,12 @@ def DeepLabV3Plus(input_shape: tuple, num_class: int, domain_adaptation: bool):
 
     default_size = tuple(x.shape)
 
-    b0 = GlobalAveragePooling2D(keepdims = True)(x)
+    b0 = GlobalAveragePooling2D()(x)
+    
+    # from (batch_size, channels) -> (batch_size, 1, 1, channels)
+    b0 = ExpandDimensions(axis = 1)(b0)
+    b0 = ExpandDimensions(axis = 1)(b0)
+    
     b0 = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(b0)
     b0 = ReshapeTensor(default_size[1:3], factor = 1, method = 'bilinear', align_corners = True)(b0)
 
