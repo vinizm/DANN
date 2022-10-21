@@ -21,17 +21,17 @@ def DeepLabV3Plus(input_shape: tuple, num_class: int, domain_adaptation: bool):
     input_img = Input(shape = input_shape)
 
     x = Conv2D(filters = 32, kernel_size = 3, strides = 2, dilation_rate = 1, padding = 'same')(input_img)
-    x = BatchNormalization(epsilon = 1.e-32)(x)
+    x = BatchNormalization(epsilon = 1.e-6)(x)
     x = Activation('relu')(x)
 
     x = Conv2D(filters = 64, kernel_size = 3, strides = 1, dilation_rate = 1, padding = 'same')(x)
-    x = BatchNormalization(epsilon = 1.e-32)(x)
+    x = BatchNormalization(epsilon = 1.e-6)(x)
     x = Activation('relu')(x)
 
     # === ENTRY FLOW 1 ===
 
     residual = Conv2D(filters = 128, kernel_size = 1, strides = 2, dilation_rate = 1, padding = 'valid')(x)
-    residual = BatchNormalization(epsilon = 1.e-32)(residual)
+    residual = BatchNormalization(epsilon = 1.e-6)(residual)
 
     x = AtrousSeparableConv(x, filters = 128, kernel_size = 3, strides = 1, dilation_rate = 1, batch_norm = True, relu_activation = True)
     x = AtrousSeparableConv(x, filters = 128, kernel_size = 3, strides = 1, dilation_rate = 1, batch_norm = True, relu_activation = False)
@@ -42,7 +42,7 @@ def DeepLabV3Plus(input_shape: tuple, num_class: int, domain_adaptation: bool):
     # === ENTRY FLOW 2 ===
 
     residual = Conv2D(filters = 256, kernel_size = 1, strides = 2, dilation_rate = 1, padding = 'valid')(residual)
-    residual = BatchNormalization(epsilon = 1.e-32)(residual)
+    residual = BatchNormalization(epsilon = 1.e-6)(residual)
 
     x = Activation('relu')(x)
     x = AtrousSeparableConv(x, filters = 256, kernel_size = 3, strides = 1, dilation_rate = 1, batch_norm = True, relu_activation = True)
@@ -54,7 +54,7 @@ def DeepLabV3Plus(input_shape: tuple, num_class: int, domain_adaptation: bool):
     # === ENTRY FLOW 3 ===
 
     residual = Conv2D(filters = 728, kernel_size = 1, strides = 2, dilation_rate = 1, padding = 'valid')(residual)
-    residual = BatchNormalization(epsilon = 1.e-32)(residual)
+    residual = BatchNormalization(epsilon = 1.e-6)(residual)
 
     x = Activation('relu')(x)
     x = AtrousSeparableConv(x, filters = 728, kernel_size = 3, strides = 1, dilation_rate = 1, batch_norm = True, relu_activation = True)
@@ -78,7 +78,7 @@ def DeepLabV3Plus(input_shape: tuple, num_class: int, domain_adaptation: bool):
     # === EXIT FLOW 1 ===
 
     residual = Conv2D(filters = 1024, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
-    residual = BatchNormalization(epsilon = 1.e-32)(residual)
+    residual = BatchNormalization(epsilon = 1.e-6)(residual)
 
     x = AtrousSeparableConv(x, filters = 728, kernel_size = 3, strides = 1, dilation_rate = 1, batch_norm = True, relu_activation = True)
     x = AtrousSeparableConv(x, filters = 1024, kernel_size = 3, strides = 1, dilation_rate = 1, batch_norm = True, relu_activation = False)

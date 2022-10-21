@@ -10,7 +10,7 @@ def AtrousSeparableConv(inputs, filters: int, kernel_size: int, strides: int, di
 	x = Conv2D(filters = filters, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
 
 	if batch_norm:
-		x = BatchNormalization(epsilon = 1.e-32)(x)
+		x = BatchNormalization(epsilon = 1.e-6)(x)
 
 	if relu_activation:
 		x = Activation('relu')(x)
