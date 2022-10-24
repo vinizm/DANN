@@ -11,8 +11,9 @@ from tensorflow.keras.layers import GlobalAveragePooling2D
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Add
 from tensorflow.keras.layers import MaxPool2D
+from tensorflow.keras.layers import UpSampling2D
 
-from models.layers import ReshapeTensor, ExpandDimensions
+from models.layers import ExpandDimensions
 from models.blocks import AtrousSeparableConv
 
 
@@ -92,16 +93,20 @@ def DeepLabV3Plus(input_shape: tuple, num_class: int, domain_adaptation: bool):
 
     # === IMAGE LEVEL FEATURES ===
 
-    default_size = tuple(x.shape)
+    default_shape = tuple(x.shape)
 
     b0 = GlobalAveragePooling2D()(x)
-    
+
     # from (batch_size, channels) -> (batch_size, 1, 1, channels)
     b0 = ExpandDimensions(axis = 1)(b0)
     b0 = ExpandDimensions(axis = 1)(b0)
-    
+
     b0 = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(b0)
-    b0 = ReshapeTensor(default_size[1:3], factor = 1, method = 'bilinear', align_corners = True)(b0)
+
+    previous_shape = tuple(b0.shape)
+    upsampling_factor = int(default_shape[1] / previous_shape[1])
+
+    b0 = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(b0)
 
     # ====== ASPP ======
 
@@ -117,19 +122,32 @@ def DeepLabV3Plus(input_shape: tuple, num_class: int, domain_adaptation: bool):
 
     skip_conn = Conv2D(filters = 48, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(skip_conn)
 
-    skip_conn_size = tuple(skip_conn.shape)
-    x = ReshapeTensor(skip_conn_size[1:3], factor = 1, method = 'bilinear', align_corners = True)(features)
+    skip_conn_shape = tuple(skip_conn.shape)
+    previous_shape = tuple(features.shape)
+    upsampling_factor = int(skip_conn_shape[1] / previous_shape[1])
+
+    x = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(features)
     x = Concatenate()([x, skip_conn])
 
     x = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
+    x = BatchNormalization(epsilon = 1.e-6)(x)
+    x = Activation('relu')(x)
+
     x = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
+    x = BatchNormalization(epsilon = 1.e-6)(x)
+    x = Activation('relu')(x)
+
     x = Conv2D(filters = num_class, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
 
     original_shape = tuple(input_img.shape)
-    output_proba = ReshapeTensor(original_shape[1:3], factor = 1, method = 'bilinear', align_corners = True)(x)
+    previous_shape = tuple(x.shape)
+    upsampling_factor = int(original_shape[1] / previous_shape[1])
+
+    x = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(x)
+    output_proba = Activation('softmax')(x)
     
     if domain_adaptation:
         output_proba = [output_proba, features]
-    
+
     model = Model(inputs = input_img, outputs = output_proba)
     return model
