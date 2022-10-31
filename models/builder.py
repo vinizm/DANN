@@ -4,7 +4,7 @@ from tensorflow.keras.layers import Input
 
 from models.deeplabv3plus import DeepLabV3Plus
 from models.layers import GradientReversalLayer
-from models.discriminators import DomainDiscriminatorFullyConnected, DomainDiscriminatorPixelwise
+from models.discriminators import DomainDiscriminatorPixelwise
 
 
 class DomainAdaptationModel(Model):
@@ -14,7 +14,7 @@ class DomainAdaptationModel(Model):
 
         self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
-        self.domain_discriminator = DomainDiscriminatorFullyConnected(units = 1024)
+        self.domain_discriminator = DomainDiscriminatorPixelwise()
 
         self.inputs = [Input(shape = input_shape), Input(shape = (1,))]
         self.outputs = self.call(self.inputs)
