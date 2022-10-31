@@ -4,8 +4,9 @@ from tensorflow.keras.layers import Flatten
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import AveragePooling2D
 from tensorflow.keras.layers import LeakyReLU
+
+from models.constraints import ZeroMeanFilter
 
 
 class DomainDiscriminatorFullyConnected(Model):
@@ -15,7 +16,7 @@ class DomainDiscriminatorFullyConnected(Model):
         self.units = units
 
         self.flat = Flatten()
-        self.batch_norm_1 = BatchNormalization(center = False, scale = False, axis = -1, epsilon = 1.e-32)
+        self.batch_norm_1 = BatchNormalization(center = False, scale = False, axis = -1, epsilon = 1.e-6)
         self.dense_1 = Dense(units = units)
         self.activ_1 = Activation('relu')
         self.dense_2 = Dense(units = units)
@@ -49,34 +50,39 @@ class DomainDiscriminatorPixelwise(Model):
     
     def __init__(self, **kwargs):
         super(DomainDiscriminatorPixelwise, self).__init__(**kwargs)
+        
+        self.conv_1 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = ZeroMeanFilter())
+        self.activ_1 = LeakyReLU(0.2)
+        
+        self.conv_2 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = ZeroMeanFilter())
+        self.activ_2 = LeakyReLU(0.2)
+        
+        self.conv_3 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = ZeroMeanFilter())
+        self.activ_3 = LeakyReLU(0.2)
+        
+        self.conv_4 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = ZeroMeanFilter())
+        self.activ_4 = LeakyReLU(0.2)
+        
+        self.conv_final = Conv2D(filters = 1, kernel_size = 1, strides = 1, padding = 'valid')
+        self.activ_final = Activation('sigmoid')    
 
     def call(self, x):
         
-        #x = BatchNormalization(epsilon = 1.e-32)(x)
-
-        x = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid')(x)
-        x = LeakyReLU(alpha = 0.2)(x)
-
-        #x = BatchNormalization(epsilon = 1.e-32)(x)
-
-        x = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid')(x)
-        x = LeakyReLU(alpha = 0.2)(x)
-
-        #x = BatchNormalization(epsilon = 1.e-32)(x)
-
-        x = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid')(x)
-        x = LeakyReLU(alpha = 0.2)(x)
-
-        #x = BatchNormalization(epsilon = 1.e-32)(x)
-
-        x = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid')(x)
-        x = LeakyReLU(alpha = 0.2)(x)
-
-        #x = BatchNormalization(epsilon = 1.e-32)(x)
-
-        x = Conv2D(filters = 1, kernel_size = 1, strides = 1, padding = 'valid')(x)
-        output_proba = Activation(activation = 'sigmoid')(x)
+        x = self.conv_1(x)
+        x = self.activ_1(x)
         
+        x = self.conv_2(x)
+        x = self.activ_2(x)
+        
+        x = self.conv_3(x)
+        x = self.activ_3(x)
+
+        x = self.conv_4(x)
+        x = self.activ_4(x)
+
+        x = self.conv_final(x)
+        output_proba = self.activ_final(x)
+
         return output_proba
     
     def get_config(self):
