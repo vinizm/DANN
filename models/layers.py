@@ -22,34 +22,6 @@ class GradientReversalLayer(Layer):
         return cls(**config)
 
 
-class ReshapeTensor(Layer):
-
-    def __init__(self, shape, factor: int = 1, method: str = 'bilinear',
-                 align_corners: bool = True, **kwargs):
-        super(ReshapeTensor, self).__init__(**kwargs)
-        
-        self.shape = shape
-        self.factor = factor
-        self.method = method
-        self.align_corners = align_corners
-
-    def call(self, inputs):
-        reshaped = tf.compat.v1.image.resize(inputs, self.shape * tf.constant(self.factor), method = self.method,
-                                             align_corners = self.align_corners)
-        return reshaped
-
-    def get_config(self):
-        config = super(ReshapeTensor, self).get_config()
-        config.update({'shape': self.shape,
-                       'factor': self.factor,
-                       'method': self.method,
-                       'align_corners': self.align_corners})
-        return config
-
-    def from_config(cls, config):
-        return cls(**config)
-
-
 class ExpandDimensions(Layer):
 
     def __init__(self, axis = -1, **kwargs):
