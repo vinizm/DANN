@@ -30,6 +30,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     stride_train = patch_size // 2
     channels = CASE.get('channels', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('channels'))
     num_class = CASE.get('num_class', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_class'))
+    output_stride = CASE.get('output_stride', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
     num_runs = CASE.get('num_runs', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_runs'))
     
     batch_size = CASE.get('batch_size', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('batch_size'))
@@ -61,7 +62,8 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
         remove_augmented_images(source_dir)
         remove_augmented_images(target_dir)
         
-        trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, domain_adaptation = True, name = f'{now}_{source_set}_{target_set}_v{i + 1:02}')
+        trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, output_stride = output_stride,
+                          domain_adaptation = True, name = f'{now}_{source_set}_{target_set}_v{i + 1:02}')
         trainer.set_test_index(test_index_source = TEST_INDEX.get(source_set), test_index_target = TEST_INDEX.get(target_set))
         trainer.compile_model()
         trainer.preprocess_images_domain_adaptation(patches_dir = [source_dir, target_dir], batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
