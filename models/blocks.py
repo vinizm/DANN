@@ -16,6 +16,3 @@ def AtrousSeparableConv(inputs, filters: int, kernel_size: int, strides: int, di
 		x = Activation('relu')(x)
 
 	return x
-
-
-
