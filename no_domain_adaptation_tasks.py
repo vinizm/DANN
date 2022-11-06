@@ -8,6 +8,8 @@ import tensorflow as tf
 import time
 import os
 import gc
+import time
+
 
 physical_devices = tf.config.list_physical_devices('GPU')
 try:
@@ -58,6 +60,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
                           domain_adaptation = False, name = f'{now}_{dataset}_v{i + 1:02}')
         trainer.set_test_index(test_index_source = TEST_INDEX.get(dataset), test_index_target = [])
         trainer.compile_model()
+        time.sleep(5) # Sleep for 5 seconds
         trainer.preprocess_images(patches_dir = patches_dir, batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
                                   rotate = rotate, flip = flip)
         
