@@ -1,6 +1,5 @@
 import os
 import numpy as np
-from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score, average_precision_score
 from sklearn.feature_extraction.image import *
 import cv2
 
@@ -11,45 +10,6 @@ import random as rd
 
 from config import *
 from utils.plot import compare_images
-
-
-def flatten(array: np.ndarray, keep_dims: bool = True):
-  if keep_dims:
-    last_dim = array.shape[-1]
-    new_shape = (np.prod(array.shape[: -1]), last_dim)
-  else:
-    new_shape = -1
-  return np.reshape(array, new_shape)
-
-
-def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
-
-    true_vector_1 = flatten(np.argmax(true_labels, axis = -1), keep_dims = False)
-    true_vector_0 = flatten(np.argmin(true_labels, axis = -1), keep_dims = False)
-    pred_vector = flatten(np.argmax(predicted_labels, axis = -1), keep_dims = False)
-
-    accuracy = accuracy_score(true_vector_1, pred_vector)
-    precision = precision_score(true_vector_1, pred_vector)
-    recall = recall_score(true_vector_1, pred_vector)
-    f1 = f1_score(true_vector_1, pred_vector)
-    
-    proba_pairs = flatten(predicted_labels, keep_dims = True)
-    proba_vector_1 = proba_pairs[:, 1]
-    proba_vector_0 = proba_pairs[:, 0]
-    avg_precision_1 = average_precision_score(true_vector_1, proba_vector_1)
-    avg_precision_0 = average_precision_score(true_vector_0, proba_vector_0)
-    mean_avg_precision = (avg_precision_1 + avg_precision_0) / 2
-    
-    metrics = {
-                'avg_precision_1': avg_precision_1,
-                'avg_precision_0': avg_precision_0,
-                'mean_avg_precision': mean_avg_precision,
-                'accuracy': accuracy,
-                'precision': precision,
-                'recall': recall,
-                'f1_score': f1,
-            }
-    return metrics
 
 
 def load_images(path_to_folder: str, normalize: bool = False, one_channel: bool = False, conversor = cv2.COLOR_BGR2GRAY):
@@ -225,6 +185,7 @@ def augment_images(image_files: list, angles: list, rotate: bool, flip: bool, ve
 
     return augmented_files
 
+
 def generate_weight_maps(y_true, epsilon: float):
     y_true = y_true.numpy()
     y_true = y_true.astype('uint8')
@@ -242,9 +203,11 @@ def generate_weight_maps(y_true, epsilon: float):
     wmaps = tf.convert_to_tensor(np.asarray(wmaps), dtype = tf.float32)
     return wmaps
 
+
 def classify_image(array, threshold):
   classified_array = np.where(array >= threshold, 1., 0.)
   return classified_array
+
 
 def plot_images(rgb, gray, true, pred, n, threshold = 0.5, patch_idx = []):
 
