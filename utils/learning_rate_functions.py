@@ -135,7 +135,7 @@ class LearningRateLog(AbstractLearningRate):
 
     def calculate(self, p: float):
         if p <= self.warmup:
-            return 10 ** self.a
+            return 10 ** self.b
         
         u = (p - self.warmup) / (1 - self.warmup)
         return 10 ** (self.a * u + self.b)
