@@ -71,6 +71,9 @@ class Trainer():
 
         self.recall_train_history = []
         self.recall_val_history = []
+        
+        self.f1_train_history = []
+        self.f1_val_history = []
 
         self.lr_segmentation_history = []
         self.lr_discriminator_history = []
@@ -749,16 +752,21 @@ class Trainer():
             
             recall_global_train = float(self.recall.result())
             self.recall_train_history.append(recall_global_train)
+            
+            f1_global_train = f1(precision_global_train, recall_global_train)
+            self.f1_train_history.append(f1_global_train)
 
             self.logger.write_scalar('train_writer', 'loss/segmentation', loss_global_train, epoch + 1)
             self.logger.write_scalar('train_writer', 'accuracy/segmentation', acc_global_train, epoch + 1)
             self.logger.write_scalar('train_writer', 'precision/segmentation', precision_global_train, epoch + 1)
             self.logger.write_scalar('train_writer', 'recall/segmentation', recall_global_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'f1/segmentation', f1_global_train, epoch + 1)
 
             print(f'Training Loss: {loss_global_train}')
             print(f'Training Accuracy: {acc_global_train}')
             print(f'Training Precision: {precision_global_train}')
             print(f'Training Recall: {recall_global_train}')
+            print(f'Training F1: {f1_global_train}')
 
             self.acc_function_segmentation.reset_states()
             self.precision.reset_states()
@@ -795,20 +803,25 @@ class Trainer():
             self.acc_segmentation_val_history.append(acc_global_val)
             
             precision_global_val = float(self.precision.result())
-            self.precision.append(precision_global_val)
+            self.precision_val_history.append(precision_global_val)
 
             recall_global_val = float(self.recall.result())
-            self.recall.append(recall_global_val)
+            self.recall_val_history.append(recall_global_val)
+            
+            f1_global_val = f1(precision_global_val, recall_global_val)
+            self.f1_val_history.append(f1_global_val)
 
             self.logger.write_scalar('val_writer', 'loss/segmentation', loss_global_val, epoch + 1)
             self.logger.write_scalar('val_writer', 'accuracy/segmentation', acc_global_val, epoch + 1)
             self.logger.write_scalar('val_writer', 'precision/segmentation', precision_global_val, epoch + 1)
             self.logger.write_scalar('val_writer', 'recall/segmentation', recall_global_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'f1/segmentation', f1_global_val, epoch + 1)
 
             print(f'Validation Loss: {loss_global_val}')
             print(f'Validation Accuracy: {acc_global_val}')
             print(f'Validation Precision: {precision_global_val}')
             print(f'Validation Recall: {recall_global_val}')
+            print(f'Validation F1: {f1_global_val}')
             
             clear_session()
 
