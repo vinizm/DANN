@@ -140,10 +140,10 @@ class Trainer():
 
         self.acc_function_segmentation.update_state(y_train, y_pred)
         
-        y_true = tf.math.argmax(y_true, axis = -1)
+        y_train = tf.math.argmax(y_train, axis = -1)
         y_pred = tf.math.argmax(y_pred, axis = -1)
-        self.precision(y_true, y_pred)
-        self.recall(y_true, y_pred)
+        self.precision(y_train, y_pred)
+        self.recall(y_train, y_pred)
         
         return loss
 
@@ -756,11 +756,11 @@ class Trainer():
             f1_global_train = f1(precision_global_train, recall_global_train)
             self.f1_train_history.append(f1_global_train)
 
-            self.logger.write_scalar('train_writer', 'loss/segmentation', loss_global_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'accuracy/segmentation', acc_global_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'precision/segmentation', precision_global_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'recall/segmentation', recall_global_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'f1/segmentation', f1_global_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/loss', loss_global_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/accuracy', acc_global_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/precision', precision_global_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/recall', recall_global_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/f1', f1_global_train, epoch + 1)
 
             print(f'Training Loss: {loss_global_train}')
             print(f'Training Accuracy: {acc_global_train}')
@@ -811,11 +811,11 @@ class Trainer():
             f1_global_val = f1(precision_global_val, recall_global_val)
             self.f1_val_history.append(f1_global_val)
 
-            self.logger.write_scalar('val_writer', 'loss/segmentation', loss_global_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'accuracy/segmentation', acc_global_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'precision/segmentation', precision_global_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'recall/segmentation', recall_global_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'f1/segmentation', f1_global_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/loss', loss_global_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/accuracy', acc_global_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/precision', precision_global_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/recall', recall_global_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/f1', f1_global_val, epoch + 1)
 
             print(f'Validation Loss: {loss_global_val}')
             print(f'Validation Accuracy: {acc_global_val}')
