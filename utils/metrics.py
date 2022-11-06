@@ -1,3 +1,5 @@
+import tensorflow as tf
+
 import numpy as np
 from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score, average_precision_score
 
@@ -44,3 +46,12 @@ def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
 def f1(precision: float, recall: float):
     f1_value = (2 * precision * recall) / (precision + recall)
     return f1_value
+
+
+def avg_precision(y_true: tf.Tensor, y_pred: tf.Tensor):
+  shape = tuple(y_pred.shape)
+  u_pred = tf.reshape(y_pred, (np.prod(shape[: -1]), shape[-1]))
+  proba = u_pred[:, 1]
+
+  u_true = tf.math.argmax(tf.reshape(y_true, (np.prod(shape[: -1]), shape[-1])), axis = -1)
+  return average_precision_score(u_true.numpy(), proba.numpy())
