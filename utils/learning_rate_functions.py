@@ -104,7 +104,7 @@ class LearningRateLinear(AbstractLearningRate):
 
     def calculate(self, p: float):
         if p <= self.warmup:
-            return self.a
+            return self.b
         
         u = (p - self.warmup) / (1 - self.warmup)
         return self.a * u + self.b
