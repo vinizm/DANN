@@ -4,7 +4,7 @@ import glob
 
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
-from tensorflow.keras.metrics import CategoricalAccuracy, SparseCategoricalAccuracy
+from tensorflow.keras.metrics import CategoricalAccuracy, BinaryAccuracy, Precision, Recall
 from tensorflow.keras.models import save_model
 from tensorflow.keras.backend import clear_session
 import tensorflow as tf
@@ -48,7 +48,10 @@ class Trainer():
         self.loss_function_discriminator = SparseCategoricalCrossentropy()
 
         self.acc_function_segmentation = CategoricalAccuracy()
-        self.acc_function_discriminator = SparseCategoricalAccuracy()
+        self.acc_function_discriminator = BinaryAccuracy(threshold = 0.5)
+        
+        self.precision = Precision()
+        self.recall = Recall()
 
         self.loss_segmentation_train_history = []
         self.loss_segmentation_val_history = []
@@ -154,7 +157,6 @@ class Trainer():
             gradients_discriminator = tape.gradient(loss_discriminator, self.model.domain_discriminator.trainable_weights)
             self.optimizer_discriminator.apply_gradients(zip(gradients_discriminator, self.model.domain_discriminator.trainable_weights))
 
-            y_true_discriminator = tf.expand_dims(y_true_discriminator, axis = -1)
             self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_discriminator)
 
         del tape
@@ -196,15 +198,17 @@ class Trainer():
         num_batches = len(data_dirs) // self.batch_size
         return num_batches
 
-    @staticmethod
-    def _convert_path_to_domain(file_names: list, source_files: list):
-        return np.asarray([0 if file_name in source_files else 1 for file_name in file_names], dtype = 'int32')
+    def _convert_path_to_domain(self, file_names: list, source_files: list):
+        feature_size = self.patch_size // self.output_stride
+        fill = lambda x: np.full(shape = (feature_size, feature_size, 1), fill_value = x, dtype = 'int32')
+        
+        return np.asarray([fill(0) if file_name in source_files else fill(1) for file_name in file_names], dtype = 'int32')
 
     @staticmethod
     def _generate_sample_mask(domain: int, shape: tuple):
         if domain == 0:
-            return np.full(shape, 1., dtype = 'float32')
-        return np.full(shape, 0., dtype = 'float32')
+            return np.full(shape = shape, fill_value = 1., dtype = 'float32')
+        return np.full(shape = shape, fill_value = 0., dtype = 'float32')
 
     def _generate_segmentation_mask(self, domain: int):
         return self._generate_sample_mask(domain, (self.patch_size, self.patch_size))
@@ -347,7 +351,7 @@ class Trainer():
             self.optimizer_segmentation.lr = lr_1
             self.lr_segmentation_history.append(lr_1)
 
-            l_vector = np.full((self.batch_size, 1), 0., dtype = 'float32')
+            l_vector = np.full(shape = (self.batch_size, 1), fill_value = 0., dtype = 'float32')
 
             print('Start training...')
             for batch in range(self.num_batches_train):
@@ -361,7 +365,6 @@ class Trainer():
                 x_train = batch_images[ :, :, :, : self.channels]
                 y_segmentation_train = batch_images[ :, :, :, self.channels :]
                 y_discriminator_train = self._convert_path_to_domain(batch_train_files, self.train_data_dirs_source)
-                print(f'Domain: {y_discriminator_train}')
 
                 loss_mask = self._generate_loss_mask(y_discriminator_train)
                 acc_mask = self._generate_acc_mask(y_discriminator_train)
@@ -395,7 +398,6 @@ class Trainer():
                 x_val = batch_val_images[:, :, :, : self.channels]
                 y_segmentation_val = batch_val_images[:, :, :, self.channels :]
                 y_discriminator_val = self._convert_path_to_domain(batch_val_files, self.val_data_dirs_source)
-                print(f'Domain: {y_discriminator_val}')
 
                 y_segmentation_pred, _ = self.model([x_val, l_vector])
 
@@ -443,7 +445,7 @@ class Trainer():
             self.optimizer_discriminator.lr = lr_2
             self.lr_discriminator_history.append(lr_2)
 
-            l_vector = np.full((self.batch_size, 1), 0., dtype = 'float32')
+            l_vector = np.full(shape = (self.batch_size, 1), fill_value = 0., dtype = 'float32')
 
             print('Start training...')
             for batch in range(self.num_batches_train):
@@ -457,7 +459,6 @@ class Trainer():
                 x_train = batch_images[ :, :, :, : self.channels]
                 y_segmentation_train = batch_images[ :, :, :, self.channels :]
                 y_discriminator_train = self._convert_path_to_domain(batch_train_files, self.train_data_dirs_source)
-                print(f'Domain: {y_discriminator_train}')
 
                 loss_mask = self._generate_loss_mask(y_discriminator_train)
                 acc_mask = self._generate_acc_mask(y_discriminator_train)
@@ -490,7 +491,6 @@ class Trainer():
 
                 x_val = batch_val_images[:, :, :, : self.channels]
                 y_discriminator_val = self._convert_path_to_domain(batch_val_files, self.val_data_dirs_source)
-                print(f'Domain: {y_discriminator_val}')
 
                 _, y_discriminator_pred = self.model([x_val, l_vector])
                 loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)			
@@ -553,7 +553,7 @@ class Trainer():
             l = self.lambda_function.calculate(p)
             print(f'Lambda: {l}')
             self.lambdas.append(l)
-            l_vector = np.full((self.batch_size, 1), l, dtype = 'float32')
+            l_vector = np.full(shape = (self.batch_size, 1), fill_value = l, dtype = 'float32')
 
             self.logger.write_scalar('segmentation_writer', 'learning_rate', lr_1, epoch + 1)
             self.logger.write_scalar('discriminator_writer', 'learning_rate', lr_2, epoch + 1)
@@ -572,7 +572,6 @@ class Trainer():
                 x_train = batch_images[ :, :, :, : self.channels]
                 y_segmentation_train = batch_images[ :, :, :, self.channels :]
                 y_discriminator_train = self._convert_path_to_domain(batch_train_files, self.train_data_dirs_source)
-                print(f'Domain: {y_discriminator_train}')
 
                 loss_mask = self._generate_loss_mask(y_discriminator_train)
                 acc_mask = self._generate_acc_mask(y_discriminator_train)
@@ -623,7 +622,6 @@ class Trainer():
                 x_val = batch_val_images[:, :, :, : self.channels]
                 y_segmentation_val = batch_val_images[:, :, :, self.channels :]
                 y_discriminator_val = self._convert_path_to_domain(batch_val_files, self.val_data_dirs_source)
-                print(f'Domain: {y_discriminator_val}')
 
                 y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
 
