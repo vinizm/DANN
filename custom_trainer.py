@@ -65,6 +65,12 @@ class Trainer():
 
         self.acc_discriminator_train_history = []
         self.acc_discriminator_val_history = []
+        
+        self.precision_train_history = []
+        self.precision_val_history = []
+
+        self.recall_train_history = []
+        self.recall_val_history = []
 
         self.lr_segmentation_history = []
         self.lr_discriminator_history = []
@@ -123,13 +129,18 @@ class Trainer():
     def _training_step(self, x_train, y_train):
 
         with tf.GradientTape() as tape:
-            pred_train = self.model(x_train)
-            loss = self.loss_function(y_train, pred_train)
+            y_pred = self.model(x_train)
+            loss = self.loss_function(y_train, y_pred)
         
         gradients = tape.gradient(loss, self.model.trainable_weights)
         self.optimizer_segmentation.apply_gradients(zip(gradients, self.model.trainable_weights))
 
-        self.acc_function_segmentation.update_state(y_train, pred_train)
+        self.acc_function_segmentation.update_state(y_train, y_pred)
+        
+        y_true = tf.math.argmax(y_true, axis = -1)
+        y_pred = tf.math.argmax(y_pred, axis = -1)
+        self.precision(y_true, y_pred)
+        self.recall(y_true, y_pred)
         
         return loss
 
@@ -226,6 +237,9 @@ class Trainer():
     def reset_history(self):
         self.acc_function_segmentation.reset_states()
         self.acc_function_discriminator.reset_states()
+        
+        self.precision.reset_states()
+        self.recall.reset_states()
 
         self.loss_segmentation_train_history = []
         self.loss_segmentation_val_history = []
@@ -238,6 +252,12 @@ class Trainer():
 
         self.acc_discriminator_train_history = []
         self.acc_discriminator_val_history = []
+        
+        self.precision_train_history = []
+        self.precision_val_history = []
+
+        self.recall_train_history = []
+        self.recall_val_history = []
 
         self.lr_segmentation_history = []
         self.lr_discriminator_history = []
@@ -687,6 +707,8 @@ class Trainer():
             loss_global_val = 0.
 
             self.acc_function_segmentation.reset_states()
+            self.precision.reset_states()
+            self.recall.reset_states()
 
             np.random.shuffle(self.train_data_dirs)
             np.random.shuffle(self.val_data_dirs)
@@ -721,14 +743,26 @@ class Trainer():
 
             acc_global_train = float(self.acc_function_segmentation.result())
             self.acc_segmentation_train_history.append(acc_global_train)
+            
+            precision_global_train = float(self.precision.result())
+            self.precision_train_history.append(precision_global_train)
+            
+            recall_global_train = float(self.recall.result())
+            self.recall_train_history.append(recall_global_train)
 
             self.logger.write_scalar('train_writer', 'loss/segmentation', loss_global_train, epoch + 1)
             self.logger.write_scalar('train_writer', 'accuracy/segmentation', acc_global_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'precision/segmentation', precision_global_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'recall/segmentation', recall_global_train, epoch + 1)
 
             print(f'Training Loss: {loss_global_train}')
             print(f'Training Accuracy: {acc_global_train}')
+            print(f'Training Precision: {precision_global_train}')
+            print(f'Training Recall: {recall_global_train}')
 
             self.acc_function_segmentation.reset_states()
+            self.precision.reset_states()
+            self.recall.reset_states()
 
             # evaluating network
             print('Start validation...')
@@ -743,23 +777,38 @@ class Trainer():
                 x_val = batch_val_images[:, :, :, : self.channels]
                 y_val = batch_val_images[:, :, :, self.channels :]
 
-                pred_val = self.model(x_val)
-                loss_val = self.loss_function(y_val, pred_val)
+                y_pred = self.model(x_val)
+                loss_val = self.loss_function(y_val, y_pred)
 
                 loss_global_val += float(loss_val) # convert loss_val to float and sum
-                self.acc_function_segmentation.update_state(y_val, pred_val)
+                self.acc_function_segmentation.update_state(y_val, y_pred)
+                
+                y_val = tf.math.argmax(y_val, axis = -1)
+                y_pred = tf.math.argmax(y_pred, axis = -1)
+                self.precision.update_state(y_val, y_pred)
+                self.recall.update_state(y_val, y_pred)
 
             loss_global_val /= self.num_batches_val
             self.loss_segmentation_val_history.append(loss_global_val)
 
             acc_global_val = float(self.acc_function_segmentation.result())
             self.acc_segmentation_val_history.append(acc_global_val)
+            
+            precision_global_val = float(self.precision.result())
+            self.precision.append(precision_global_val)
+
+            recall_global_val = float(self.recall.result())
+            self.recall.append(recall_global_val)
 
             self.logger.write_scalar('val_writer', 'loss/segmentation', loss_global_val, epoch + 1)
             self.logger.write_scalar('val_writer', 'accuracy/segmentation', acc_global_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'precision/segmentation', precision_global_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'recall/segmentation', recall_global_val, epoch + 1)
 
             print(f'Validation Loss: {loss_global_val}')
             print(f'Validation Accuracy: {acc_global_val}')
+            print(f'Validation Precision: {precision_global_val}')
+            print(f'Validation Recall: {recall_global_val}')
             
             clear_session()
 
