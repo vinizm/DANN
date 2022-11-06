@@ -82,4 +82,4 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
         del trainer
         gc.collect()
         
-        time.sleep(15)
+        time.sleep(15) # Sleep for 15 seconds
