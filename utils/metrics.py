@@ -39,3 +39,8 @@ def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
                 'f1_score': f1,
             }
     return metrics
+
+
+def f1(precision: float, recall: float):
+    f1_value = (2 * precision * recall) / (precision + recall)
+    return f1_value
