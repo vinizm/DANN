@@ -11,11 +11,12 @@ import tensorflow as tf
 
 from sklearn.metrics import average_precision_score, f1_score
 
-from utils.utils import load_array, save_json, augment_images, flatten
+from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
 from utils.hyperparameters import LambdaGradientReversalLayer
 from utils.loss_functions import MaskedBinaryCrossentropy
 from utils.learning_rate_functions import LearningRateFactory as lrf
+from utils.metrics import f1
 from models.builder import DomainAdaptationModel
 from models.deeplabv3plus import DeepLabV3Plus
 from logger import TensorBoardLogger
@@ -221,17 +222,6 @@ class Trainer():
 
     def _generate_acc_mask(self, samples: list):
         return np.asarray([self._generate_discriminator_mask(domain) for domain in samples]).reshape(-1)
-    
-    def _calculate_general_metrics(self, true, pred):
-        
-        true_vector = flatten(np.argmax(true, axis = -1), keep_dims = False)
-        pred_vector = flatten(np.argmax(pred, axis = -1), keep_dims = False)
-        proba_pairs = flatten(pred, keep_dims = True)            
-        
-        ap = average_precision_score(true_vector, proba_pairs[:, 1])
-        f1 = f1_score(true_vector, pred_vector)
-        
-        return {'avg_precision': ap, 'f1_score': f1}
 
     def reset_history(self):
         self.acc_function_segmentation.reset_states()
