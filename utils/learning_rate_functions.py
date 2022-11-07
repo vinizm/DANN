@@ -21,8 +21,8 @@ class AbstractLearningRate(ABC):
 
 class LearningRateConstant(AbstractLearningRate):
 
-    def __init__(self, const = LR0):
-        self.const = const
+    def __init__(self, **kwargs):
+        self.const = kwargs.get('const', LR0)
 
     def calculate(self, p: float):
         return self.const
@@ -34,11 +34,11 @@ class LearningRateConstant(AbstractLearningRate):
 
 class LearningRateExpDecay(AbstractLearningRate):
 
-    def __init__(self, lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA):
-        self.lr0 = lr0
-        self.warmup = warmup
-        self.alpha = alpha
-        self.beta = beta
+    def __init__(self, **kwargs):
+        self.lr0 = kwargs.get('lr0', LR0)
+        self.warmup = kwargs.get('warmup', LR_WARMUP)
+        self.alpha = kwargs.get('alpha', ALPHA)
+        self.beta = kwargs.get('beta', BETA)
         self.name = 'exp_decay'
 
     def calculate(self, p: float):
@@ -61,11 +61,11 @@ class LearningRateExpDecay(AbstractLearningRate):
 
 class LearningRateStepDecay(AbstractLearningRate):
 
-    def __init__(self, lr0 = LR0, step_decay = STEP_DECAY, num_steps = NUM_STEPS, warmup = LR_WARMUP):
-        self.lr0 = lr0
-        self.step_decay = step_decay
-        self.num_steps = num_steps
-        self.warmup = warmup
+    def __init__(self, **kwargs):
+        self.lr0 = kwargs.get('lr0', LR0)
+        self.step_decay = kwargs.get('step_decay', STEP_DECAY)
+        self.num_steps = kwargs.get('num_steps', NUM_STEPS)
+        self.warmup = kwargs.get('warmup', LR_WARMUP)
         self.name = 'step_decay'
 
         points = np.linspace(self.warmup, 1, self.num_steps + 1)
@@ -92,15 +92,15 @@ class LearningRateStepDecay(AbstractLearningRate):
 
 class LearningRateLinear(AbstractLearningRate):
 
-    def __init__(self, start: float = LR_START_LINEAR, stop: float = LR_STOP_LINEAR, warmup = LR_WARMUP):
-
-        self.start = start
-        self.stop = stop
-        self.warmup = warmup
+    def __init__(self, **kwargs):
+        
+        self.start = kwargs.get('start', LR_START_LINEAR)
+        self.stop = kwargs.get('stop', LR_STOP_LINEAR)
+        self.warmup = kwargs.get('warmup', LR_WARMUP)
         self.name = 'linear'
 
-        self.a = stop - start
-        self.b = start
+        self.a = self.stop - self.start
+        self.b = self.start
 
     def calculate(self, p: float):
         if p <= self.warmup:
@@ -123,15 +123,15 @@ class LearningRateLinear(AbstractLearningRate):
 
 class LearningRateLog(AbstractLearningRate):
 
-    def __init__(self, start: float = LR_START_LOG, stop: float = LR_STOP_LOG, warmup = LR_WARMUP):
+    def __init__(self, **kwargs):
 
-        self.start = start
-        self.stop = stop
-        self.warmup = warmup
+        self.start = kwargs.get('start', LR_START_LOG)
+        self.stop = kwargs.get('stop', LR_STOP_LOG)
+        self.warmup = kwargs.get('warmup', LR_WARMUP)
         self.name = 'log'
 
-        self.a = stop - start
-        self.b = start
+        self.a = self.stop - self.start
+        self.b = self.start
 
     def calculate(self, p: float):
         if p <= self.warmup:
