@@ -4,22 +4,22 @@ import numpy as np
 NO_DOMAIN_ADAPTATION_CONFIG = [
     {
         'dataset': 'Fe19',
-        'num_runs': 2,
+        'num_runs': 3,
         'run_training': False
     },
     {
         'dataset': 'Fe120',
-        'num_runs': 1,
+        'num_runs': 3,
         'run_training': True
     },
     {
         'dataset': 'FeM',
-        'num_runs': 1,
+        'num_runs': 3,
         'run_training': False
     },
     {
         'dataset': 'Cu',
-        'num_runs': 1,
+        'num_runs': 3,
         'run_training': False
     }
 ]
