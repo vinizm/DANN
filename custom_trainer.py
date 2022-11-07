@@ -268,6 +268,9 @@ class Trainer():
 
         self.recall_train_history = []
         self.recall_val_history = []
+        
+        self.f1_train_history = []
+        self.f1_val_history = []
 
         self.lr_segmentation_history = []
         self.lr_discriminator_history = []
@@ -685,8 +688,8 @@ class Trainer():
                 
                 y_segmentation_val = tf.math.argmax(y_segmentation_val, axis = -1)
                 y_discriminator_pred = tf.math.argmax(y_discriminator_pred, axis = -1)
-                self.precision.update_state(y_segmentation_val, y_discriminator_pred)
-                self.recall.update_state(y_segmentation_val, y_discriminator_pred)
+                self.precision.update_state(y_segmentation_val, y_discriminator_pred, sample_weight = sample_mask)
+                self.recall.update_state(y_segmentation_val, y_discriminator_pred, sample_weight = sample_mask)
 
             # ===== LOSS =====
             loss_segmentation_val /= self.num_batches_val
