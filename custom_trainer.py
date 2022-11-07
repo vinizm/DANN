@@ -145,6 +145,8 @@ class Trainer():
         self.precision(y_train, y_pred)
         self.recall(y_train, y_pred)
         
+        del tape
+        
         return loss
 
     @tf.function
