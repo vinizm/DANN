@@ -129,28 +129,28 @@ class Trainer():
         return empty_model
 
     @tf.function
-    def _training_step(self, x_train, y_train):
+    def _training_step(self, x_true, y_true):
 
         with tf.GradientTape() as tape:
-            y_pred = self.model(x_train)
-            loss = self.loss_function(y_train, y_pred)
+            y_pred = self.model(x_true)
+            loss = self.loss_function(y_true, y_pred)
         
         gradients = tape.gradient(loss, self.model.trainable_weights)
         self.optimizer_segmentation.apply_gradients(zip(gradients, self.model.trainable_weights))
 
-        self.acc_function_segmentation.update_state(y_train, y_pred)
+        self.acc_function_segmentation.update_state(y_true, y_pred)
         
-        y_train = tf.math.argmax(y_train, axis = -1)
+        y_true = tf.math.argmax(y_true, axis = -1)
         y_pred = tf.math.argmax(y_pred, axis = -1)
-        self.precision(y_train, y_pred)
-        self.recall(y_train, y_pred)
+        self.precision.update_state(y_true, y_pred)
+        self.recall.update_state(y_true, y_pred)
         
         del tape
         
         return loss
 
     @tf.function
-    def _training_step_domain_adaptation(self, inputs, outputs, loss_mask, acc_mask, train_segmentation = True,
+    def _training_step_domain_adaptation(self, inputs, outputs, loss_mask, sample_mask, train_segmentation = True,
                                          train_discriminator = True):
 
         y_true_segmentation, y_true_discriminator = outputs
@@ -168,7 +168,12 @@ class Trainer():
             gradients_segmentation = tape.gradient(loss_global, self.model.main_network.trainable_weights)
             self.optimizer_segmentation.apply_gradients(zip(gradients_segmentation, self.model.main_network.trainable_weights))
 
-            self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = acc_mask)
+            self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = sample_mask)
+            
+            y_true_segmentation = tf.math.argmax(y_true_segmentation, axis = -1)
+            y_pred_segmentation = tf.math.argmax(y_pred_segmentation, axis = -1)
+            self.precision.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = sample_mask)
+            self.recall.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = sample_mask)
 
         if train_discriminator:
             gradients_discriminator = tape.gradient(loss_discriminator, self.model.domain_discriminator.trainable_weights)
@@ -341,190 +346,190 @@ class Trainer():
         print(f'num. of batches for training: {self.num_batches_train}')
         print(f'num. of batches for validation: {self.num_batches_val}')
 
-    def pretrain_segmentation(self, max_epoch: int = 50, min_acc: float = 0.8):
-        self.reset_history()
+    # def pretrain_segmentation(self, max_epoch: int = 50, min_acc: float = 0.8):
+    #     self.reset_history()
 
-        epoch = 0
-        acc_segmentation_val = 0.
+    #     epoch = 0
+    #     acc_segmentation_val = 0.
 
-        while epoch < max_epoch and acc_segmentation_val < min_acc:
-            print(f'Epoch {epoch + 1} of {max_epoch}')
-            loss_segmentation_train = 0.
-            loss_segmentation_val = 0.
+    #     while epoch < max_epoch and acc_segmentation_val < min_acc:
+    #         print(f'Epoch {epoch + 1} of {max_epoch}')
+    #         loss_segmentation_train = 0.
+    #         loss_segmentation_val = 0.
 
-            self.acc_function_segmentation.reset_states()
+    #         self.acc_function_segmentation.reset_states()
 
-            np.random.shuffle(self.train_data_dirs)
-            np.random.shuffle(self.val_data_dirs)
+    #         np.random.shuffle(self.train_data_dirs)
+    #         np.random.shuffle(self.val_data_dirs)
 
-            # update learning rate
-            p = epoch / (max_epoch - 1)
-            print(f'Training Progress: {p}')
+    #         # update learning rate
+    #         p = epoch / (max_epoch - 1)
+    #         print(f'Training Progress: {p}')
             
-            lr_1 = self.lr_function_segmentation.calculate(p)
-            print(f'Learning Rate Segmentation: {lr_1}')
-            self.optimizer_segmentation.lr = lr_1
-            self.lr_segmentation_history.append(lr_1)
+    #         lr_1 = self.lr_function_segmentation.calculate(p)
+    #         print(f'Learning Rate Segmentation: {lr_1}')
+    #         self.optimizer_segmentation.lr = lr_1
+    #         self.lr_segmentation_history.append(lr_1)
 
-            l_vector = np.full(shape = (self.batch_size, 1), fill_value = 0., dtype = 'float32')
+    #         l_vector = np.full(shape = (self.batch_size, 1), fill_value = 0., dtype = 'float32')
 
-            print('Start training...')
-            for batch in range(self.num_batches_train):
-                print(f'Batch {batch + 1} of {self.num_batches_train}')
-                batch_train_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
+    #         print('Start training...')
+    #         for batch in range(self.num_batches_train):
+    #             print(f'Batch {batch + 1} of {self.num_batches_train}')
+    #             batch_train_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
-                # load images for training
-                batch_images = np.asarray([load_array(batch_train_file, verbose = False) for batch_train_file in batch_train_files])
-                batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
+    #             # load images for training
+    #             batch_images = np.asarray([load_array(batch_train_file, verbose = False) for batch_train_file in batch_train_files])
+    #             batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-                x_train = batch_images[ :, :, :, : self.channels]
-                y_segmentation_train = batch_images[ :, :, :, self.channels :]
-                y_discriminator_train = self._convert_path_to_domain(batch_train_files, self.train_data_dirs_source)
+    #             x_train = batch_images[ :, :, :, : self.channels]
+    #             y_segmentation_train = batch_images[ :, :, :, self.channels :]
+    #             y_discriminator_train = self._convert_path_to_domain(batch_train_files, self.train_data_dirs_source)
 
-                loss_mask = self._generate_loss_mask(y_discriminator_train)
-                acc_mask = self._generate_acc_mask(y_discriminator_train)
+    #             loss_mask = self._generate_loss_mask(y_discriminator_train)
+    #             acc_mask = self._generate_acc_mask(y_discriminator_train)
 
-                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask,
-                                                                    train_segmentation = True, train_discriminator = False)
-                loss_segmentation, _ = step_output
-                loss_segmentation_train += float(loss_segmentation)
+    #             step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask,
+    #                                                                 train_segmentation = True, train_discriminator = False)
+    #             loss_segmentation, _ = step_output
+    #             loss_segmentation_train += float(loss_segmentation)
     
-            loss_segmentation_train /= self.num_batches_train
-            self.loss_segmentation_train_history.append(loss_segmentation_train)
+    #         loss_segmentation_train /= self.num_batches_train
+    #         self.loss_segmentation_train_history.append(loss_segmentation_train)
 
-            acc_segmentation_train = float(self.acc_function_segmentation.result())
-            self.acc_segmentation_train_history.append(acc_segmentation_train)		
+    #         acc_segmentation_train = float(self.acc_function_segmentation.result())
+    #         self.acc_segmentation_train_history.append(acc_segmentation_train)		
 
-            print(f'Segmentation Loss: {loss_segmentation_train}')
-            print(f'Segmentation Accuracy: {acc_segmentation_train}')
+    #         print(f'Segmentation Loss: {loss_segmentation_train}')
+    #         print(f'Segmentation Accuracy: {acc_segmentation_train}')
 
-            self.acc_function_segmentation.reset_states()
+    #         self.acc_function_segmentation.reset_states()
 
-            # evaluating network
-            print('Start validation...')
-            for batch in range(self.num_batches_val):
-                print(f'Batch {batch + 1} of {self.num_batches_val}')
-                batch_val_files = self.val_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
+    #         # evaluating network
+    #         print('Start validation...')
+    #         for batch in range(self.num_batches_val):
+    #             print(f'Batch {batch + 1} of {self.num_batches_val}')
+    #             batch_val_files = self.val_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
-                # load images for testing
-                batch_val_images = np.asarray([load_array(batch_val_file, verbose = False) for batch_val_file in batch_val_files])
-                batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
+    #             # load images for testing
+    #             batch_val_images = np.asarray([load_array(batch_val_file, verbose = False) for batch_val_file in batch_val_files])
+    #             batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-                x_val = batch_val_images[:, :, :, : self.channels]
-                y_segmentation_val = batch_val_images[:, :, :, self.channels :]
-                y_discriminator_val = self._convert_path_to_domain(batch_val_files, self.val_data_dirs_source)
+    #             x_val = batch_val_images[:, :, :, : self.channels]
+    #             y_segmentation_val = batch_val_images[:, :, :, self.channels :]
+    #             y_discriminator_val = self._convert_path_to_domain(batch_val_files, self.val_data_dirs_source)
 
-                y_segmentation_pred, _ = self.model([x_val, l_vector])
+    #             y_segmentation_pred, _ = self.model([x_val, l_vector])
 
-                loss_mask = self._generate_loss_mask(y_discriminator_val)
-                acc_mask = self._generate_acc_mask(y_discriminator_val)
+    #             loss_mask = self._generate_loss_mask(y_discriminator_val)
+    #             acc_mask = self._generate_acc_mask(y_discriminator_val)
 
-                loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, loss_mask)		
-                self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = acc_mask)
+    #             loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, loss_mask)		
+    #             self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = acc_mask)
 
-                loss_segmentation_val += float(loss_segmentation)
+    #             loss_segmentation_val += float(loss_segmentation)
 
-            loss_segmentation_val /= self.num_batches_val
-            self.loss_segmentation_val_history.append(loss_segmentation_val)
+    #         loss_segmentation_val /= self.num_batches_val
+    #         self.loss_segmentation_val_history.append(loss_segmentation_val)
 
-            acc_segmentation_val = float(self.acc_function_segmentation.result())
-            self.acc_segmentation_val_history.append(acc_segmentation_val)
+    #         acc_segmentation_val = float(self.acc_function_segmentation.result())
+    #         self.acc_segmentation_val_history.append(acc_segmentation_val)
 
-            print(f'Segmentation Loss: {loss_segmentation_val}')
-            print(f'Segmentation Accuracy: {acc_segmentation_val}')
+    #         print(f'Segmentation Loss: {loss_segmentation_val}')
+    #         print(f'Segmentation Accuracy: {acc_segmentation_val}')
 
-            epoch += 1
+    #         epoch += 1
 
-    def pretrain_discriminator(self, max_epoch: int = 500, min_acc: float = 0.9):
-        self.reset_history()
+    # def pretrain_discriminator(self, max_epoch: int = 500, min_acc: float = 0.9):
+    #     self.reset_history()
 
-        epoch = 0
-        acc_discriminator_val = 0.
+    #     epoch = 0
+    #     acc_discriminator_val = 0.
 
-        while epoch < max_epoch and acc_discriminator_val < min_acc:
-            print(f'Epoch {epoch + 1} of {max_epoch}')
-            loss_discriminator_train = 0.
-            loss_discriminator_val = 0.
+    #     while epoch < max_epoch and acc_discriminator_val < min_acc:
+    #         print(f'Epoch {epoch + 1} of {max_epoch}')
+    #         loss_discriminator_train = 0.
+    #         loss_discriminator_val = 0.
 
-            self.acc_function_discriminator.reset_states()
+    #         self.acc_function_discriminator.reset_states()
 
-            np.random.shuffle(self.train_data_dirs)
-            np.random.shuffle(self.val_data_dirs)
+    #         np.random.shuffle(self.train_data_dirs)
+    #         np.random.shuffle(self.val_data_dirs)
 
-            # update learning rate
-            p = epoch / (max_epoch - 1)
-            print(f'Training Progress: {p}')
+    #         # update learning rate
+    #         p = epoch / (max_epoch - 1)
+    #         print(f'Training Progress: {p}')
 
-            lr_2 = self.lr_function_discriminator.calculate(p)
-            print(f'Learning Rate Discriminator: {lr_2}')
-            self.optimizer_discriminator.lr = lr_2
-            self.lr_discriminator_history.append(lr_2)
+    #         lr_2 = self.lr_function_discriminator.calculate(p)
+    #         print(f'Learning Rate Discriminator: {lr_2}')
+    #         self.optimizer_discriminator.lr = lr_2
+    #         self.lr_discriminator_history.append(lr_2)
 
-            l_vector = np.full(shape = (self.batch_size, 1), fill_value = 0., dtype = 'float32')
+    #         l_vector = np.full(shape = (self.batch_size, 1), fill_value = 0., dtype = 'float32')
 
-            print('Start training...')
-            for batch in range(self.num_batches_train):
-                print(f'Batch {batch + 1} of {self.num_batches_train}')
-                batch_train_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
+    #         print('Start training...')
+    #         for batch in range(self.num_batches_train):
+    #             print(f'Batch {batch + 1} of {self.num_batches_train}')
+    #             batch_train_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
-                # load images for training
-                batch_images = np.asarray([load_array(batch_train_file, verbose = False) for batch_train_file in batch_train_files])
-                batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
+    #             # load images for training
+    #             batch_images = np.asarray([load_array(batch_train_file, verbose = False) for batch_train_file in batch_train_files])
+    #             batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-                x_train = batch_images[ :, :, :, : self.channels]
-                y_segmentation_train = batch_images[ :, :, :, self.channels :]
-                y_discriminator_train = self._convert_path_to_domain(batch_train_files, self.train_data_dirs_source)
+    #             x_train = batch_images[ :, :, :, : self.channels]
+    #             y_segmentation_train = batch_images[ :, :, :, self.channels :]
+    #             y_discriminator_train = self._convert_path_to_domain(batch_train_files, self.train_data_dirs_source)
 
-                loss_mask = self._generate_loss_mask(y_discriminator_train)
-                acc_mask = self._generate_acc_mask(y_discriminator_train)
+    #             loss_mask = self._generate_loss_mask(y_discriminator_train)
+    #             acc_mask = self._generate_acc_mask(y_discriminator_train)
 
-                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask,
-                                                                    train_segmentation = False, train_discriminator = True)
-                _, loss_discriminator = step_output
-                loss_discriminator_train += float(loss_discriminator)
+    #             step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask,
+    #                                                                 train_segmentation = False, train_discriminator = True)
+    #             _, loss_discriminator = step_output
+    #             loss_discriminator_train += float(loss_discriminator)
 
-            loss_discriminator_train /= self.num_batches_train
-            self.loss_discriminator_train_history.append(loss_discriminator_train)
+    #         loss_discriminator_train /= self.num_batches_train
+    #         self.loss_discriminator_train_history.append(loss_discriminator_train)
             
-            acc_discriminator_train = float(self.acc_function_discriminator.result())
-            self.acc_discriminator_train_history.append(acc_discriminator_train)			
+    #         acc_discriminator_train = float(self.acc_function_discriminator.result())
+    #         self.acc_discriminator_train_history.append(acc_discriminator_train)			
 
-            print(f'Discriminator Loss: {loss_discriminator_train}')
-            print(f'Discriminator Accuracy: {acc_discriminator_train}')
+    #         print(f'Discriminator Loss: {loss_discriminator_train}')
+    #         print(f'Discriminator Accuracy: {acc_discriminator_train}')
 
-            self.acc_function_discriminator.reset_states()	
+    #         self.acc_function_discriminator.reset_states()	
 
-            # evaluating network
-            print('Start validation...')
-            for batch in range(self.num_batches_val):
-                print(f'Batch {batch + 1} of {self.num_batches_val}')
-                batch_val_files = self.val_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
+    #         # evaluating network
+    #         print('Start validation...')
+    #         for batch in range(self.num_batches_val):
+    #             print(f'Batch {batch + 1} of {self.num_batches_val}')
+    #             batch_val_files = self.val_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
-                # load images for testing
-                batch_val_images = np.asarray([load_array(batch_val_file, verbose = False) for batch_val_file in batch_val_files])
-                batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
+    #             # load images for testing
+    #             batch_val_images = np.asarray([load_array(batch_val_file, verbose = False) for batch_val_file in batch_val_files])
+    #             batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-                x_val = batch_val_images[:, :, :, : self.channels]
-                y_discriminator_val = self._convert_path_to_domain(batch_val_files, self.val_data_dirs_source)
+    #             x_val = batch_val_images[:, :, :, : self.channels]
+    #             y_discriminator_val = self._convert_path_to_domain(batch_val_files, self.val_data_dirs_source)
 
-                _, y_discriminator_pred = self.model([x_val, l_vector])
-                loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)			
+    #             _, y_discriminator_pred = self.model([x_val, l_vector])
+    #             loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)			
 
-                y_discriminator_val = tf.expand_dims(y_discriminator_val, axis = -1)
-                self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
+    #             y_discriminator_val = tf.expand_dims(y_discriminator_val, axis = -1)
+    #             self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
 
-                loss_discriminator_val += float(loss_discriminator)
+    #             loss_discriminator_val += float(loss_discriminator)
 
-            loss_discriminator_val /= self.num_batches_val
-            self.loss_discriminator_val_history.append(loss_discriminator_val)
+    #         loss_discriminator_val /= self.num_batches_val
+    #         self.loss_discriminator_val_history.append(loss_discriminator_val)
 
-            acc_discriminator_val = float(self.acc_function_discriminator.result())
-            self.acc_discriminator_val_history.append(acc_discriminator_val)
+    #         acc_discriminator_val = float(self.acc_function_discriminator.result())
+    #         self.acc_discriminator_val_history.append(acc_discriminator_val)
 
-            print(f'Discriminator Loss: {loss_discriminator_val}')
-            print(f'Discriminator Accuracy: {acc_discriminator_val}')
+    #         print(f'Discriminator Loss: {loss_discriminator_val}')
+    #         print(f'Discriminator Accuracy: {acc_discriminator_val}')
 
-            epoch += 1
+    #         epoch += 1
 
     def train_domain_adaptation(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True, progress_threshold: float = 0.1):
 
@@ -546,6 +551,9 @@ class Trainer():
 
             self.acc_function_segmentation.reset_states()
             self.acc_function_discriminator.reset_states()
+            
+            self.precision.reset_states()
+            self.recall.reset_states()
 
             np.random.shuffle(self.train_data_dirs)
             np.random.shuffle(self.val_data_dirs)
@@ -589,40 +597,63 @@ class Trainer():
                 y_discriminator_train = self._convert_path_to_domain(batch_train_files, self.train_data_dirs_source)
 
                 loss_mask = self._generate_loss_mask(y_discriminator_train)
-                acc_mask = self._generate_acc_mask(y_discriminator_train)
+                sample_mask = self._generate_acc_mask(y_discriminator_train)
                 
-                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, acc_mask,
+                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], loss_mask, sample_mask,
                                                                     train_segmentation = True, train_discriminator = True)
                 loss_segmentation, loss_discriminator = step_output
 
                 loss_segmentation_train += float(loss_segmentation)
                 loss_discriminator_train += float(loss_discriminator)
 
+            # ===== LOSS =====
             loss_segmentation_train /= self.num_batches_train
             self.loss_segmentation_train_history.append(loss_segmentation_train)
 
             loss_discriminator_train /= self.num_batches_train
             self.loss_discriminator_train_history.append(loss_discriminator_train)
 
+            # ===== ACCURACY =====
             acc_segmentation_train = float(self.acc_function_segmentation.result())
             self.acc_segmentation_train_history.append(acc_segmentation_train)
             
             acc_discriminator_train = float(self.acc_function_discriminator.result())
             self.acc_discriminator_train_history.append(acc_discriminator_train)
+            
+            # ===== PRECISION =====
+            precision_segmentation_train = float(self.precision.result())
+            self.precision_train_history.append(precision_segmentation_train)
+            
+            # ===== RECALL =====
+            recall_segmentation_train = float(self.recall.result())
+            self.recall_train_history.append(recall_segmentation_train)
+            
+            # ===== F1 =====
+            f1_segmentation_train = f1(precision_segmentation_train, recall_segmentation_train)
+            self.f1_train_history.append(f1_segmentation_train)
 
-            self.logger.write_scalar('train_writer', 'loss/segmentation', loss_segmentation_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'loss/discriminator', loss_discriminator_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'accuracy/segmentation', acc_segmentation_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'accuracy/discriminator', acc_discriminator_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/loss/segmentation', loss_segmentation_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/accuracy/segmentation', acc_segmentation_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/precision/segmentation', precision_segmentation_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/recall/segmentation', recall_segmentation_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/f1/segmentation', f1_segmentation_train, epoch + 1)
+            
+            self.logger.write_scalar('train_writer', 'metric/loss/discriminator', loss_discriminator_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/accuracy/discriminator', acc_discriminator_train, epoch + 1)
 
             print(f'Segmentation Loss: {loss_segmentation_train}')
-            print(f'Discriminator Loss: {loss_discriminator_train}')
-
             print(f'Segmentation Accuracy: {acc_segmentation_train}')
+            print(f'Segmentation Precision: {precision_segmentation_train}')
+            print(f'Segmentation Recall: {recall_segmentation_train}')
+            print(f'Segmentation F1: {f1_segmentation_train}')
+            
+            print(f'Discriminator Loss: {loss_discriminator_train}')
             print(f'Discriminator Accuracy: {acc_discriminator_train}')
 
             self.acc_function_segmentation.reset_states()
-            self.acc_function_discriminator.reset_states()	
+            self.acc_function_discriminator.reset_states()
+            self.precision.reset_states()
+            self.recall.reset_states()
 
             # evaluating network
             print('Start validation...')
@@ -641,39 +672,64 @@ class Trainer():
                 y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
 
                 loss_mask = self._generate_loss_mask(y_discriminator_val)
-                acc_mask = self._generate_acc_mask(y_discriminator_val)
+                sample_mask = self._generate_acc_mask(y_discriminator_val)
 
                 loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, loss_mask)
-                loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)			
-
-                y_discriminator_val = tf.expand_dims(y_discriminator_val, axis = -1)
-                self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = acc_mask)
-                self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
-
                 loss_segmentation_val += float(loss_segmentation)
+                
+                loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)
                 loss_discriminator_val += float(loss_discriminator)
 
+                self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = sample_mask)
+                self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
+                
+                y_segmentation_val = tf.math.argmax(y_segmentation_val, axis = -1)
+                y_discriminator_pred = tf.math.argmax(y_discriminator_pred, axis = -1)
+                self.precision.update_state(y_segmentation_val, y_discriminator_pred)
+                self.recall.update_state(y_segmentation_val, y_discriminator_pred)
+
+            # ===== LOSS =====
             loss_segmentation_val /= self.num_batches_val
             self.loss_segmentation_val_history.append(loss_segmentation_val)
 
             loss_discriminator_val /= self.num_batches_val
             self.loss_discriminator_val_history.append(loss_discriminator_val)
 
+            # ===== ACCURACY =====
             acc_segmentation_val = float(self.acc_function_segmentation.result())
             self.acc_segmentation_val_history.append(acc_segmentation_val)
 
             acc_discriminator_val = float(self.acc_function_discriminator.result())
             self.acc_discriminator_val_history.append(acc_discriminator_val)        
 
-            self.logger.write_scalar('val_writer', 'loss/segmentation', loss_segmentation_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'loss/discriminator', loss_discriminator_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'accuracy/segmentation', acc_segmentation_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'accuracy/discriminator', acc_discriminator_val, epoch + 1)
+            # ===== PRECISION =====
+            precision_segmentation_val = float(self.precision.result())
+            self.precision_val_history.append(precision_segmentation_val)
+            
+            # ===== RECALL =====
+            recall_segmentation_val = float(self.recall.result())
+            self.recall_val_history.append(recall_segmentation_val)
+            
+            # ===== F1 =====
+            f1_segmentation_val = f1(precision_segmentation_val, recall_segmentation_val)
+            self.f1_val_history.append(f1_segmentation_val)
+
+            self.logger.write_scalar('val_writer', 'metric/loss/segmentation', loss_segmentation_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/accuracy/segmentation', acc_segmentation_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/precision/segmentation', precision_segmentation_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/recall/segmentation', recall_segmentation_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/f1/segmentation', f1_segmentation_val, epoch + 1)            
+            
+            self.logger.write_scalar('val_writer', 'metric/loss/discriminator', loss_discriminator_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/accuracy/discriminator', acc_discriminator_val, epoch + 1)
 
             print(f'Segmentation Loss: {loss_segmentation_val}')
-            print(f'Discriminator Loss: {loss_discriminator_val}')
-
             print(f'Segmentation Accuracy: {acc_segmentation_val}')
+            print(f'Segmentation Precision: {precision_segmentation_val}')
+            print(f'Segmentation Recall: {recall_segmentation_val}')
+            print(f'Segmentation F1: {f1_segmentation_val}')
+            
+            print(f'Discriminator Loss: {loss_discriminator_val}')
             print(f'Discriminator Accuracy: {acc_discriminator_val}')
             
             clear_session()
@@ -743,18 +799,23 @@ class Trainer():
                 loss_train = self._training_step(x_train, y_train)
                 loss_global_train += float(loss_train)
 
+            # ===== LOSS =====
             loss_global_train /= self.num_batches_train
             self.loss_segmentation_train_history.append(loss_global_train)
 
+            # ===== ACCURACY =====
             acc_global_train = float(self.acc_function_segmentation.result())
             self.acc_segmentation_train_history.append(acc_global_train)
             
+            # ===== PRECISION =====
             precision_global_train = float(self.precision.result())
             self.precision_train_history.append(precision_global_train)
             
+            # ===== RECALL =====
             recall_global_train = float(self.recall.result())
             self.recall_train_history.append(recall_global_train)
             
+            # ===== F1 =====
             f1_global_train = f1(precision_global_train, recall_global_train)
             self.f1_train_history.append(f1_global_train)
 
@@ -788,9 +849,10 @@ class Trainer():
                 y_val = batch_val_images[:, :, :, self.channels :]
 
                 y_pred = self.model(x_val)
-                loss_val = self.loss_function(y_val, y_pred)
 
+                loss_val = self.loss_function(y_val, y_pred)
                 loss_global_val += float(loss_val) # convert loss_val to float and sum
+                
                 self.acc_function_segmentation.update_state(y_val, y_pred)
                 
                 y_val = tf.math.argmax(y_val, axis = -1)
@@ -798,18 +860,23 @@ class Trainer():
                 self.precision.update_state(y_val, y_pred)
                 self.recall.update_state(y_val, y_pred)
 
+            # ===== LOSS =====
             loss_global_val /= self.num_batches_val
             self.loss_segmentation_val_history.append(loss_global_val)
 
+            # ===== ACCURACY =====
             acc_global_val = float(self.acc_function_segmentation.result())
             self.acc_segmentation_val_history.append(acc_global_val)
             
+            # ===== PRECISION =====
             precision_global_val = float(self.precision.result())
             self.precision_val_history.append(precision_global_val)
 
+            # ===== RECALL =====
             recall_global_val = float(self.recall.result())
             self.recall_val_history.append(recall_global_val)
             
+            # ===== F1 =====
             f1_global_val = f1(precision_global_val, recall_global_val)
             self.f1_val_history.append(f1_global_val)
 
