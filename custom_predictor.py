@@ -1,7 +1,8 @@
 import numpy as np
 import glob
 
-from utils.utils import load_array, compute_metrics
+from utils.utils import load_array
+from utils.metrics import compute_metrics
 from utils.hyperparameters import *
 from config import *
 from models.builder import DomainAdaptationModel
