@@ -51,7 +51,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     lr_log_stop = CASE.get('lr_log_stop', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_log_stop'))
     lr_warmup = CASE.get('lr_warmup', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_warmup'))
     
-    PREFIX = f'DL_patch{patch_size}_{dataset}'
+    PREFIX = f'DL_patch{patch_size}_os{output_stride}_{dataset}'
 
     for i in range(num_runs):
     
