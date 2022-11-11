@@ -41,6 +41,32 @@ def compute_metrics(true_labels: np.ndarray, predicted_labels: np.ndarray):
                 'f1_score': f1,
             }
     return metrics
+  
+  
+def precision(y_true: tf.Tensor, y_pred: tf.Tensor):
+  epsilon = 1.e-6
+
+  u_pred = tf.math.argmax(y_pred, axis = -1)
+  u_true = tf.math.argmax(y_true, axis = -1)
+
+  true_positive = tf.cast(tf.reduce_sum(tf.math.multiply(u_pred, u_true)), tf.float32)
+  predicted_positive = tf.cast(tf.math.reduce_sum(u_pred), tf.float32)
+  precision = true_positive / (predicted_positive + epsilon)
+
+  return precision
+
+
+def recall(y_true: tf.Tensor, y_pred: tf.Tensor):
+  epsilon = 1.e-6
+
+  u_pred = tf.math.argmax(y_pred, axis = -1)
+  u_true = tf.math.argmax(y_true, axis = -1)
+
+  true_positive = tf.cast(tf.reduce_sum(tf.math.multiply(u_pred, u_true)), tf.float32)
+  possible_positive = tf.cast(tf.math.reduce_sum(u_true), tf.float32)
+  precision = true_positive / (possible_positive + epsilon)
+
+  return precision
 
 
 def f1(precision: float, recall: float):
