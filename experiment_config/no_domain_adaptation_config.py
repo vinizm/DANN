@@ -14,8 +14,8 @@ NO_DOMAIN_ADAPTATION_CONFIG = [
     },
     {
         'dataset': 'FeM',
-        'num_runs': 3,
-        'run_training': False
+        'num_runs': 1,
+        'run_training': True
     },
     {
         'dataset': 'Cu',
