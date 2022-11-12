@@ -4,7 +4,7 @@ import numpy as np
 NO_DOMAIN_ADAPTATION_CONFIG = [
     {
         'dataset': 'Fe19',
-        'num_runs': 2,
+        'num_runs': 3,
         'run_training': True
     },
     {
