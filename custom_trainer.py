@@ -21,6 +21,8 @@ from models.builder import DomainAdaptationModel
 from models.deeplabv3plus import DeepLabV3Plus
 from logger import TensorBoardLogger
 
+from config import LOGS_FOLDER
+
 
 class Trainer():
 
@@ -80,10 +82,10 @@ class Trainer():
         self.lambdas = []
 
         self.logger = TensorBoardLogger()
-        self.logger.create_writer('train_writer', f'logs/train{self.name}/')
-        self.logger.create_writer('val_writer', f'logs/validation{self.name}/')
-        self.logger.create_writer('segmentation_writer', f'logs/segmentation{self.name}/')
-        self.logger.create_writer('discriminator_writer', f'logs/discriminator{self.name}/')
+        self.logger.create_writer('train_writer', f'{LOGS_FOLDER}/train{self.name}/')
+        self.logger.create_writer('val_writer', f'{LOGS_FOLDER}/validation{self.name}/')
+        self.logger.create_writer('segmentation_writer', f'{LOGS_FOLDER}/segmentation{self.name}/')
+        self.logger.create_writer('discriminator_writer', f'{LOGS_FOLDER}/discriminator{self.name}/')
 
         self.no_improvement_count = 0
         self.best_val_loss = 1.e8
