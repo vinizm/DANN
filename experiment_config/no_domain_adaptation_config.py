@@ -10,7 +10,7 @@ NO_DOMAIN_ADAPTATION_CONFIG = [
     {
         'dataset': 'Fe120',
         'num_runs': 3,
-        'run_training': False
+        'run_training': True
     },
     {
         'dataset': 'FeM',
@@ -20,7 +20,7 @@ NO_DOMAIN_ADAPTATION_CONFIG = [
     {
         'dataset': 'Cu',
         'num_runs': 3,
-        'run_training': True
+        'run_training': False
     }
 ]
 
