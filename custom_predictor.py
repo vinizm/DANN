@@ -49,10 +49,15 @@ class Predictor():
     def load_model(self, model_path: str):
         pass
 
-    def test(self, test_dir: str, num_images_test: int = None, batch_size: int = 2):
+    def test(self, test_dir: str, num_images_test: int = None, batch_size: int = 2, shuffle: bool = True):
     
         test_data_dirs = glob.glob(test_dir + '/*.npy')
-        test_data_dirs.sort()
+        
+        if shuffle:
+            np.random.shuffle(test_data_dirs)
+        else:
+            test_data_dirs.sort()
+        
         self.test_data_dirs = test_data_dirs[: num_images_test]
 
         # compute number of batches
