@@ -156,11 +156,9 @@ class Trainer():
                                          train_discriminator = True):
 
         y_true_segmentation, y_true_discriminator = outputs
-        x_input, lambdas = inputs
         with tf.GradientTape(persistent = True) as tape:
-            y_pred_segmentation, features = self.model.main_network(x_input)
-            discriminator_input = self.model.gradient_reversal_layer([features, lambdas])
-            y_pred_discriminator = self.model.domain_discriminator(discriminator_input)
+                        
+            y_pred_segmentation, y_pred_discriminator = self.model(inputs)
 
             loss_segmentation = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, loss_mask)
             loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
