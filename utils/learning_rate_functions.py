@@ -153,22 +153,19 @@ class LearningRateLog(AbstractLearningRate):
         return config
 
 
-class LearningRateFactory:
+def LearningRateFactory(name: str, **kwargs):
 
-    @staticmethod
-    def get_function(name: str, **kwargs):
+    if name == 'constant':
+        return LearningRateConstant(**kwargs)
 
-        if name == 'constant':
-            return LearningRateConstant(**kwargs)
+    elif name == 'exp_decay':
+        return LearningRateExpDecay(**kwargs)
 
-        elif name == 'exp_decay':
-            return LearningRateExpDecay(**kwargs)
+    elif name == 'step_decay':
+        return LearningRateStepDecay(**kwargs)
 
-        elif name == 'step_decay':
-            return LearningRateStepDecay(**kwargs)
+    elif name == 'linear':
+        return LearningRateLinear(**kwargs)
 
-        elif name == 'linear':
-            return LearningRateLinear(**kwargs)
-
-        elif name == 'log':
-            return LearningRateLog(**kwargs)
+    elif name == 'log':
+        return LearningRateLog(**kwargs)

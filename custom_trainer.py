@@ -15,7 +15,7 @@ from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
 from utils.hyperparameters import LambdaGradientReversalLayer
 from utils.loss_functions import MaskedBinaryCrossentropy
-from utils.learning_rate_functions import LearningRateFactory as lrf
+from utils.learning_rate_functions import LearningRateFactory
 from utils.metrics import f1
 from models.builder import DomainAdaptationModel
 from models.deeplabv3plus import DeepLabV3Plus
@@ -40,9 +40,8 @@ class Trainer():
         self.optimizer_segmentation = Adam()
         self.optimizer_discriminator = Adam()
         
-        self.lr_factory = lrf()
-        self.lr_function_segmentation = self.lr_factory.get_function('exp_decay', lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA)
-        self.lr_function_discriminator = self.lr_factory.get_function('exp_decay', lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA)
+        self.lr_function_segmentation = LearningRateFactory('exp_decay', lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA)
+        self.lr_function_discriminator = LearningRateFactory('exp_decay', lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA)
 
         self.lambda_function = LambdaGradientReversalLayer(warmup = 0., gamma = 10., lambda_scale = 1.)
 
