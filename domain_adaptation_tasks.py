@@ -46,6 +46,8 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     alpha = CASE.get('alpha', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('alpha'))
     beta = CASE.get('beta', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('beta'))
     lr0 = CASE.get('lr0', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr0'))
+    lr_log_start = CASE.get('lr_log_start', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_log_start'))
+    lr_log_stop = CASE.get('lr_log_stop', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_log_stop'))
     lr_warmup = CASE.get('lr_warmup', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_warmup'))
     
     gamma = CASE.get('gamma', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('gamma'))
@@ -66,12 +68,12 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
                           domain_adaptation = True, name = f'{now}_{source_set}_{target_set}_v{i + 1:02}')
         trainer.set_test_index(test_index_source = TEST_INDEX.get(source_set), test_index_target = TEST_INDEX.get(target_set))
         trainer.compile_model()
-        time.sleep(5) # Sleep for 5 seconds
+        time.sleep(2) # Sleep for 5 seconds
         trainer.preprocess_images_domain_adaptation(patches_dir = [source_dir, target_dir], batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
                                                     rotate = rotate, flip = flip)
         
-        config_segmentation = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup}
-        config_discriminator = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup}
+        config_segmentation = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup, 'start': lr_log_start, 'stop': lr_log_stop}
+        config_discriminator = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup, 'start': lr_log_start, 'stop': lr_log_stop}
         trainer.set_learning_rate(**{'segmentation': config_segmentation, 'discriminator': config_discriminator})
         
         config_lambda = {'warmup': lambda_warmup, 'gamma': gamma, 'lambda_scale': lambda_scale}
@@ -80,6 +82,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
         print(trainer.lr_function_segmentation.config)
         print(trainer.lr_function_discriminator.config)
         print(trainer.lambda_function.config)
+        time.sleep(2) # Sleep for 5 seconds
         
         trainer.train_domain_adaptation(epochs = max_epochs, wait = patience, persist_best_model = True, progress_threshold = progress_threshold)
 
