@@ -66,6 +66,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
                           domain_adaptation = True, name = f'{now}_{source_set}_{target_set}_v{i + 1:02}')
         trainer.set_test_index(test_index_source = TEST_INDEX.get(source_set), test_index_target = TEST_INDEX.get(target_set))
         trainer.compile_model()
+        time.sleep(5) # Sleep for 5 seconds
         trainer.preprocess_images_domain_adaptation(patches_dir = [source_dir, target_dir], batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
                                                     rotate = rotate, flip = flip)
         
