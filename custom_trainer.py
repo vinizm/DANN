@@ -169,7 +169,7 @@ class Trainer():
         
         return loss
 
-    @tf.function
+    #@tf.function
     def _training_step_domain_adaptation(self, inputs, outputs, source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
         y_true_segmentation, y_true_discriminator = outputs
@@ -253,7 +253,7 @@ class Trainer():
 
     def _explode_domain(self, encoded_domain: list):
         feature_size = self.patch_size // self.output_stride
-        fill = lambda x: np.full(shape = (feature_size, feature_size), fill_value = x, dtype = 'int32')
+        fill = lambda x: np.full(shape = (feature_size, feature_size, 1), fill_value = x, dtype = 'int32')
         
         return np.asarray([fill(domain) for domain in encoded_domain], dtype = 'int32')
     
@@ -267,14 +267,14 @@ class Trainer():
         if domain == 0:
             return np.full(shape = shape, fill_value = source_fill, dtype = 'float32')
         return np.full(shape = shape, fill_value = target_fill, dtype = 'float32')
-
+        
     def _generate_domain_mask(self, samples: list, activate_source: bool):
         source_fill, target_fill = 1., 0.
         
         if not activate_source:
             source_fill, target_fill = 0., 1.
         
-        return np.asarray([self._generate_sample_mask(domain, shape = (1,), source_fill = source_fill, target_fill = target_fill) for domain in samples], dtype = 'float32').reshape(-1)
+        return np.asarray([self._generate_sample_mask(domain, shape = (self.patch_size, self.patch_size), source_fill = source_fill, target_fill = target_fill) for domain in samples], dtype = 'float32')
 
     def reset_history(self):
         self.loss_discriminator_train_history = []
@@ -470,8 +470,8 @@ class Trainer():
                 source_mask = self._generate_domain_mask(encoded_domain, activate_source = True)
                 target_mask = self._generate_domain_mask(encoded_domain, activate_source = False)
                 
-                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], source_mask,
-                                                                    target_mask, train_segmentation = True, train_discriminator = True)
+                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], source_mask, target_mask,
+                                                                    train_segmentation = True, train_discriminator = True)
                 loss_segmentation, loss_discriminator = step_output
 
                 loss_segmentation_train += float(loss_segmentation)
@@ -555,7 +555,7 @@ class Trainer():
                 y_segmentation_val = batch_val_images[:, :, :, self.channels :]
                 
                 encoded_domain = self._encode_domain(batch_val_files, self.val_data_dirs_source)
-                y_discriminator_val = self._explode_domain(batch_val_files, self.val_data_dirs_source)
+                y_discriminator_val = self._explode_domain(encoded_domain)
                 print(f'Domain: {encoded_domain}')
 
                 y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
@@ -870,12 +870,12 @@ class Trainer():
         segmentation_params = kwargs.get('segmentation')
         if segmentation_params is not None:
             name = segmentation_params.pop('name')
-            self.lr_function_segmentation = self.lr_factory.get_function(name, **segmentation_params)
+            self.lr_function_segmentation = LearningRateFactory(name, **segmentation_params)
 
         discriminator_params = kwargs.get('discriminator')
         if discriminator_params is not None:
             name = discriminator_params.pop('name')
-            self.lr_function_discriminator = self.lr_factory.get_function(name, **discriminator_params)
+            self.lr_function_discriminator = LearningRateFactory(name, **discriminator_params)
 
     def set_lambda(self, **kwargs):
         self.lambda_function = LambdaGradientReversalLayer(**kwargs)
