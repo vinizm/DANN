@@ -898,30 +898,48 @@ class Trainer():
                 'history':{
                     'training':{
                         'loss':{
-                            'segmentation': self.loss_segmentation_train_history,
+                            'segmentation': {
+                                'source': self.loss_segmentation_train_history},
                             'discriminator': self.loss_discriminator_train_history},
                         'accuracy':{
-                            'segmentation': self.acc_segmentation_train_history,
+                            'segmentation': {
+                                'source': self.acc_segmentation_train_history,
+                                'target': self.acc_segmentation_target_train_history},
                             'discriminator': self.acc_discriminator_train_history},
                         'precision':{
-                            'segmentation': self.precision_train_history},
+                            'segmentation': {
+                                'source': self.precision_train_history,
+                                'target': self.precision_target_train_history}},
                         'recall':{
-                            'segmentation': self.recall_train_history},
+                            'segmentation': {
+                                'source': self.recall_train_history,
+                                'target': self.recall_target_train_history}},
                         'f1':{
-                            'segmentation': self.f1_train_history}},
+                            'segmentation': {
+                                'source': self.f1_train_history,
+                                'target': self.f1_target_train_history}}},
                     'validation':{
                         'loss':{
-                            'segmentation': self.loss_segmentation_val_history,
+                            'segmentation': {
+                                'source': self.loss_segmentation_val_history},
                             'discriminator': self.loss_discriminator_val_history},
                         'accuracy':{
-                            'segmentation': self.acc_segmentation_val_history,
+                            'segmentation': {
+                                'source': self.acc_segmentation_val_history,
+                                'target': self.acc_segmentation_target_val_history},
                             'discriminator': self.acc_discriminator_val_history},
                         'precision':{
-                            'segmentation': self.precision_val_history},
+                            'segmentation': {
+                                'source': self.precision_val_history,
+                                'target': self.precision_target_val_history}},
                         'recall':{
-                            'segmentation': self.recall_val_history},
+                            'segmentation': {
+                                'source': self.recall_val_history,
+                                'target': self.recall_target_val_history}},
                         'f1':{
-                            'segmentation': self.f1_val_history}}},
+                            'segmentation': {
+                                'source': self.f1_val_history,
+                                'target': self.f1_target_val_history}}}},
                 'image_files':{
                     'training':{
                         'total':{
