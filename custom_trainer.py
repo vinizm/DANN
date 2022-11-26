@@ -46,7 +46,7 @@ class Trainer():
         self.lambda_function = LambdaGradientReversalLayer(warmup = 0., gamma = 10., lambda_scale = 1.)
 
         self.loss_function = BinaryCrossentropy()
-        self.loss_function_segmentation = MaskedBinaryCrossentropy()
+        self.loss_function_segmentation = BinaryCrossentropy()
 
         self.loss_function_discriminator = SparseCategoricalCrossentropy()
         self.acc_function_discriminator = BinaryAccuracy(threshold = 0.5)
@@ -173,15 +173,14 @@ class Trainer():
         return loss
 
     @tf.function
-    def _training_step_domain_adaptation(self, inputs, outputs, loss_mask, source_mask, target_mask, train_segmentation = True,
-                                         train_discriminator = True):
+    def _training_step_domain_adaptation(self, inputs, outputs, source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
         y_true_segmentation, y_true_discriminator = outputs
         with tf.GradientTape(persistent = True) as tape:
                         
             y_pred_segmentation, y_pred_discriminator = self.model(inputs)
 
-            loss_segmentation = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, loss_mask)
+            loss_segmentation = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
             loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
             loss_global = loss_segmentation + loss_discriminator
 
@@ -250,12 +249,16 @@ class Trainer():
     def _calculate_batch_size(self, data_dirs: list):
         num_batches = len(data_dirs) // self.batch_size
         return num_batches
+    
+    @staticmethod
+    def _encode_domain(file_names: list, source_files: list):
+        return [0 if file_name in source_files else 1 for file_name in file_names]
 
-    def _convert_path_to_domain(self, file_names: list, source_files: list):
+    def _explode_domain(self, encoded_domain: list):
         feature_size = self.patch_size // self.output_stride
         fill = lambda x: np.full(shape = (feature_size, feature_size, 1), fill_value = x, dtype = 'int32')
         
-        return np.asarray([fill(0) if file_name in source_files else fill(1) for file_name in file_names], dtype = 'int32')
+        return np.asarray([fill(domain) for domain in encoded_domain], dtype = 'int32')
     
     @staticmethod            
     def _persist_to_history(inputs, operator, history: list):
@@ -268,16 +271,13 @@ class Trainer():
             return np.full(shape = shape, fill_value = source_fill, dtype = 'float32')
         return np.full(shape = shape, fill_value = target_fill, dtype = 'float32')
 
-    def _generate_pixel_mask(self, samples: np.ndarray):
-        return np.asarray([self._generate_sample_mask(domain, shape = (self.patch_size, self.patch_size), source_fill = 1., target_fill = 0.) for domain in samples])
-
     def _generate_domain_mask(self, samples: list, activate_source: bool):
         source_fill, target_fill = 1., 0.
         
         if not activate_source:
             source_fill, target_fill = 0., 1.
         
-        return np.asarray([self._generate_sample_mask(domain, shape = (1,), source_fill = source_fill, target_fill = target_fill) for domain in samples]).reshape(-1)
+        return np.asarray([self._generate_sample_mask(domain, shape = (1,), source_fill = source_fill, target_fill = target_fill) for domain in samples], dtype = 'float32').reshape(-1)
 
     def reset_history(self):
         self.loss_discriminator_train_history = []
@@ -465,14 +465,16 @@ class Trainer():
 
                 x_train = batch_images[ :, :, :, : self.channels]
                 y_segmentation_train = batch_images[ :, :, :, self.channels :]
-                y_discriminator_train = self._convert_path_to_domain(batch_train_files, self.train_data_dirs_source)
-
-                pixel_mask = self._generate_pixel_mask(y_discriminator_train)
-                source_mask = self._generate_domain_mask(y_discriminator_train, activate_source = True)
-                target_mask = self._generate_domain_mask(y_discriminator_train, activate_source = False)
                 
-                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], pixel_mask, source_mask, target_mask,
-                                                                    train_segmentation = True, train_discriminator = True)
+                encoded_domain = self._encode_domain(batch_train_files, self.train_data_dirs_source)
+                y_discriminator_train = self._explode_domain(encoded_domain)
+                print(f'Domain: {encoded_domain}')
+
+                source_mask = self._generate_domain_mask(encoded_domain, activate_source = True)
+                target_mask = self._generate_domain_mask(encoded_domain, activate_source = False)
+                
+                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], source_mask,
+                                                                    target_mask, train_segmentation = True, train_discriminator = True)
                 loss_segmentation, loss_discriminator = step_output
 
                 loss_segmentation_train += float(loss_segmentation)
@@ -554,15 +556,17 @@ class Trainer():
 
                 x_val = batch_val_images[:, :, :, : self.channels]
                 y_segmentation_val = batch_val_images[:, :, :, self.channels :]
-                y_discriminator_val = self._convert_path_to_domain(batch_val_files, self.val_data_dirs_source)
+                
+                encoded_domain = self._encode_domain(batch_val_files, self.val_data_dirs_source)
+                y_discriminator_val = self._explode_domain(batch_val_files, self.val_data_dirs_source)
+                print(f'Domain: {encoded_domain}')
 
                 y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
 
-                pixel_mask = self._generate_pixel_mask(y_discriminator_val)
-                source_mask = self._generate_domain_mask(y_discriminator_val, activate_source = True)
-                target_mask = self._generate_domain_mask(y_discriminator_val, activate_source = False)
+                source_mask = self._generate_domain_mask(encoded_domain, activate_source = True)
+                target_mask = self._generate_domain_mask(encoded_domain, activate_source = False)
 
-                loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, pixel_mask)
+                loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
                 loss_segmentation_val += float(loss_segmentation)
                 
                 loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)
@@ -577,15 +581,15 @@ class Trainer():
                 self.acc_function_segmentation_target.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
                 
                 y_segmentation_val = tf.math.argmax(y_segmentation_val, axis = -1)
-                y_discriminator_pred = tf.math.argmax(y_discriminator_pred, axis = -1)
+                y_segmentation_pred = tf.math.argmax(y_segmentation_pred, axis = -1)
                 
                 # ===== [SOURCE] PRECISION/RECALL =====
-                self.precision.update_state(y_segmentation_val, y_discriminator_pred, sample_weight = source_mask)
-                self.recall.update_state(y_segmentation_val, y_discriminator_pred, sample_weight = source_mask)
+                self.precision.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
+                self.recall.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
                 
                 # ===== [TARGET] PRECISION/RECALL =====
-                self.precision_target.update_state(y_segmentation_val, y_discriminator_pred, sample_weight = target_mask)
-                self.recall_target.update_state(y_segmentation_val, y_discriminator_pred, sample_weight = target_mask)
+                self.precision_target.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
+                self.recall_target.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
             
             self._persist_to_history(loss_discriminator_val, lambda x: x / self.num_batches_val, self.loss_discriminator_val_history)
             self._persist_to_history(self.acc_function_discriminator, lambda x: float(x.result()), self.acc_discriminator_val_history)
