@@ -86,8 +86,11 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
         if not os.path.exists(LOW_LEVEL_DIR):
             os.makedirs(LOW_LEVEL_DIR)
         
-        weights_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_weights.h5'
+        weights_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_segmentation_weights.h5'
         trainer.save_weights(weights_path = weights_path, best = True, piece = 'segmentation')
+        
+        weights_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_discriminator_weights.h5'
+        trainer.save_weights(weights_path = weights_path, best = True, piece = 'discriminator')
         
         history_path = f'{LOW_LEVEL_DIR}/{PREFIX}_v{i + 1:02}_history.json'
         trainer.save_info(history_path = history_path)
