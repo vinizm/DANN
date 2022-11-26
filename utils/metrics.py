@@ -70,7 +70,8 @@ def recall(y_true: tf.Tensor, y_pred: tf.Tensor):
 
 
 def f1(precision: float, recall: float):
-    f1_value = (2 * precision * recall) / (precision + recall)
+    epsilon = 1.e-6
+    f1_value = (2 * precision * recall) / (precision + recall + epsilon)
     return f1_value
 
 
