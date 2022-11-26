@@ -604,7 +604,7 @@ class Trainer():
             
             # ===== [SOURCE] F1 =====            
             a, b = (self.precision_val_history[-1], self.recall_val_history[-1])
-            self._persist_to_history((a, b), lambda x: f1(*x), self.f1_val_history)            
+            self._persist_to_history((a, b), lambda x: f1(*x), self.f1_val_history)           
             
             # ===== [TARGET] ACCURACY =====
             self._persist_to_history(self.acc_function_segmentation_target, lambda x: float(x.result()), self.acc_segmentation_target_val_history)
@@ -650,9 +650,9 @@ class Trainer():
             clear_session()
 
             if self.persist_best_model and p >= self.progress_threshold:
-                if loss_segmentation_val <= self.best_val_loss:
+                if self.loss_segmentation_val_history[-1] <= self.best_val_loss:
                     print('[!] Persisting best model...')
-                    self.best_val_loss = loss_segmentation_val
+                    self.best_val_loss = self.loss_segmentation_val_history[-1]
                     self.no_improvement_count = 0
                     self.best_epoch = epoch
                     self.best_weights = self.model.get_weights()
@@ -714,36 +714,32 @@ class Trainer():
                 loss_global_train += float(loss_train)
 
             # ===== LOSS =====
-            loss_global_train /= self.num_batches_train
-            self.loss_segmentation_train_history.append(loss_global_train)
+            self._persist_to_history(loss_global_train, lambda x: x / self.num_batches_train, self.loss_segmentation_train_history)
 
             # ===== ACCURACY =====
-            acc_global_train = float(self.acc_function_segmentation.result())
-            self.acc_segmentation_train_history.append(acc_global_train)
+            self._persist_to_history(self.acc_function_segmentation, lambda x: float(x.result()), self.acc_segmentation_train_history)
             
-            # ===== PRECISION =====
-            precision_global_train = float(self.precision.result())
-            self.precision_train_history.append(precision_global_train)
+            # ===== PRECISION =====            
+            self._persist_to_history(self.precision, lambda x: float(x.result()), self.precision_train_history)
             
             # ===== RECALL =====
-            recall_global_train = float(self.recall.result())
-            self.recall_train_history.append(recall_global_train)
+            self._persist_to_history(self.recall, lambda x: float(x.result()), self.recall_train_history)
             
             # ===== F1 =====
-            f1_global_train = f1(precision_global_train, recall_global_train)
-            self.f1_train_history.append(f1_global_train)
+            a, b = (self.precision_train_history[-1], self.recall_train_history[-1])
+            self._persist_to_history((a, b), lambda x: f1(*x), self.f1_train_history)
 
-            self.logger.write_scalar('train_writer', 'metric/loss', loss_global_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'metric/accuracy', acc_global_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'metric/precision', precision_global_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'metric/recall', recall_global_train, epoch + 1)
-            self.logger.write_scalar('train_writer', 'metric/f1', f1_global_train, epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/loss', self.loss_segmentation_train_history[-1], epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/accuracy', self.acc_segmentation_train_history[-1], epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/precision', self.precision_train_history[-1], epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/recall', self.recall_train_history[-1], epoch + 1)
+            self.logger.write_scalar('train_writer', 'metric/f1', self.f1_train_history[-1], epoch + 1)
 
-            print(f'Training Loss: {loss_global_train}')
-            print(f'Training Accuracy: {acc_global_train}')
-            print(f'Training Precision: {precision_global_train}')
-            print(f'Training Recall: {recall_global_train}')
-            print(f'Training F1: {f1_global_train}')
+            print(f'Training Loss: {self.loss_segmentation_train_history[-1]}')
+            print(f'Training Accuracy: {self.acc_segmentation_train_history[-1]}')
+            print(f'Training Precision: {self.precision_train_history[-1]}')
+            print(f'Training Recall: {self.recall_train_history[-1]}')
+            print(f'Training F1: {self.f1_train_history[-1]}')
 
             self.reset_states()
 
@@ -773,43 +769,39 @@ class Trainer():
                 self.recall.update_state(y_val, y_pred)
 
             # ===== LOSS =====
-            loss_global_val /= self.num_batches_val
-            self.loss_segmentation_val_history.append(loss_global_val)
+            self._persist_to_history(loss_global_val, lambda x: x / self.num_batches_val, self.loss_segmentation_val_history)
 
             # ===== ACCURACY =====
-            acc_global_val = float(self.acc_function_segmentation.result())
-            self.acc_segmentation_val_history.append(acc_global_val)
+            self._persist_to_history(self.acc_function_segmentation, lambda x: float(x.result()), self.acc_segmentation_val_history)
             
             # ===== PRECISION =====
-            precision_global_val = float(self.precision.result())
-            self.precision_val_history.append(precision_global_val)
+            self._persist_to_history(self.precision, lambda x: float(x.result()), self.precision_val_history)
 
             # ===== RECALL =====
-            recall_global_val = float(self.recall.result())
-            self.recall_val_history.append(recall_global_val)
+            self._persist_to_history(self.recall, lambda x: float(x.result()), self.recall_val_history)
             
             # ===== F1 =====
-            f1_global_val = f1(precision_global_val, recall_global_val)
-            self.f1_val_history.append(f1_global_val)
+            a, b = (self.precision_val_history[-1], self.recall_val_history[-1])
+            self._persist_to_history((a, b), lambda x: f1(*x), self.f1_val_history)
 
-            self.logger.write_scalar('val_writer', 'metric/loss', loss_global_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/accuracy', acc_global_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/precision', precision_global_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/recall', recall_global_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/f1', f1_global_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/loss', self.loss_segmentation_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/accuracy', self.acc_segmentation_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/precision', self.precision_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/recall', self.recall_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/f1', self.f1_val_history[-1], epoch + 1)
 
-            print(f'Validation Loss: {loss_global_val}')
-            print(f'Validation Accuracy: {acc_global_val}')
-            print(f'Validation Precision: {precision_global_val}')
-            print(f'Validation Recall: {recall_global_val}')
-            print(f'Validation F1: {f1_global_val}')
+            print(f'Validation Loss: {self.loss_segmentation_val_history[-1]}')
+            print(f'Validation Accuracy: {self.acc_segmentation_val_history[-1]}')
+            print(f'Validation Precision: {self.precision_val_history[-1]}')
+            print(f'Validation Recall: {self.recall_val_history[-1]}')
+            print(f'Validation F1: {self.f1_val_history[-1]}')
             
             clear_session()
 
             if self.persist_best_model and p >= self.progress_threshold:
-                if loss_global_val <= self.best_val_loss:
+                if self.loss_segmentation_val_history[-1] <= self.best_val_loss:
                     print('[!] Persisting best model...')
-                    self.best_val_loss = loss_global_val
+                    self.best_val_loss = self.loss_segmentation_val_history[-1]
                     self.no_improvement_count = 0
                     self.best_epoch = epoch
                     self.best_weights = self.model.get_weights()
