@@ -2,19 +2,16 @@ import time
 import numpy as np
 import glob
 
+import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
+from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy, BinaryAccuracy, Precision, Recall
 from tensorflow.keras.models import save_model
 from tensorflow.keras.backend import clear_session
-import tensorflow as tf
-
-from sklearn.metrics import average_precision_score, f1_score
 
 from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
 from utils.hyperparameters import LambdaGradientReversalLayer
-from utils.loss_functions import MaskedBinaryCrossentropy
 from utils.learning_rate_functions import LearningRateFactory
 from utils.metrics import f1
 from models.builder import DomainAdaptationModel
@@ -48,7 +45,7 @@ class Trainer():
         self.loss_function = BinaryCrossentropy()
         self.loss_function_segmentation = BinaryCrossentropy()
 
-        self.loss_function_discriminator = SparseCategoricalCrossentropy()
+        self.loss_function_discriminator = BinaryCrossentropy()
         self.acc_function_discriminator = BinaryAccuracy(threshold = 0.5)
         
         # ===== [SOURCE] =====
@@ -256,7 +253,7 @@ class Trainer():
 
     def _explode_domain(self, encoded_domain: list):
         feature_size = self.patch_size // self.output_stride
-        fill = lambda x: np.full(shape = (feature_size, feature_size, 1), fill_value = x, dtype = 'int32')
+        fill = lambda x: np.full(shape = (feature_size, feature_size), fill_value = x, dtype = 'int32')
         
         return np.asarray([fill(domain) for domain in encoded_domain], dtype = 'int32')
     
