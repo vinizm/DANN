@@ -670,8 +670,8 @@ class Trainer():
 
     def train(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True, progress_threshold: float = 0.1):
 
-        time_init = time.time()
         self.reset_history()
+        time_init = time.time()
 
         self.epochs = epochs
         self.wait = wait
