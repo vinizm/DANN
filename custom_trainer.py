@@ -594,64 +594,58 @@ class Trainer():
             self._persist_to_history(loss_segmentation_val, lambda x: x / self.num_batches_val, self.loss_segmentation_val_history)
 
             # ===== [SOURCE] ACCURACY =====
-            acc_segmentation_val = float(self.acc_function_segmentation.result())
-            self.acc_segmentation_val_history.append(acc_segmentation_val)  
+            self._persist_to_history(self.acc_function_segmentation, lambda x: float(x.result()), self.acc_segmentation_val_history)
 
             # ===== [SOURCE] PRECISION =====
-            precision_segmentation_val = float(self.precision.result())
-            self.precision_val_history.append(precision_segmentation_val)
+            self._persist_to_history(self.precision, lambda x: float(x.result()), self.precision_val_history)
             
             # ===== [SOURCE] RECALL =====
-            recall_segmentation_val = float(self.recall.result())
-            self.recall_val_history.append(recall_segmentation_val)
+            self._persist_to_history(self.recall, lambda x: float(x.result()), self.recall_val_history)
             
-            # ===== [SOURCE] F1 =====
-            f1_segmentation_val = f1(precision_segmentation_val, recall_segmentation_val)
-            self.f1_val_history.append(f1_segmentation_val)
+            # ===== [SOURCE] F1 =====            
+            a, b = (self.precision_val_history[-1], self.recall_val_history[-1])
+            self._persist_to_history((a, b), lambda x: f1(*x), self.f1_val_history)            
             
             # ===== [TARGET] ACCURACY =====
-            acc_segmentation_target_val = float(self.acc_function_segmentation_target.result())
-            self.acc_segmentation_target_val_history.append(acc_segmentation_target_val)  
+            self._persist_to_history(self.acc_function_segmentation_target, lambda x: float(x.result()), self.acc_segmentation_target_val_history)
 
             # ===== [TARGET] PRECISION =====
-            precision_segmentation_target_val = float(self.precision_target.result())
-            self.precision_target_val_history.append(precision_segmentation_target_val)
+            self._persist_to_history(self.precision_target, lambda x: float(x.result()), self.precision_target_val_history)
             
             # ===== [TARGET] RECALL =====
-            recall_segmentation_target_val = float(self.recall_target.result())
-            self.recall_target_val_history.append(recall_segmentation_target_val)
+            self._persist_to_history(self.recall_target, lambda x: float(x.result()), self.recall_target_val_history)
             
             # ===== [TARGET] F1 =====
-            f1_segmentation_target_val = f1(precision_segmentation_target_val, recall_segmentation_target_val)
-            self.f1_target_val_history.append(f1_segmentation_target_val)
+            a, b = (self.precision_target_val_history[-1], self.recall_target_val_history[-1])
+            self._persist_to_history((a, b), lambda x: f1(*x), self.f1_target_val_history)     
 
-            self.logger.write_scalar('val_writer', 'metric/loss/segmentation/source', loss_segmentation_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/accuracy/segmentation/source', acc_segmentation_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/precision/segmentation/source', precision_segmentation_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/recall/segmentation/source', recall_segmentation_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/f1/segmentation/source', f1_segmentation_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/loss/segmentation/source', self.loss_segmentation_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/accuracy/segmentation/source', self.acc_segmentation_target_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/precision/segmentation/source', self.precision_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/recall/segmentation/source', self.recall_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/f1/segmentation/source', self.f1_val_history[-1], epoch + 1)
             
-            self.logger.write_scalar('val_writer', 'metric/accuracy/segmentation/target', acc_segmentation_target_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/precision/segmentation/target', precision_segmentation_target_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/recall/segmentation/target', recall_segmentation_target_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/f1/segmentation/target', f1_segmentation_target_val, epoch + 1)         
+            self.logger.write_scalar('val_writer', 'metric/accuracy/segmentation/target', self.acc_segmentation_target_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/precision/segmentation/target', self.precision_target_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/recall/segmentation/target', self.recall_target_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/f1/segmentation/target', self.f1_target_val_history[-1], epoch + 1)         
             
-            self.logger.write_scalar('val_writer', 'metric/loss/discriminator', loss_discriminator_val, epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/accuracy/discriminator', acc_discriminator_val, epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/loss/discriminator', self.loss_discriminator_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/accuracy/discriminator', self.acc_discriminator_val_history[-1], epoch + 1)
 
-            print(f'[SOURCE] Segmentation Loss: {loss_segmentation_val}')
-            print(f'[SOURCE] Segmentation Accuracy: {acc_segmentation_val}')
-            print(f'[SOURCE] Segmentation Precision: {precision_segmentation_val}')
-            print(f'[SOURCE] Segmentation Recall: {recall_segmentation_val}')
-            print(f'[SOURCE] Segmentation F1: {f1_segmentation_val}')
+            print(f'[SOURCE] Segmentation Loss: {self.loss_segmentation_val_history[-1]}')
+            print(f'[SOURCE] Segmentation Accuracy: {self.acc_segmentation_val_history[-1]}')
+            print(f'[SOURCE] Segmentation Precision: {self.precision_val_history[-1]}')
+            print(f'[SOURCE] Segmentation Recall: {self.recall_val_history[-1]}')
+            print(f'[SOURCE] Segmentation F1: {self.f1_val_history[-1]}')
 
-            print(f'[TARGET] Segmentation Accuracy: {acc_segmentation_target_val}')
-            print(f'[TARGET] Segmentation Precision: {precision_segmentation_target_val}')
-            print(f'[TARGET] Segmentation Recall: {recall_segmentation_target_val}')
-            print(f'[TARGET] Segmentation F1: {f1_segmentation_target_val}')            
+            print(f'[TARGET] Segmentation Accuracy: {self.acc_segmentation_target_val_history[-1]}')
+            print(f'[TARGET] Segmentation Precision: {self.precision_target_val_history[-1]}')
+            print(f'[TARGET] Segmentation Recall: {self.recall_target_val_history[-1]}')
+            print(f'[TARGET] Segmentation F1: {self.f1_target_val_history[-1]}')            
             
-            print(f'Discriminator Loss: {loss_discriminator_val}')
-            print(f'Discriminator Accuracy: {acc_discriminator_val}')
+            print(f'Discriminator Loss: {self.loss_discriminator_val_history[-1]}')
+            print(f'Discriminator Accuracy: {self.acc_discriminator_val_history[-1]}')
             
             clear_session()
 
