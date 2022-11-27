@@ -3,7 +3,7 @@ import numpy as np
 import glob
 
 import tensorflow as tf
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy, BinaryAccuracy, Precision, Recall
 from tensorflow.keras.models import save_model
@@ -621,7 +621,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_target_val_history)     
 
             self.logger.write_scalar('val_writer', 'metric/loss/segmentation/source', self.loss_segmentation_val_history[-1], epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/accuracy/segmentation/source', self.acc_segmentation_target_val_history[-1], epoch + 1)
+            self.logger.write_scalar('val_writer', 'metric/accuracy/segmentation/source', self.acc_segmentation_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/precision/segmentation/source', self.precision_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/recall/segmentation/source', self.recall_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/f1/segmentation/source', self.f1_val_history[-1], epoch + 1)
