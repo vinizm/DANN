@@ -49,12 +49,12 @@ class Trainer():
         self.acc_function_discriminator = BinaryAccuracy(threshold = 0.5)
         
         # ===== [SOURCE] =====
-        self.acc_function_segmentation = CategoricalAccuracy()
+        self.acc_segmentation = CategoricalAccuracy()
         self.precision = Precision()
         self.recall = Recall()
         
         # ===== [TARGET] =====
-        self.acc_function_segmentation_target = CategoricalAccuracy()
+        self.acc_segmentation_target = CategoricalAccuracy()
         self.precision_target = Precision()
         self.recall_target = Recall()
         # =======================
@@ -161,7 +161,7 @@ class Trainer():
         gradients = tape.gradient(loss, self.model.trainable_weights)
         self.optimizer_segmentation.apply_gradients(zip(gradients, self.model.trainable_weights))
 
-        self.acc_function_segmentation.update_state(y_true, y_pred)
+        self.acc_segmentation.update_state(y_true, y_pred)
         
         y_true = tf.math.argmax(y_true, axis = -1)
         y_pred = tf.math.argmax(y_pred, axis = -1)
@@ -191,10 +191,10 @@ class Trainer():
             self.optimizer_segmentation.apply_gradients(zip(gradients_segmentation, self.model.main_network.trainable_weights))
 
             # ===== [SOURCE] ACCURACY =====
-            self.acc_function_segmentation.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
+            self.acc_segmentation.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
 
             # ===== [TARGET] ACCURACY =====
-            self.acc_function_segmentation_target.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
+            self.acc_segmentation_target.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
 
             y_true_segmentation = tf.math.argmax(y_true_segmentation, axis = -1)
             y_pred_segmentation = tf.math.argmax(y_pred_segmentation, axis = -1)
@@ -333,12 +333,12 @@ class Trainer():
         self.acc_function_discriminator.reset_states()
         
         # ===== [SOURCE] =====
-        self.acc_function_segmentation.reset_states()
+        self.acc_segmentation.reset_states()
         self.precision.reset_states()
         self.recall.reset_states()
         
         # ===== [TARGET] =====
-        self.acc_function_segmentation_target.reset_states()
+        self.acc_segmentation_target.reset_states()
         self.precision_target.reset_states()
         self.recall_target.reset_states()
 
@@ -493,7 +493,7 @@ class Trainer():
             self._persist_to_history(total_loss_segmentation_source, lambda x: x / self.num_batches_train, self.loss_segmentation_train_history)
 
             # ===== [SOURCE] ACCURACY =====
-            self._persist_to_history(self.acc_function_segmentation, lambda x: float(x.result()), self.acc_segmentation_train_history)
+            self._persist_to_history(self.acc_segmentation, lambda x: float(x.result()), self.acc_segmentation_train_history)
             
             # ===== [SOURCE] PRECISION =====
             self._persist_to_history(self.precision, lambda x: float(x.result()), self.precision_train_history)
@@ -509,7 +509,7 @@ class Trainer():
             self._persist_to_history(total_loss_segmentation_target, lambda x: x / self.num_batches_train, self.loss_segmentation_target_train_history)            
             
             # ===== [TARGET] ACCURACY =====
-            self._persist_to_history(self.acc_function_segmentation_target, lambda x: float(x.result()), self.acc_segmentation_target_train_history)
+            self._persist_to_history(self.acc_segmentation_target, lambda x: float(x.result()), self.acc_segmentation_target_train_history)
             
             # ===== [TARGET] PRECISION =====
             self._persist_to_history(self.precision_target, lambda x: float(x.result()), self.precision_target_train_history)
@@ -595,10 +595,10 @@ class Trainer():
                 self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
                 
                 # ===== [SOURCE] ACCURACY =====
-                self.acc_function_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
+                self.acc_segmentation.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
                 
                 # ===== [TARGET] ACCURACY =====
-                self.acc_function_segmentation_target.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
+                self.acc_segmentation_target.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
                 
                 y_segmentation_val = tf.math.argmax(y_segmentation_val, axis = -1)
                 y_segmentation_pred = tf.math.argmax(y_segmentation_pred, axis = -1)
@@ -619,7 +619,7 @@ class Trainer():
             self._persist_to_history(total_loss_segmentation_source, lambda x: x / self.num_batches_val, self.loss_segmentation_val_history)
 
             # ===== [SOURCE] ACCURACY =====
-            self._persist_to_history(self.acc_function_segmentation, lambda x: float(x.result()), self.acc_segmentation_val_history)
+            self._persist_to_history(self.acc_segmentation, lambda x: float(x.result()), self.acc_segmentation_val_history)
 
             # ===== [SOURCE] PRECISION =====
             self._persist_to_history(self.precision, lambda x: float(x.result()), self.precision_val_history)
@@ -635,7 +635,7 @@ class Trainer():
             self._persist_to_history(total_loss_segmentation_target, lambda x: x / self.num_batches_val, self.loss_segmentation_target_val_history)            
             
             # ===== [TARGET] ACCURACY =====
-            self._persist_to_history(self.acc_function_segmentation_target, lambda x: float(x.result()), self.acc_segmentation_target_val_history)
+            self._persist_to_history(self.acc_segmentation_target, lambda x: float(x.result()), self.acc_segmentation_target_val_history)
 
             # ===== [TARGET] PRECISION =====
             self._persist_to_history(self.precision_target, lambda x: float(x.result()), self.precision_target_val_history)
@@ -753,7 +753,7 @@ class Trainer():
             self._persist_to_history(loss_global_train, lambda x: x / self.num_batches_train, self.loss_segmentation_train_history)
 
             # ===== ACCURACY =====
-            self._persist_to_history(self.acc_function_segmentation, lambda x: float(x.result()), self.acc_segmentation_train_history)
+            self._persist_to_history(self.acc_segmentation, lambda x: float(x.result()), self.acc_segmentation_train_history)
             
             # ===== PRECISION =====            
             self._persist_to_history(self.precision, lambda x: float(x.result()), self.precision_train_history)
@@ -797,7 +797,7 @@ class Trainer():
                 loss_val = self.loss_function(y_val, y_pred)
                 loss_global_val += float(loss_val) # convert loss_val to float and sum
                 
-                self.acc_function_segmentation.update_state(y_val, y_pred)
+                self.acc_segmentation.update_state(y_val, y_pred)
                 
                 y_val = tf.math.argmax(y_val, axis = -1)
                 y_pred = tf.math.argmax(y_pred, axis = -1)
@@ -808,7 +808,7 @@ class Trainer():
             self._persist_to_history(loss_global_val, lambda x: x / self.num_batches_val, self.loss_segmentation_val_history)
 
             # ===== ACCURACY =====
-            self._persist_to_history(self.acc_function_segmentation, lambda x: float(x.result()), self.acc_segmentation_val_history)
+            self._persist_to_history(self.acc_segmentation, lambda x: float(x.result()), self.acc_segmentation_val_history)
             
             # ===== PRECISION =====
             self._persist_to_history(self.precision, lambda x: float(x.result()), self.precision_val_history)
