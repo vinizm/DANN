@@ -173,7 +173,7 @@ class Trainer():
         return loss
 
     @tf.function
-    def _training_step_domain_adaptation(self, inputs, outputs, source_mask, target_mask, train_segmentation = True, train_discriminator = True):
+    def _training_step_domain_adaptation(self, inputs, outputs, domain_mask, source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
         y_true_segmentation, y_true_discriminator = outputs
         with tf.GradientTape(persistent = True) as tape:
@@ -195,6 +195,18 @@ class Trainer():
 
             # ===== [TARGET] ACCURACY =====
             self.acc_segmentation_target.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
+            
+            # if 0 in domain_mask:
+            #     index = list(np.argwhere(domain_mask == 0).reshape(-1))
+                
+            #     true_source = tf.gather(y_true_segmentation, indices = index, axis = 0)
+            #     pred_source = tf.gather(y_pred_segmentation, indices = index, axis = 0)
+            
+            # if 1 in domain_mask:
+            #     index = list(np.argwhere(domain_mask == 1).reshape(-1))
+                
+            #     true_target = tf.gather(y_true_segmentation, indices = index, axis = 0)
+            #     pred_target = tf.gather(y_pred_segmentation, indices = index, axis = 0)            
 
             y_true_segmentation = tf.math.argmax(y_true_segmentation, axis = -1)
             y_pred_segmentation = tf.math.argmax(y_pred_segmentation, axis = -1)
@@ -477,7 +489,7 @@ class Trainer():
                 source_mask = self._generate_domain_mask(encoded_domain, activate_source = True)
                 target_mask = self._generate_domain_mask(encoded_domain, activate_source = False)
                 
-                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], source_mask, target_mask,
+                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], np.asarray(encoded_domain), source_mask, target_mask,
                                                                     train_segmentation = True, train_discriminator = True)
                 loss_segmentation_source, loss_segmentation_target, loss_discriminator = step_output
 
