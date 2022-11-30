@@ -3,7 +3,7 @@ import numpy as np
 import glob
 
 import tensorflow as tf
-from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy, BinaryAccuracy, Precision, Recall
 from tensorflow.keras.models import save_model
@@ -13,7 +13,7 @@ from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
 from utils.hyperparameters import LambdaGradientReversalLayer
 from utils.learning_rate_functions import LearningRateFactory
-from utils.metrics import f1
+from utils.metrics import f1, avg_precision
 from models.builder import DomainAdaptationModel
 from models.deeplabv3plus import DeepLabV3Plus
 from logger import TensorBoardLogger
@@ -535,6 +535,7 @@ class Trainer():
             self.logger.write_scalar('train_writer', 'metric/recall/segmentation/target', self.recall_target_train_history[-1], epoch + 1)
             self.logger.write_scalar('train_writer', 'metric/f1/segmentation/target', self.f1_target_train_history[-1], epoch + 1)            
             
+            # ===== DISCRIMINATOR =====
             self.logger.write_scalar('train_writer', 'metric/loss/discriminator', self.loss_discriminator_train_history[-1], epoch + 1)
             self.logger.write_scalar('train_writer', 'metric/accuracy/discriminator', self.acc_discriminator_train_history[-1], epoch + 1)
 
