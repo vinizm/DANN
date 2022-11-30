@@ -935,7 +935,8 @@ class Trainer():
                     'training':{
                         'loss':{
                             'segmentation': {
-                                'source': self.loss_segmentation_train_history},
+                                'source': self.loss_segmentation_train_history,
+                                'target': self.loss_segmentation_target_train_history},
                             'discriminator': self.loss_discriminator_train_history},
                         'accuracy':{
                             'segmentation': {
@@ -957,7 +958,8 @@ class Trainer():
                     'validation':{
                         'loss':{
                             'segmentation': {
-                                'source': self.loss_segmentation_val_history},
+                                'source': self.loss_segmentation_val_history,
+                                'target': self.loss_segmentation_target_val_history},
                             'discriminator': self.loss_discriminator_val_history},
                         'accuracy':{
                             'segmentation': {
