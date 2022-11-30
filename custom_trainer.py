@@ -204,6 +204,7 @@ class Trainer():
             self.acc_segmentation_target.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
             
             # ===== [SOURCE] AVG. PRECISION =====
+            ap_segmentation_source = None
             if 0 in domain_mask:
                 index = list(np.argwhere(domain_mask == 0).reshape(-1))
                 
@@ -212,6 +213,7 @@ class Trainer():
                 ap_segmentation_source = avg_precision(true_source, pred_source, proba_loc = 1)
             
             # ===== [TARGET] AVG. PRECISION =====
+            ap_segmentation_target = None
             if 1 in domain_mask:
                 index = list(np.argwhere(domain_mask == 1).reshape(-1))
                 
@@ -461,6 +463,9 @@ class Trainer():
             map_segmentation_source = 0.
             map_segmentation_target = 0.
             
+            cont_source = 0.
+            cont_target = 0.
+            
             self.reset_states()
 
             np.random.shuffle(self.train_data_dirs)
@@ -518,8 +523,13 @@ class Trainer():
                 total_loss_segmentation_target += float(loss_segmentation_target)
                 total_loss_discriminator += float(loss_discriminator)
                 
-                map_segmentation_source += float(ap_segmentation_source)
-                map_segmentation_target += float(ap_segmentation_target)
+                if ap_segmentation_source is not None:
+                    map_segmentation_source += float(ap_segmentation_source)
+                    cont_source += 1
+                
+                if ap_segmentation_target is not None:
+                    map_segmentation_target += float(ap_segmentation_target)
+                    cont_target += 1
 
             # ===== DISCRIMINATOR =====
             self._persist_to_history(total_loss_discriminator, lambda x: x / self.num_batches_train, self.loss_discriminator_train_history)
@@ -542,7 +552,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_train_history)
             
             # ===== [SOURCE] AVG. PRECISION =====
-            self._persist_to_history(map_segmentation_source, lambda x: x / self.num_batches_train, self.map_segmentation_train_history)
+            self._persist_to_history(map_segmentation_source, lambda x: x / cont_source, self.map_segmentation_train_history)
             
             # ===== [TARGET] LOSS =====
             self._persist_to_history(total_loss_segmentation_target, lambda x: x / self.num_batches_train, self.loss_segmentation_target_train_history)            
@@ -561,7 +571,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_target_train_history)         
             
             # ===== [TARGET] AVG. PRECISION =====
-            self._persist_to_history(map_segmentation_target, lambda x: x / self.num_batches_train, self.map_segmentation_target_train_history)               
+            self._persist_to_history(map_segmentation_target, lambda x: x / cont_target, self.map_segmentation_target_train_history)               
 
             # ===== [SOURCE] =====
             self.logger.write_scalar('train_writer', 'metric/loss/segmentation/source', self.loss_segmentation_train_history[-1], epoch + 1)
@@ -610,6 +620,9 @@ class Trainer():
             
             map_segmentation_source = 0.
             map_segmentation_target = 0.
+            
+            cont_source = 0.
+            cont_target = 0.
 
             # evaluating network
             print('Start validation...')
@@ -638,6 +651,7 @@ class Trainer():
                 loss_segmentation_target = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
                 
                 # ===== [SOURCE] AVG. PRECISION =====
+                ap_segmentation_source = None
                 if 0 in encoded_domain:
                     index = list(np.argwhere(encoded_domain == 0).reshape(-1))
                     
@@ -646,6 +660,7 @@ class Trainer():
                     ap_segmentation_source = avg_precision(true_source, pred_source, proba_loc = 1)
                 
                 # ===== [TARGET] AVG. PRECISION =====
+                ap_segmentation_target = None
                 if 1 in encoded_domain:
                     index = list(np.argwhere(encoded_domain == 1).reshape(-1))
                     
@@ -659,8 +674,13 @@ class Trainer():
                 total_loss_segmentation_source += float(loss_segmentation_source)
                 total_loss_segmentation_target += float(loss_segmentation_target)
                 
-                map_segmentation_source += float(ap_segmentation_source)
-                map_segmentation_target += float(ap_segmentation_target)                
+                if ap_segmentation_source is not None:
+                    map_segmentation_source += float(ap_segmentation_source)
+                    cont_source += 1
+                
+                if ap_segmentation_target is not None:
+                    map_segmentation_target += float(ap_segmentation_target)                
+                    cont_target += 1
                 
                 loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)
                 total_loss_discriminator += float(loss_discriminator)
@@ -705,7 +725,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_val_history)
             
             # ===== [SOURCE] AVG. PRECISION =====
-            self._persist_to_history(map_segmentation_source, lambda x: x / self.num_batches_val, self.map_segmentation_val_history)            
+            self._persist_to_history(map_segmentation_source, lambda x: x / cont_source, self.map_segmentation_val_history)            
             
             # ===== [TARGET] LOSS =====
             self._persist_to_history(total_loss_segmentation_target, lambda x: x / self.num_batches_val, self.loss_segmentation_target_val_history)            
@@ -724,7 +744,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_target_val_history)
             
             # ===== [TARGET] AVG. PRECISION =====
-            self._persist_to_history(map_segmentation_target, lambda x: x / self.num_batches_val, self.map_segmentation_target_val_history)                   
+            self._persist_to_history(map_segmentation_target, lambda x: x / cont_target, self.map_segmentation_target_val_history)                   
 
             # ===== [SOURCE] =====
             self.logger.write_scalar('val_writer', 'metric/loss/segmentation/source', self.loss_segmentation_val_history[-1], epoch + 1)
