@@ -1,7 +1,8 @@
-import tensorflow as tf
-
 import numpy as np
 from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score, average_precision_score
+
+import tensorflow as tf
+from tensorflow.keras.metrics import Metric
 
 
 def flatten(array: np.ndarray, keep_dims: bool = True):
@@ -82,3 +83,26 @@ def avg_precision(y_true: tf.Tensor, y_pred: tf.Tensor, proba_loc: int = 1):
 
   u_true = tf.math.argmax(tf.reshape(y_true, (np.prod(shape[: -1]), shape[-1])), axis = -1)
   return average_precision_score(u_true.numpy(), proba.numpy())
+
+
+class AveragePrecision(Metric):
+  
+  def __init__(self, **kwargs):
+    super(AveragePrecision, self).__init__(**kwargs)
+    self.metric_values = []
+    
+  def update_state(self, y_true: tf.Tensor, y_pred: tf.Tensor, sample_weight: np.ndarray = None):
+      if 1 in sample_weight:
+          index = list(np.argwhere(sample_weight == 0).reshape(-1))
+          
+          true_tensor = tf.gather(y_true, indices = index, axis = 0)
+          pred_tensor = tf.gather(y_pred, indices = index, axis = 0)
+          metric_value = avg_precision(true_tensor, pred_tensor, proba_loc = 1)
+          
+          self.metric_values.append(metric_value)
+  
+  def reset_state(self):
+    self.metric_values = []
+  
+  def result(self):
+    return np.mean(self.metric_values)
