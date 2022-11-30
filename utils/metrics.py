@@ -75,10 +75,10 @@ def f1(precision: float, recall: float):
     return f1_value
 
 
-def avg_precision(y_true: tf.Tensor, y_pred: tf.Tensor):
+def avg_precision(y_true: tf.Tensor, y_pred: tf.Tensor, proba_loc: int = 1):
   shape = tuple(y_pred.shape)
   u_pred = tf.reshape(y_pred, (np.prod(shape[: -1]), shape[-1]))
-  proba = u_pred[:, 1]
+  proba = u_pred[:, proba_loc]
 
   u_true = tf.math.argmax(tf.reshape(y_true, (np.prod(shape[: -1]), shape[-1])), axis = -1)
   return average_precision_score(u_true.numpy(), proba.numpy())
