@@ -13,7 +13,7 @@ DOMAIN_ADAPTATION_CONFIG = [
         'source': 'Fe19',
         'target': 'FeM',
         'num_runs': 5,
-        'run_training': True
+        'run_training': False
     },
     {
         'source': 'Fe19',
@@ -32,7 +32,7 @@ DOMAIN_ADAPTATION_CONFIG = [
         'source': 'Fe120',
         'target': 'FeM',
         'num_runs': 5,
-        'run_training': False
+        'run_training': True
     },
     {
         'source': 'Fe120',
@@ -82,5 +82,6 @@ DOMAIN_ADAPTATION_CONFIG = [
 
 
 DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 1, 'num_class': 2, 'max_epochs': 120, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 200,
-                                   'patience': 100, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'alpha': 2.25, 'beta': 0.75, 'lr0': 5.e-4,
-                                   'lr_warmup': 0., 'lr_name': 'log', 'output_stride': 8, 'lr_log_start': np.log10(5.e-4), 'lr_log_stop': np.log10(5.e-5)}
+                                   'patience': 25, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'alpha': 2.25, 'beta': 0.75, 'lr0': 5.e-4,
+                                   'lr_warmup': 0., 'lr_name': 'log', 'output_stride': 16, 'lr_log_start': np.log10(5.e-4), 'lr_log_stop': np.log10(5.e-5),
+                                   'lambda_scale': 0., 'gamma': 5., 'lambda_warmup': 0.}
