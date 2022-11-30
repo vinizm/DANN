@@ -82,6 +82,9 @@ class Trainer():
         self.f1_val_history = []
         
         # ===== [TARGET] =====
+        self.loss_segmentation_target_train_history = []
+        self.loss_segmentation_target_val_history = []        
+        
         self.acc_segmentation_target_train_history = []
         self.acc_segmentation_target_val_history = []
         
@@ -107,7 +110,7 @@ class Trainer():
 
         self.no_improvement_count = 0
         self.best_val_loss = 1.e8
-        self.progress_threshold = 0.1
+        self.progress_threshold = 0.
         self.best_weights = None
         self.best_epoch = None
 
@@ -177,9 +180,11 @@ class Trainer():
                         
             y_pred_segmentation, y_pred_discriminator = self.model(inputs)
 
-            loss_segmentation = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
+            loss_segmentation_source = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
             loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
-            loss_global = loss_segmentation + loss_discriminator
+            loss_global = loss_segmentation_source + loss_discriminator
+            
+        loss_segmentation_target = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
 
         if train_segmentation:
             gradients_segmentation = tape.gradient(loss_global, self.model.main_network.trainable_weights)
@@ -203,6 +208,7 @@ class Trainer():
             self.recall_target.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)            
 
         if train_discriminator:
+            # ===== DISCRIMINATOR =====
             gradients_discriminator = tape.gradient(loss_discriminator, self.model.domain_discriminator.trainable_weights)
             self.optimizer_discriminator.apply_gradients(zip(gradients_discriminator, self.model.domain_discriminator.trainable_weights))
 
@@ -210,7 +216,7 @@ class Trainer():
 
         del tape
 
-        return loss_segmentation, loss_discriminator
+        return loss_segmentation_source, loss_segmentation_target, loss_discriminator
 
     def _augment_images(self, data_dirs: list):
         if self.rotate or self.flip:
@@ -300,6 +306,9 @@ class Trainer():
         self.f1_val_history = []
         
         # ===== [TARGET] =====
+        self.loss_segmentation_target_train_history = []
+        self.loss_segmentation_target_val_history = []
+        
         self.acc_segmentation_target_train_history = []
         self.acc_segmentation_target_val_history = []
         
@@ -403,7 +412,7 @@ class Trainer():
         print(f'num. of batches for training: {self.num_batches_train}')
         print(f'num. of batches for validation: {self.num_batches_val}')
 
-    def train_domain_adaptation(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True, progress_threshold: float = 0.1):
+    def train_domain_adaptation(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True, progress_threshold: float = 0.):
 
         self.reset_history()
         time_init = time.time()
@@ -415,11 +424,9 @@ class Trainer():
 
         for epoch in range(self.epochs):
             print(f'Epoch {epoch + 1} of {self.epochs}')
-            loss_segmentation_train = 0.
-            loss_segmentation_val = 0.
-
-            loss_discriminator_train = 0.
-            loss_discriminator_val = 0.
+            total_loss_segmentation_source = 0.
+            total_loss_segmentation_target = 0.
+            total_loss_discriminator = 0.
 
             self.reset_states()
 
@@ -472,16 +479,18 @@ class Trainer():
                 
                 step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], source_mask, target_mask,
                                                                     train_segmentation = True, train_discriminator = True)
-                loss_segmentation, loss_discriminator = step_output
+                loss_segmentation_source, loss_segmentation_target, loss_discriminator = step_output
 
-                loss_segmentation_train += float(loss_segmentation)
-                loss_discriminator_train += float(loss_discriminator)
+                total_loss_segmentation_source += float(loss_segmentation_source)
+                total_loss_segmentation_target += float(loss_segmentation_target)
+                total_loss_discriminator += float(loss_discriminator)
 
-            self._persist_to_history(loss_discriminator_train, lambda x: x / self.num_batches_train, self.loss_discriminator_train_history)
+            # ===== DISCRIMINATOR =====
+            self._persist_to_history(total_loss_discriminator, lambda x: x / self.num_batches_train, self.loss_discriminator_train_history)
             self._persist_to_history(self.acc_function_discriminator, lambda x: float(x.result()), self.acc_discriminator_train_history)    
 
             # ===== [SOURCE] LOSS =====
-            self._persist_to_history(loss_segmentation_train, lambda x: x / self.num_batches_train, self.loss_segmentation_train_history)
+            self._persist_to_history(total_loss_segmentation_source, lambda x: x / self.num_batches_train, self.loss_segmentation_train_history)
 
             # ===== [SOURCE] ACCURACY =====
             self._persist_to_history(self.acc_function_segmentation, lambda x: float(x.result()), self.acc_segmentation_train_history)
@@ -495,6 +504,9 @@ class Trainer():
             # ===== [SOURCE] F1 =====
             a, b = (self.precision_train_history[-1], self.recall_train_history[-1])
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_train_history)
+            
+            # ===== [TARGET] LOSS =====
+            self._persist_to_history(total_loss_segmentation_target, lambda x: x / self.num_batches_train, self.loss_segmentation_target_train_history)            
             
             # ===== [TARGET] ACCURACY =====
             self._persist_to_history(self.acc_function_segmentation_target, lambda x: float(x.result()), self.acc_segmentation_target_train_history)
@@ -517,6 +529,7 @@ class Trainer():
             self.logger.write_scalar('train_writer', 'metric/f1/segmentation/source', self.f1_train_history[-1], epoch + 1)
             
             # ===== [TARGET] =====
+            self.logger.write_scalar('train_writer', 'metric/loss/segmentation/target', self.loss_segmentation_target_train_history[-1], epoch + 1)
             self.logger.write_scalar('train_writer', 'metric/accuracy/segmentation/target', self.acc_segmentation_target_train_history[-1], epoch + 1)
             self.logger.write_scalar('train_writer', 'metric/precision/segmentation/target', self.precision_target_train_history[-1], epoch + 1)
             self.logger.write_scalar('train_writer', 'metric/recall/segmentation/target', self.recall_target_train_history[-1], epoch + 1)
@@ -525,21 +538,28 @@ class Trainer():
             self.logger.write_scalar('train_writer', 'metric/loss/discriminator', self.loss_discriminator_train_history[-1], epoch + 1)
             self.logger.write_scalar('train_writer', 'metric/accuracy/discriminator', self.acc_discriminator_train_history[-1], epoch + 1)
 
+            # ===== [SOURCE] =====
             print(f'[SOURCE] Segmentation Loss: {self.loss_segmentation_train_history[-1]}')
             print(f'[SOURCE] Segmentation Accuracy: {self.acc_segmentation_train_history[-1]}')
             print(f'[SOURCE] Segmentation Precision: {self.precision_train_history[-1]}')
             print(f'[SOURCE] Segmentation Recall: {self.recall_train_history[-1]}')
             print(f'[SOURCE] Segmentation F1: {self.f1_train_history[-1]}')
             
+            # ===== [TARGET] =====
+            print(f'[TARGET] Segmentation Loss: {self.loss_segmentation_target_train_history[-1]}')
             print(f'[TARGET] Segmentation Accuracy: {self.acc_segmentation_target_train_history[-1]}')
             print(f'[TARGET] Segmentation Precision: {self.precision_target_train_history[-1]}')
             print(f'[TARGET] Segmentation Recall: {self.recall_target_train_history[-1]}')
             print(f'[TARGET] Segmentation F1: {self.f1_target_train_history[-1]}')
             
+            # ===== DISCRIMINATOR =====
             print(f'Discriminator Loss: {self.loss_discriminator_train_history[-1]}')
             print(f'Discriminator Accuracy: {self.acc_discriminator_train_history[-1]}')
 
             self.reset_states()
+            total_loss_segmentation_source = 0.
+            total_loss_segmentation_target = 0.
+            total_loss_discriminator = 0.
 
             # evaluating network
             print('Start validation...')
@@ -563,11 +583,14 @@ class Trainer():
                 source_mask = self._generate_domain_mask(encoded_domain, activate_source = True)
                 target_mask = self._generate_domain_mask(encoded_domain, activate_source = False)
 
-                loss_segmentation = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
-                loss_segmentation_val += float(loss_segmentation)
+                loss_segmentation_source = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
+                loss_segmentation_target = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
+                
+                total_loss_segmentation_source += float(loss_segmentation_source)
+                total_loss_segmentation_target += float(loss_segmentation_target)
                 
                 loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)
-                loss_discriminator_val += float(loss_discriminator)
+                total_loss_discriminator += float(loss_discriminator)
 
                 self.acc_function_discriminator.update_state(y_discriminator_val, y_discriminator_pred)
                 
@@ -588,11 +611,12 @@ class Trainer():
                 self.precision_target.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
                 self.recall_target.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
             
-            self._persist_to_history(loss_discriminator_val, lambda x: x / self.num_batches_val, self.loss_discriminator_val_history)
+            # ===== DISCRIMINATOR =====
+            self._persist_to_history(total_loss_discriminator, lambda x: x / self.num_batches_val, self.loss_discriminator_val_history)
             self._persist_to_history(self.acc_function_discriminator, lambda x: float(x.result()), self.acc_discriminator_val_history)
 
             # ===== [SOURCE] LOSS =====
-            self._persist_to_history(loss_segmentation_val, lambda x: x / self.num_batches_val, self.loss_segmentation_val_history)
+            self._persist_to_history(total_loss_segmentation_source, lambda x: x / self.num_batches_val, self.loss_segmentation_val_history)
 
             # ===== [SOURCE] ACCURACY =====
             self._persist_to_history(self.acc_function_segmentation, lambda x: float(x.result()), self.acc_segmentation_val_history)
@@ -605,7 +629,10 @@ class Trainer():
             
             # ===== [SOURCE] F1 =====            
             a, b = (self.precision_val_history[-1], self.recall_val_history[-1])
-            self._persist_to_history((a, b), lambda x: f1(*x), self.f1_val_history)           
+            self._persist_to_history((a, b), lambda x: f1(*x), self.f1_val_history)
+            
+            # ===== [TARGET] LOSS =====
+            self._persist_to_history(total_loss_segmentation_target, lambda x: x / self.num_batches_val, self.loss_segmentation_target_val_history)            
             
             # ===== [TARGET] ACCURACY =====
             self._persist_to_history(self.acc_function_segmentation_target, lambda x: float(x.result()), self.acc_segmentation_target_val_history)
@@ -620,31 +647,39 @@ class Trainer():
             a, b = (self.precision_target_val_history[-1], self.recall_target_val_history[-1])
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_target_val_history)     
 
+            # ===== [SOURCE] =====
             self.logger.write_scalar('val_writer', 'metric/loss/segmentation/source', self.loss_segmentation_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/accuracy/segmentation/source', self.acc_segmentation_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/precision/segmentation/source', self.precision_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/recall/segmentation/source', self.recall_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/f1/segmentation/source', self.f1_val_history[-1], epoch + 1)
             
+            # ===== [TARGET] =====
+            self.logger.write_scalar('val_writer', 'metric/loss/segmentation/target', self.loss_segmentation_target_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/accuracy/segmentation/target', self.acc_segmentation_target_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/precision/segmentation/target', self.precision_target_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/recall/segmentation/target', self.recall_target_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/f1/segmentation/target', self.f1_target_val_history[-1], epoch + 1)         
             
+            # ===== DISCRIMINATOR =====
             self.logger.write_scalar('val_writer', 'metric/loss/discriminator', self.loss_discriminator_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/accuracy/discriminator', self.acc_discriminator_val_history[-1], epoch + 1)
 
+            # ===== [SOURCE] =====
             print(f'[SOURCE] Segmentation Loss: {self.loss_segmentation_val_history[-1]}')
             print(f'[SOURCE] Segmentation Accuracy: {self.acc_segmentation_val_history[-1]}')
             print(f'[SOURCE] Segmentation Precision: {self.precision_val_history[-1]}')
             print(f'[SOURCE] Segmentation Recall: {self.recall_val_history[-1]}')
             print(f'[SOURCE] Segmentation F1: {self.f1_val_history[-1]}')
 
+            # ===== [TARGET] =====
+            print(f'[SOURCE] Segmentation Loss: {self.loss_segmentation_target_val_history[-1]}')
             print(f'[TARGET] Segmentation Accuracy: {self.acc_segmentation_target_val_history[-1]}')
             print(f'[TARGET] Segmentation Precision: {self.precision_target_val_history[-1]}')
             print(f'[TARGET] Segmentation Recall: {self.recall_target_val_history[-1]}')
             print(f'[TARGET] Segmentation F1: {self.f1_target_val_history[-1]}')            
             
+            # ===== DISCRIMINATOR =====
             print(f'Discriminator Loss: {self.loss_discriminator_val_history[-1]}')
             print(f'Discriminator Accuracy: {self.acc_discriminator_val_history[-1]}')
             
@@ -669,7 +704,7 @@ class Trainer():
 
         self.elapsed_time = (time.time() - time_init) / 60
 
-    def train(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True, progress_threshold: float = 0.1):
+    def train(self, epochs: int = 25, wait: int = 12, persist_best_model: bool = True, progress_threshold: float = 0.):
 
         self.reset_history()
         time_init = time.time()
