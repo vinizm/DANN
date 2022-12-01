@@ -92,8 +92,8 @@ class AveragePrecision(Metric):
     self.metric_values = []
     
   def update_state(self, y_true: tf.Tensor, y_pred: tf.Tensor, sample_weight: np.ndarray = None):
-      if 1 in sample_weight:
-          index = list(np.argwhere(sample_weight == 0).reshape(-1))
+      if 1. in sample_weight:
+          index = list(np.argwhere(sample_weight == 1.).reshape(-1))
           
           true_tensor = tf.gather(y_true, indices = index, axis = 0)
           pred_tensor = tf.gather(y_pred, indices = index, axis = 0)
@@ -101,7 +101,7 @@ class AveragePrecision(Metric):
           
           self.metric_values.append(metric_value)
   
-  def reset_state(self):
+  def reset_states(self):
     self.metric_values = []
   
   def result(self):

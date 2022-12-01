@@ -13,7 +13,7 @@ from utils.utils import load_array, save_json, augment_images
 from utils.hyperparameters import *
 from utils.hyperparameters import LambdaGradientReversalLayer
 from utils.learning_rate_functions import LearningRateFactory
-from utils.metrics import f1, avg_precision
+from utils.metrics import f1, AveragePrecision
 from models.builder import DomainAdaptationModel
 from models.deeplabv3plus import DeepLabV3Plus
 from logger import TensorBoardLogger
@@ -52,11 +52,13 @@ class Trainer():
         self.acc_segmentation = CategoricalAccuracy()
         self.precision = Precision()
         self.recall = Recall()
+        self.avg_precision = AveragePrecision()
         
         # ===== [TARGET] =====
         self.acc_segmentation_target = CategoricalAccuracy()
         self.precision_target = Precision()
         self.recall_target = Recall()
+        self.avg_precision_target = AveragePrecision()
         # =======================
         
         self.loss_discriminator_train_history = []
@@ -102,7 +104,6 @@ class Trainer():
         
         self.map_segmentation_target_train_history = []
         self.map_segmentation_target_val_history = []        
-        
         # =======================
 
         self.lr_segmentation_history = []
@@ -179,8 +180,8 @@ class Trainer():
         
         return loss
 
-    # @tf.function
-    def _training_step_domain_adaptation(self, inputs, outputs, domain_mask, source_mask, target_mask, train_segmentation = True, train_discriminator = True):
+    @tf.function
+    def _training_step_domain_adaptation(self, inputs, outputs, source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
         y_true_segmentation, y_true_discriminator = outputs
         with tf.GradientTape(persistent = True) as tape:
@@ -202,35 +203,17 @@ class Trainer():
 
             # ===== [TARGET] ACCURACY =====
             self.acc_segmentation_target.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
-            
-            # ===== [SOURCE] AVG. PRECISION =====
-            ap_segmentation_source = None
-            if 0 in domain_mask:
-                index = list(np.argwhere(domain_mask == 0).reshape(-1))
-                
-                true_source = tf.gather(y_true_segmentation, indices = index, axis = 0)
-                pred_source = tf.gather(y_pred_segmentation, indices = index, axis = 0)
-                ap_segmentation_source = avg_precision(true_source, pred_source, proba_loc = 1)
-            
-            # ===== [TARGET] AVG. PRECISION =====
-            ap_segmentation_target = None
-            if 1 in domain_mask:
-                index = list(np.argwhere(domain_mask == 1).reshape(-1))
-                
-                true_target = tf.gather(y_true_segmentation, indices = index, axis = 0)
-                pred_target = tf.gather(y_pred_segmentation, indices = index, axis = 0)      
-                ap_segmentation_target = avg_precision(true_target, pred_target, proba_loc = 1)
 
             y_true_segmentation = tf.math.argmax(y_true_segmentation, axis = -1)
-            y_pred_segmentation = tf.math.argmax(y_pred_segmentation, axis = -1)
+            y_pred_segmentation_max = tf.math.argmax(y_pred_segmentation, axis = -1)
 
             # ===== [SOURCE] PRECISION/RECALL =====
-            self.precision.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
-            self.recall.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
+            self.precision.update_state(y_true_segmentation, y_pred_segmentation_max, sample_weight = source_mask)
+            self.recall.update_state(y_true_segmentation, y_pred_segmentation_max, sample_weight = source_mask)
 
             # ===== [TARGET] PRECISION/RECALL =====
-            self.precision_target.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
-            self.recall_target.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)            
+            self.precision_target.update_state(y_true_segmentation, y_pred_segmentation_max, sample_weight = target_mask)
+            self.recall_target.update_state(y_true_segmentation, y_pred_segmentation_max, sample_weight = target_mask)            
 
         if train_discriminator:
             # ===== DISCRIMINATOR =====
@@ -241,7 +224,7 @@ class Trainer():
 
         del tape
 
-        return loss_segmentation_source, loss_segmentation_target, loss_discriminator, ap_segmentation_source, ap_segmentation_target
+        return loss_segmentation_source, loss_segmentation_target, loss_discriminator, y_pred_segmentation
 
     def _augment_images(self, data_dirs: list):
         if self.rotate or self.flip:
@@ -277,10 +260,6 @@ class Trainer():
     def _calculate_batch_size(self, data_dirs: list):
         num_batches = len(data_dirs) // self.batch_size
         return num_batches
-    
-    @staticmethod
-    def _encode_domain(file_names: list, source_files: list):
-        return [0 if file_name in source_files else 1 for file_name in file_names]
 
     def _explode_domain(self, encoded_domain: list):
         feature_size = self.patch_size // self.output_stride
@@ -288,24 +267,33 @@ class Trainer():
         
         return np.asarray([fill(domain) for domain in encoded_domain], dtype = 'int32')
     
+    @staticmethod
+    def _encode_domain(file_names: list, source_files: list):
+        return [0 if file_name in source_files else 1 for file_name in file_names]
+    
     @staticmethod            
     def _persist_to_history(inputs, operator, history: list):
         value = operator(inputs)
         history.append(value)
 
     @staticmethod
-    def _generate_sample_mask(domain: int, shape: tuple, source_fill: float, target_fill: float):
-        if domain == 0:
-            return np.full(shape = shape, fill_value = source_fill, dtype = 'float32')
-        return np.full(shape = shape, fill_value = target_fill, dtype = 'float32')
-        
-    def _generate_domain_mask(self, samples: list, activate_source: bool):
+    def _generate_domain_mask(encoded_domain: list, shape: tuple, activate_source: bool):
         source_fill, target_fill = 1., 0.
         
         if not activate_source:
             source_fill, target_fill = 0., 1.
+
+        flatten = False
+        if shape == -1:
+            shape = (1,)
+            flatten = True
         
-        return np.asarray([self._generate_sample_mask(domain, shape = (self.patch_size, self.patch_size), source_fill = source_fill, target_fill = target_fill) for domain in samples], dtype = 'float32')
+        mask = np.asarray([np.full(shape, fill_value = source_fill) if domain == 0 else np.full(shape, fill_value = target_fill) for domain in encoded_domain], dtype = 'float32')
+
+        if flatten:
+            mask = mask.reshape(-1)
+        
+        return mask
 
     def reset_history(self):
         self.loss_discriminator_train_history = []
@@ -368,11 +356,13 @@ class Trainer():
         self.acc_segmentation.reset_states()
         self.precision.reset_states()
         self.recall.reset_states()
+        self.avg_precision.reset_states()
         
         # ===== [TARGET] =====
         self.acc_segmentation_target.reset_states()
         self.precision_target.reset_states()
         self.recall_target.reset_states()
+        self.avg_precision_target.reset_states()
 
     def preprocess_images_domain_adaptation(self, patches_dir: list, batch_size: int = 2, val_fraction: float = 0.1,
         num_images: int = 60, rotate: bool = True, flip: bool = True):
@@ -460,12 +450,6 @@ class Trainer():
             total_loss_segmentation_target = 0.
             total_loss_discriminator = 0.
             
-            map_segmentation_source = 0.
-            map_segmentation_target = 0.
-            
-            cont_source = 0.
-            cont_target = 0.
-            
             self.reset_states()
 
             np.random.shuffle(self.train_data_dirs)
@@ -512,24 +496,23 @@ class Trainer():
                 y_discriminator_train = self._explode_domain(encoded_domain)
                 print(f'Domain: {encoded_domain}')
 
-                source_mask = self._generate_domain_mask(encoded_domain, activate_source = True)
-                target_mask = self._generate_domain_mask(encoded_domain, activate_source = False)
+                source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
+                target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
                 
-                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], np.asarray(encoded_domain), source_mask, target_mask,
+                source_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
+                target_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
+
+                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], source_mask, target_mask,
                                                                     train_segmentation = True, train_discriminator = True)
-                loss_segmentation_source, loss_segmentation_target, loss_discriminator, ap_segmentation_source, ap_segmentation_target = step_output
+                loss_segmentation_source, loss_segmentation_target, loss_discriminator, y_segmentation_pred = step_output
 
                 total_loss_segmentation_source += float(loss_segmentation_source)
                 total_loss_segmentation_target += float(loss_segmentation_target)
                 total_loss_discriminator += float(loss_discriminator)
                 
-                if ap_segmentation_source is not None:
-                    map_segmentation_source += float(ap_segmentation_source)
-                    cont_source += 1
-                
-                if ap_segmentation_target is not None:
-                    map_segmentation_target += float(ap_segmentation_target)
-                    cont_target += 1
+                # ===== [SOURCE/TARGET] AVG. PRECISION =====
+                self.avg_precision.update_state(y_segmentation_train, y_segmentation_pred, sample_weight = source_domain_mask)
+                self.avg_precision_target.update_state(y_segmentation_train, y_segmentation_pred, sample_weight = target_domain_mask)
 
             # ===== DISCRIMINATOR =====
             self._persist_to_history(total_loss_discriminator, lambda x: x / self.num_batches_train, self.loss_discriminator_train_history)
@@ -552,7 +535,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_train_history)
             
             # ===== [SOURCE] AVG. PRECISION =====
-            self._persist_to_history(map_segmentation_source, lambda x: x / cont_source, self.map_segmentation_train_history)
+            self._persist_to_history(self.avg_precision, lambda x: float(x.result()), self.map_segmentation_train_history)
             
             # ===== [TARGET] LOSS =====
             self._persist_to_history(total_loss_segmentation_target, lambda x: x / self.num_batches_train, self.loss_segmentation_target_train_history)            
@@ -571,7 +554,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_target_train_history)         
             
             # ===== [TARGET] AVG. PRECISION =====
-            self._persist_to_history(map_segmentation_target, lambda x: x / cont_target, self.map_segmentation_target_train_history)               
+            self._persist_to_history(self.avg_precision_target, lambda x: float(x.result()), self.map_segmentation_target_train_history)               
 
             # ===== [SOURCE] =====
             self.logger.write_scalar('train_writer', 'metric/loss/segmentation/source', self.loss_segmentation_train_history[-1], epoch + 1)
@@ -617,12 +600,6 @@ class Trainer():
             total_loss_segmentation_source = 0.
             total_loss_segmentation_target = 0.
             total_loss_discriminator = 0.
-            
-            map_segmentation_source = 0.
-            map_segmentation_target = 0.
-            
-            cont_source = 0.
-            cont_target = 0.
 
             # evaluating network
             print('Start validation...')
@@ -640,48 +617,26 @@ class Trainer():
                 encoded_domain = self._encode_domain(batch_val_files, self.val_data_dirs_source)
                 y_discriminator_val = self._explode_domain(encoded_domain)
                 print(f'Domain: {encoded_domain}')
-                encoded_domain = np.asarray(encoded_domain)
 
                 y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
 
-                source_mask = self._generate_domain_mask(encoded_domain, activate_source = True)
-                target_mask = self._generate_domain_mask(encoded_domain, activate_source = False)
+                source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
+                target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
+                
+                source_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
+                target_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
 
                 loss_segmentation_source = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
                 loss_segmentation_target = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
-                
-                # ===== [SOURCE] AVG. PRECISION =====
-                ap_segmentation_source = None
-                if 0 in encoded_domain:
-                    index = list(np.argwhere(encoded_domain == 0).reshape(-1))
                     
-                    true_source = tf.gather(y_segmentation_val, indices = index, axis = 0)
-                    pred_source = tf.gather(y_segmentation_pred, indices = index, axis = 0)
-                    ap_segmentation_source = avg_precision(true_source, pred_source, proba_loc = 1)
-                
-                # ===== [TARGET] AVG. PRECISION =====
-                ap_segmentation_target = None
-                if 1 in encoded_domain:
-                    index = list(np.argwhere(encoded_domain == 1).reshape(-1))
-                    
-                    true_target = tf.gather(y_segmentation_val, indices = index, axis = 0)
-                    pred_target = tf.gather(y_segmentation_pred, indices = index, axis = 0)
-                    ap_segmentation_target = avg_precision(true_target, pred_target, proba_loc = 1)
-
-                y_true_segmentation = tf.math.argmax(y_true_segmentation, axis = -1)
-                y_pred_segmentation = tf.math.argmax(y_pred_segmentation, axis = -1)                
-                
                 total_loss_segmentation_source += float(loss_segmentation_source)
                 total_loss_segmentation_target += float(loss_segmentation_target)
                 
-                if ap_segmentation_source is not None:
-                    map_segmentation_source += float(ap_segmentation_source)
-                    cont_source += 1
+                # ===== [SOURCE/TARGET] AVG. PRECISION =====
+                self.avg_precision.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = source_domain_mask)
+                self.avg_precision_target.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = target_domain_mask)                                  
                 
-                if ap_segmentation_target is not None:
-                    map_segmentation_target += float(ap_segmentation_target)                
-                    cont_target += 1
-                
+                # ===== DISCRIMINATOR =====
                 loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)
                 total_loss_discriminator += float(loss_discriminator)
 
@@ -725,7 +680,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_val_history)
             
             # ===== [SOURCE] AVG. PRECISION =====
-            self._persist_to_history(map_segmentation_source, lambda x: x / cont_source, self.map_segmentation_val_history)            
+            self._persist_to_history(self.avg_precision, lambda x: float(x.result()), self.map_segmentation_val_history)            
             
             # ===== [TARGET] LOSS =====
             self._persist_to_history(total_loss_segmentation_target, lambda x: x / self.num_batches_val, self.loss_segmentation_target_val_history)            
@@ -744,7 +699,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_target_val_history)
             
             # ===== [TARGET] AVG. PRECISION =====
-            self._persist_to_history(map_segmentation_target, lambda x: x / cont_target, self.map_segmentation_target_val_history)                   
+            self._persist_to_history(self.avg_precision_target, lambda x: float(x.result()), self.map_segmentation_target_val_history)                   
 
             # ===== [SOURCE] =====
             self.logger.write_scalar('val_writer', 'metric/loss/segmentation/source', self.loss_segmentation_val_history[-1], epoch + 1)
