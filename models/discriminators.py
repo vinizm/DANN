@@ -48,19 +48,24 @@ class DomainDiscriminatorFullyConnected(Model):
 
 class DomainDiscriminatorPixelwise(Model):
     
-    def __init__(self, **kwargs):
+    def __init__(self, zero_mean: bool, **kwargs):
         super(DomainDiscriminatorPixelwise, self).__init__(**kwargs)
         
-        self.conv_1 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = ZeroMeanFilter())
+        self.zero_mean = zero_mean
+        constraint_function = None
+        if self.zero_mean:
+            constraint_function = ZeroMeanFilter()
+        
+        self.conv_1 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = constraint_function)
         self.activ_1 = LeakyReLU(0.2)
         
-        self.conv_2 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = ZeroMeanFilter())
+        self.conv_2 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = constraint_function)
         self.activ_2 = LeakyReLU(0.2)
         
-        self.conv_3 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = ZeroMeanFilter())
+        self.conv_3 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = constraint_function)
         self.activ_3 = LeakyReLU(0.2)
         
-        self.conv_4 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = ZeroMeanFilter())
+        self.conv_4 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = constraint_function)
         self.activ_4 = LeakyReLU(0.2)
         
         self.conv_final = Conv2D(filters = 1, kernel_size = 1, strides = 1, padding = 'valid')
@@ -87,6 +92,7 @@ class DomainDiscriminatorPixelwise(Model):
     
     def get_config(self):
         config = super(DomainDiscriminatorPixelwise, self).get_config()
+        config.update({'zero_mean': self.zero_mean})
         return config
 
     def from_config(cls, config):

@@ -14,7 +14,7 @@ class DomainAdaptationModel(Model):
 
         self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride, domain_adaptation = True)
         self.gradient_reversal_layer = GradientReversalLayer()
-        self.domain_discriminator = DomainDiscriminatorPixelwise()
+        self.domain_discriminator = DomainDiscriminatorPixelwise(zero_mean = False)
 
         self.inputs = [Input(shape = input_shape), Input(shape = (1,))]
         self.outputs = self.call(self.inputs)
