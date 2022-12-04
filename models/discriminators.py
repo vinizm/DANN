@@ -52,6 +52,7 @@ class DomainDiscriminatorPixelwise(Model):
         super(DomainDiscriminatorPixelwise, self).__init__(**kwargs)
         
         self.zero_mean = zero_mean
+        
         constraint_function = None
         if self.zero_mean:
             constraint_function = ZeroMeanFilter()
