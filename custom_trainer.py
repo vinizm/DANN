@@ -268,6 +268,16 @@ class Trainer():
         return np.asarray([fill(domain) for domain in encoded_domain], dtype = 'int32')
     
     @staticmethod
+    def _intercalate_lists(l1: list, l2: list):
+        
+        np.random.shuffle(l1)
+        np.random.shuffle(l2)
+        
+        zipped = list(zip(l1, l2))
+        intercalated = [el for sublist in zipped for el in sublist]
+        return intercalated
+    
+    @staticmethod
     def _encode_domain(file_names: list, source_files: list):
         return [0 if file_name in source_files else 1 for file_name in file_names]
     
@@ -391,14 +401,10 @@ class Trainer():
         # augment target images
         self.train_data_dirs_target = self._augment_images(train_data_dirs_target)
         self.val_data_dirs_target = self._augment_images(val_data_dirs_target)
-
-        # merge databases
-        self.train_data_dirs = train_data_dirs_source + train_data_dirs_target
-        self.val_data_dirs = val_data_dirs_source + val_data_dirs_target
-
-        # shuffle final database
-        np.random.shuffle(self.train_data_dirs)
-        np.random.shuffle(self.val_data_dirs)
+        
+        # intercalate elements
+        self.train_data_dirs = self._intercalate_lists(self.train_data_dirs_source, self.train_data_dirs_target)
+        self.val_data_dirs = self._intercalate_lists(self.val_data_dirs_source, self.val_data_dirs_target)
 
         # compute number of batches
         self.num_batches_train = self._calculate_batch_size(self.train_data_dirs)
@@ -452,8 +458,8 @@ class Trainer():
             
             self.reset_states()
 
-            np.random.shuffle(self.train_data_dirs)
-            np.random.shuffle(self.val_data_dirs)
+            self.train_data_dirs = self._intercalate_lists(self.train_data_dirs_source, self.train_data_dirs_target)
+            self.val_data_dirs = self._intercalate_lists(self.val_data_dirs_source, self.val_data_dirs_target)
 
             # update learning rate
             p = epoch / (epochs - 1)
