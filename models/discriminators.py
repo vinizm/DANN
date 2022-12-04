@@ -57,15 +57,19 @@ class DomainDiscriminatorPixelwise(Model):
             constraint_function = ZeroMeanFilter()
         
         self.conv_1 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = constraint_function)
+        self.batch_norm_1 = BatchNormalization(epsilon = 1.e-6)
         self.activ_1 = LeakyReLU(0.2)
         
         self.conv_2 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = constraint_function)
+        self.batch_norm_2 = BatchNormalization(epsilon = 1.e-6)
         self.activ_2 = LeakyReLU(0.2)
         
         self.conv_3 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = constraint_function)
+        self.batch_norm_3 = BatchNormalization(epsilon = 1.e-6)
         self.activ_3 = LeakyReLU(0.2)
         
         self.conv_4 = Conv2D(filters = 512, kernel_size = 1, strides = 1, padding = 'valid', kernel_constraint = constraint_function)
+        self.batch_norm_4 = BatchNormalization(epsilon = 1.e-6)
         self.activ_4 = LeakyReLU(0.2)
         
         self.conv_final = Conv2D(filters = 1, kernel_size = 1, strides = 1, padding = 'valid')
@@ -74,15 +78,19 @@ class DomainDiscriminatorPixelwise(Model):
     def call(self, x):
         
         x = self.conv_1(x)
+        x = self.batch_norm_1(x)
         x = self.activ_1(x)
         
         x = self.conv_2(x)
+        x = self.batch_norm_2(x)
         x = self.activ_2(x)
         
         x = self.conv_3(x)
+        x = self.batch_norm_3(x)
         x = self.activ_3(x)
 
         x = self.conv_4(x)
+        x = self.batch_norm_4(x)
         x = self.activ_4(x)
 
         x = self.conv_final(x)
