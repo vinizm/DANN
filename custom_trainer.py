@@ -446,7 +446,7 @@ class Trainer():
         time_init = time.time()
 
         self.epochs = epochs
-        self.wait = wait
+        self.wait = wait if wait is not None else 1e8
         self.progress_threshold = progress_threshold
         self.persist_best_model = persist_best_model
 
@@ -774,7 +774,7 @@ class Trainer():
         time_init = time.time()
 
         self.epochs = epochs
-        self.wait = wait
+        self.wait = wait if wait is not None else 1e8
         self.progress_threshold = progress_threshold
         self.persist_best_model = persist_best_model
 
