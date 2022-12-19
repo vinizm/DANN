@@ -84,4 +84,4 @@ DOMAIN_ADAPTATION_CONFIG = [
 DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 1, 'num_class': 2, 'max_epochs': 1000, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 200,
                                    'patience': None, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'alpha': 2.25, 'beta': 0.75, 'lr0': 5.e-4,
                                    'lr_warmup': 0.01, 'lr_name': 'log', 'output_stride': 16, 'lr_log_start': np.log10(1.e-4), 'lr_log_stop': np.log10(1.e-5),
-                                   'lambda_scale': 1., 'gamma': 10., 'lambda_warmup': 0.01, 'skip_conn': True}
+                                   'lambda_scale': 1., 'gamma': 10., 'lambda_warmup': 0.01, 'skip_conn': False}

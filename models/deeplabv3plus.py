@@ -72,8 +72,8 @@ def DeepLabV3Plus(input_shape = (256, 256, 1), num_class = 2, output_stride: int
 
     x = Activation('relu')(x)
     x = AtrousSeparableConv(x, filters = 728, kernel_size = 3, strides = 1, dilation_rate = 1, batch_norm = True, relu_activation = True)
-    skip_conn = AtrousSeparableConv(x, filters = 728, kernel_size = 3, strides = 1, dilation_rate = 1, batch_norm = True, relu_activation = False)
-    x = pool(skip_conn)
+    skip_connect = AtrousSeparableConv(x, filters = 728, kernel_size = 3, strides = 1, dilation_rate = 1, batch_norm = True, relu_activation = False)
+    x = pool(skip_connect)
 
     bypass = Add()([x, residual])
     x = bypass
@@ -143,17 +143,17 @@ def DeepLabV3Plus(input_shape = (256, 256, 1), num_class = 2, output_stride: int
     print(f'Upsampling Features: {upsampling_factor}')
 
     x = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(features)
-    print(f'Concatenate: {x.shape, skip_conn.shape}')
     
     if skip_conn:
-        skip_conn = Conv2D(filters = 48, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(skip_conn)
+        skip_connect = Conv2D(filters = 48, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(skip_connect)
 
-        previous_shape = tuple(skip_conn.shape)
+        previous_shape = tuple(skip_connect.shape)
         upsampling_factor = int(target_dim / previous_shape[1])
         print(f'Upsampling Skip Conn: {upsampling_factor}')
 
-        skip_conn = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(skip_conn)
-        x = Concatenate()([x, skip_conn])
+        skip_connect = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(skip_connect)
+        x = Concatenate()([x, skip_connect])
+        print(f'Concatenate: {x.shape, skip_connect.shape}')
 
     x = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
     x = BatchNormalization(epsilon = 1.e-6)(x)
