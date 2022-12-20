@@ -263,11 +263,11 @@ class Trainer():
         num_batches = len(data_dirs) // self.batch_size
         return num_batches
 
-    def _explode_domain(self, encoded_domain: list):
-        feature_size = self.patch_size // self.output_stride
-        fill = lambda x: np.full(shape = (feature_size, feature_size, 1), fill_value = x, dtype = 'int32')
+    # def _explode_domain(self, encoded_domain: list):
+    #     feature_size = self.patch_size // self.output_stride
+    #     fill = lambda x: np.full(shape = (feature_size, feature_size, 1), fill_value = x, dtype = 'int32')
         
-        return np.asarray([fill(domain) for domain in encoded_domain], dtype = 'int32')
+    #     return np.asarray([fill(domain) for domain in encoded_domain], dtype = 'int32')
     
     @staticmethod
     def _intercalate_lists(l1: list, l2: list):
