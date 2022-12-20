@@ -725,7 +725,7 @@ class Trainer():
             self.logger.write_scalar('val_writer', 'metric/precision/segmentation/target', self.precision_target_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/recall/segmentation/target', self.recall_target_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/f1/segmentation/target', self.f1_target_val_history[-1], epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/avg_precision/segmentation/target', self.map_segmentation_target_val_history[-1], epoch + 1)     
+            # self.logger.write_scalar('val_writer', 'metric/avg_precision/segmentation/target', self.map_segmentation_target_val_history[-1], epoch + 1)     
             
             # ===== DISCRIMINATOR =====
             self.logger.write_scalar('val_writer', 'metric/loss/discriminator', self.loss_discriminator_val_history[-1], epoch + 1)
