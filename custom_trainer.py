@@ -502,7 +502,7 @@ class Trainer():
                 
                 encoded_domain = self._encode_domain(batch_train_files, self.train_data_dirs_source)
                 # y_discriminator_train = self._explode_domain(encoded_domain)
-                y_discriminator_train = np.asarray(encoded_domain)
+                y_discriminator_train = np.asarray(encoded_domain).reshape((self.batch_size, 1))
                 print(f'Domain: {encoded_domain}')
 
                 source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
@@ -625,7 +625,7 @@ class Trainer():
                 
                 encoded_domain = self._encode_domain(batch_val_files, self.val_data_dirs_source)
                 # y_discriminator_val = self._explode_domain(encoded_domain)
-                y_discriminator_val = np.asarray(encoded_domain)
+                y_discriminator_val = np.asarray(encoded_domain).reshape((self.batch_size, 1))
                 print(f'Domain: {encoded_domain}')
 
                 y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
