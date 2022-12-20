@@ -5,39 +5,52 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import MaxPooling2D
 
 from models.constraints import ZeroMeanFilter
 
 
 class DomainDiscriminatorFullyConnected(Model):
 
-    def __init__(self, units: int, **kwargs):
+    def __init__(self, **kwargs):
         super(DomainDiscriminatorFullyConnected, self).__init__(**kwargs)
-        self.units = units
 
+        self.max_pool = MaxPooling2D(pool_size = 2, strides = 2)
         self.flat = Flatten()
-        self.dense_1 = Dense(units = units)
+        
+        self.dense_1 = Dense(units = 256)
         self.activ_1 = Activation('relu')
-        self.dense_2 = Dense(units = units)
+        
+        self.dense_2 = Dense(units = 256)
         self.activ_2 = Activation('relu')
-        self.dense_3 = Dense(units = 2)
-        self.proba = Activation('softmax')
-
+        
+        self.dense_3 = Dense(units = 64)
+        self.activ_3 = Activation('relu')
+        
+        self.dense_4 = Dense(units = 1)
+        self.proba = Activation('sigmoid')               
+        
     def call(self, x):
 
+        x = self.max_pool(x)
         x = self.flat(x)
+        
         x = self.dense_1(x)
         x = self.activ_1(x)
+
         x = self.dense_2(x)
         x = self.activ_2(x)
+
         x = self.dense_3(x)
+        x = self.activ_3(x)
+
+        x = self.dense_4(x)
         x = self.proba(x)
 
         return x
 
     def get_config(self):
         config = super(DomainDiscriminatorFullyConnected, self).get_config()
-        config.update({'units': self.units})
         return config
 
     def from_config(cls, config):

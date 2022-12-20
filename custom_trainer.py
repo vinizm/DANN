@@ -501,14 +501,15 @@ class Trainer():
                 y_segmentation_train = batch_images[ :, :, :, self.channels :]
                 
                 encoded_domain = self._encode_domain(batch_train_files, self.train_data_dirs_source)
-                y_discriminator_train = self._explode_domain(encoded_domain)
+                # y_discriminator_train = self._explode_domain(encoded_domain)
+                y_discriminator_train = np.asarray(encoded_domain)
                 print(f'Domain: {encoded_domain}')
 
                 source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
                 target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
                 
-                source_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
-                target_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
+                # source_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
+                # target_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
 
                 step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], source_mask, target_mask,
                                                                     train_segmentation = True, train_discriminator = True)
@@ -519,8 +520,8 @@ class Trainer():
                 total_loss_discriminator += float(loss_discriminator)
                 
                 # ===== [SOURCE/TARGET] AVG. PRECISION =====
-                self.avg_precision.update_state(y_segmentation_train, y_segmentation_pred, sample_weight = source_domain_mask)
-                self.avg_precision_target.update_state(y_segmentation_train, y_segmentation_pred, sample_weight = target_domain_mask)
+                # self.avg_precision.update_state(y_segmentation_train, y_segmentation_pred, sample_weight = source_domain_mask)
+                # self.avg_precision_target.update_state(y_segmentation_train, y_segmentation_pred, sample_weight = target_domain_mask)
 
             # ===== DISCRIMINATOR =====
             self._persist_to_history(total_loss_discriminator, lambda x: x / self.num_batches_train, self.loss_discriminator_train_history)
@@ -543,7 +544,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_train_history)
             
             # ===== [SOURCE] AVG. PRECISION =====
-            self._persist_to_history(self.avg_precision, lambda x: float(x.result()), self.map_segmentation_train_history)
+            # self._persist_to_history(self.avg_precision, lambda x: float(x.result()), self.map_segmentation_train_history)
             
             # ===== [TARGET] LOSS =====
             self._persist_to_history(total_loss_segmentation_target, lambda x: x / self.num_batches_train, self.loss_segmentation_target_train_history)            
@@ -562,7 +563,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_target_train_history)         
             
             # ===== [TARGET] AVG. PRECISION =====
-            self._persist_to_history(self.avg_precision_target, lambda x: float(x.result()), self.map_segmentation_target_train_history)               
+            # self._persist_to_history(self.avg_precision_target, lambda x: float(x.result()), self.map_segmentation_target_train_history)               
 
             # ===== [SOURCE] =====
             self.logger.write_scalar('train_writer', 'metric/loss/segmentation/source', self.loss_segmentation_train_history[-1], epoch + 1)
@@ -570,7 +571,7 @@ class Trainer():
             self.logger.write_scalar('train_writer', 'metric/precision/segmentation/source', self.precision_train_history[-1], epoch + 1)
             self.logger.write_scalar('train_writer', 'metric/recall/segmentation/source', self.recall_train_history[-1], epoch + 1)
             self.logger.write_scalar('train_writer', 'metric/f1/segmentation/source', self.f1_train_history[-1], epoch + 1)
-            self.logger.write_scalar('train_writer', 'metric/avg_precision/segmentation/source', self.map_segmentation_train_history[-1], epoch + 1)
+            # self.logger.write_scalar('train_writer', 'metric/avg_precision/segmentation/source', self.map_segmentation_train_history[-1], epoch + 1)
             
             # ===== [TARGET] =====
             self.logger.write_scalar('train_writer', 'metric/loss/segmentation/target', self.loss_segmentation_target_train_history[-1], epoch + 1)
@@ -578,7 +579,7 @@ class Trainer():
             self.logger.write_scalar('train_writer', 'metric/precision/segmentation/target', self.precision_target_train_history[-1], epoch + 1)
             self.logger.write_scalar('train_writer', 'metric/recall/segmentation/target', self.recall_target_train_history[-1], epoch + 1)
             self.logger.write_scalar('train_writer', 'metric/f1/segmentation/target', self.f1_target_train_history[-1], epoch + 1)
-            self.logger.write_scalar('train_writer', 'metric/avg_precision/segmentation/target', self.map_segmentation_target_train_history[-1], epoch + 1)
+            # self.logger.write_scalar('train_writer', 'metric/avg_precision/segmentation/target', self.map_segmentation_target_train_history[-1], epoch + 1)
             
             # ===== DISCRIMINATOR =====
             self.logger.write_scalar('train_writer', 'metric/loss/discriminator', self.loss_discriminator_train_history[-1], epoch + 1)
@@ -590,7 +591,7 @@ class Trainer():
             print(f'[SOURCE] Segmentation Precision: {self.precision_train_history[-1]}')
             print(f'[SOURCE] Segmentation Recall: {self.recall_train_history[-1]}')
             print(f'[SOURCE] Segmentation F1: {self.f1_train_history[-1]}')
-            print(f'[SOURCE] Segmentation Avg. Precision: {self.map_segmentation_train_history[-1]}')
+            # print(f'[SOURCE] Segmentation Avg. Precision: {self.map_segmentation_train_history[-1]}')
             
             # ===== [TARGET] =====
             print(f'[TARGET] Segmentation Loss: {self.loss_segmentation_target_train_history[-1]}')
@@ -598,7 +599,7 @@ class Trainer():
             print(f'[TARGET] Segmentation Precision: {self.precision_target_train_history[-1]}')
             print(f'[TARGET] Segmentation Recall: {self.recall_target_train_history[-1]}')
             print(f'[TARGET] Segmentation F1: {self.f1_target_train_history[-1]}')
-            print(f'[TARGET] Segmentation Avg. Precision: {self.map_segmentation_target_train_history[-1]}')
+            # print(f'[TARGET] Segmentation Avg. Precision: {self.map_segmentation_target_train_history[-1]}')
             
             # ===== DISCRIMINATOR =====
             print(f'Discriminator Loss: {self.loss_discriminator_train_history[-1]}')
@@ -623,7 +624,8 @@ class Trainer():
                 y_segmentation_val = batch_val_images[:, :, :, self.channels :]
                 
                 encoded_domain = self._encode_domain(batch_val_files, self.val_data_dirs_source)
-                y_discriminator_val = self._explode_domain(encoded_domain)
+                # y_discriminator_val = self._explode_domain(encoded_domain)
+                y_discriminator_val = np.asarray(encoded_domain)
                 print(f'Domain: {encoded_domain}')
 
                 y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
@@ -631,8 +633,8 @@ class Trainer():
                 source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
                 target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
                 
-                source_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
-                target_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
+                # source_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
+                # target_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
 
                 loss_segmentation_source = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
                 loss_segmentation_target = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
@@ -641,8 +643,8 @@ class Trainer():
                 total_loss_segmentation_target += float(loss_segmentation_target)
                 
                 # ===== [SOURCE/TARGET] AVG. PRECISION =====
-                self.avg_precision.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = source_domain_mask)
-                self.avg_precision_target.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = target_domain_mask)                                  
+                # self.avg_precision.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = source_domain_mask)
+                # self.avg_precision_target.update_state(y_segmentation_val, y_segmentation_pred, sample_weight = target_domain_mask)                                  
                 
                 # ===== DISCRIMINATOR =====
                 loss_discriminator = self.loss_function_discriminator(y_discriminator_val, y_discriminator_pred)
@@ -688,7 +690,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_val_history)
             
             # ===== [SOURCE] AVG. PRECISION =====
-            self._persist_to_history(self.avg_precision, lambda x: float(x.result()), self.map_segmentation_val_history)            
+            # self._persist_to_history(self.avg_precision, lambda x: float(x.result()), self.map_segmentation_val_history)    
             
             # ===== [TARGET] LOSS =====
             self._persist_to_history(total_loss_segmentation_target, lambda x: x / self.num_batches_val, self.loss_segmentation_target_val_history)            
@@ -707,7 +709,7 @@ class Trainer():
             self._persist_to_history((a, b), lambda x: f1(*x), self.f1_target_val_history)
             
             # ===== [TARGET] AVG. PRECISION =====
-            self._persist_to_history(self.avg_precision_target, lambda x: float(x.result()), self.map_segmentation_target_val_history)                   
+            # self._persist_to_history(self.avg_precision_target, lambda x: float(x.result()), self.map_segmentation_target_val_history)             
 
             # ===== [SOURCE] =====
             self.logger.write_scalar('val_writer', 'metric/loss/segmentation/source', self.loss_segmentation_val_history[-1], epoch + 1)
@@ -715,7 +717,7 @@ class Trainer():
             self.logger.write_scalar('val_writer', 'metric/precision/segmentation/source', self.precision_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/recall/segmentation/source', self.recall_val_history[-1], epoch + 1)
             self.logger.write_scalar('val_writer', 'metric/f1/segmentation/source', self.f1_val_history[-1], epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/avg_precision/segmentation/source', self.map_segmentation_val_history[-1], epoch + 1)
+            # self.logger.write_scalar('val_writer', 'metric/avg_precision/segmentation/source', self.map_segmentation_val_history[-1], epoch + 1)
             
             # ===== [TARGET] =====
             self.logger.write_scalar('val_writer', 'metric/loss/segmentation/target', self.loss_segmentation_target_val_history[-1], epoch + 1)
@@ -727,7 +729,7 @@ class Trainer():
             
             # ===== DISCRIMINATOR =====
             self.logger.write_scalar('val_writer', 'metric/loss/discriminator', self.loss_discriminator_val_history[-1], epoch + 1)
-            self.logger.write_scalar('val_writer', 'metric/accuracy/discriminator', self.acc_discriminator_val_history[-1], epoch + 1)
+            # self.logger.write_scalar('val_writer', 'metric/accuracy/discriminator', self.acc_discriminator_val_history[-1], epoch + 1)
 
             # ===== [SOURCE] =====
             print(f'[SOURCE] Segmentation Loss: {self.loss_segmentation_val_history[-1]}')
@@ -735,7 +737,7 @@ class Trainer():
             print(f'[SOURCE] Segmentation Precision: {self.precision_val_history[-1]}')
             print(f'[SOURCE] Segmentation Recall: {self.recall_val_history[-1]}')
             print(f'[SOURCE] Segmentation F1: {self.f1_val_history[-1]}')
-            print(f'[SOURCE] Segmentation Avg. Precision: {self.map_segmentation_val_history[-1]}')
+            # print(f'[SOURCE] Segmentation Avg. Precision: {self.map_segmentation_val_history[-1]}')
 
             # ===== [TARGET] =====
             print(f'[SOURCE] Segmentation Loss: {self.loss_segmentation_target_val_history[-1]}')
@@ -743,7 +745,7 @@ class Trainer():
             print(f'[TARGET] Segmentation Precision: {self.precision_target_val_history[-1]}')
             print(f'[TARGET] Segmentation Recall: {self.recall_target_val_history[-1]}')
             print(f'[TARGET] Segmentation F1: {self.f1_target_val_history[-1]}')
-            print(f'[TARGET] Segmentation Avg. Precision: {self.map_segmentation_target_val_history[-1]}') 
+            # print(f'[TARGET] Segmentation Avg. Precision: {self.map_segmentation_target_val_history[-1]}') 
             
             # ===== DISCRIMINATOR =====
             print(f'Discriminator Loss: {self.loss_discriminator_val_history[-1]}')
