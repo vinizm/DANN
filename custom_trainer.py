@@ -263,11 +263,11 @@ class Trainer():
         num_batches = len(data_dirs) // self.batch_size
         return num_batches
 
-    # def _explode_domain(self, encoded_domain: list):
-    #     feature_size = self.patch_size // self.output_stride
-    #     fill = lambda x: np.full(shape = (feature_size, feature_size, 1), fill_value = x, dtype = 'int32')
+    def _explode_domain(self, encoded_domain: list):
+        feature_size = self.patch_size // self.output_stride
+        fill = lambda x: np.full(shape = (feature_size, feature_size, 1), fill_value = x, dtype = 'int32')
         
-    #     return np.asarray([fill(domain) for domain in encoded_domain], dtype = 'int32')
+        return np.asarray([fill(domain) for domain in encoded_domain], dtype = 'int32')
     
     @staticmethod
     def _intercalate_lists(l1: list, l2: list):
@@ -501,8 +501,8 @@ class Trainer():
                 y_segmentation_train = batch_images[ :, :, :, self.channels :]
                 
                 encoded_domain = self._encode_domain(batch_train_files, self.train_data_dirs_source)
-                # y_discriminator_train = self._explode_domain(encoded_domain)
-                y_discriminator_train = np.asarray(encoded_domain).reshape((self.batch_size, 1))
+                y_discriminator_train = self._explode_domain(encoded_domain)
+                # y_discriminator_train = np.asarray(encoded_domain).reshape((self.batch_size, 1))
                 print(f'Domain: {encoded_domain}')
 
                 source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
@@ -624,8 +624,8 @@ class Trainer():
                 y_segmentation_val = batch_val_images[:, :, :, self.channels :]
                 
                 encoded_domain = self._encode_domain(batch_val_files, self.val_data_dirs_source)
-                # y_discriminator_val = self._explode_domain(encoded_domain)
-                y_discriminator_val = np.asarray(encoded_domain).reshape((self.batch_size, 1))
+                y_discriminator_val = self._explode_domain(encoded_domain)
+                # y_discriminator_val = np.asarray(encoded_domain).reshape((self.batch_size, 1))
                 print(f'Domain: {encoded_domain}')
 
                 y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
