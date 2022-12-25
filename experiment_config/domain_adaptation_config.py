@@ -69,14 +69,14 @@ DOMAIN_ADAPTATION_CONFIG = [
     {
         'source': 'Cu',
         'target': 'Fe120',
-        'num_runs': 1,
-        'run_training': True
+        'num_runs': 5,
+        'run_training': False
     },
     {
         'source': 'Cu',
         'target': 'FeM',
-        'num_runs': 5,
-        'run_training': False
+        'num_runs': 1,
+        'run_training': True
     }
 ]
 

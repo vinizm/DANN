@@ -19,12 +19,14 @@ class DomainDiscriminatorFullyConnected(Model):
         self.flat = Flatten()
         
         self.dense_1 = Dense(units = 256)
+        self.batch_norm_1 = BatchNormalization(epsilon = 1.e-6)
         self.activ_1 = Activation('relu')
         
         self.dense_2 = Dense(units = 256)
         self.activ_2 = Activation('relu')
         
         self.dense_3 = Dense(units = 64)
+        self.batch_norm_3 = BatchNormalization(epsilon = 1.e-6)
         self.activ_3 = Activation('relu')
         
         self.dense_4 = Dense(units = 1)
@@ -36,12 +38,14 @@ class DomainDiscriminatorFullyConnected(Model):
         x = self.flat(x)
         
         x = self.dense_1(x)
+        x = self.batch_norm_1(x)
         x = self.activ_1(x)
 
         x = self.dense_2(x)
         x = self.activ_2(x)
 
         x = self.dense_3(x)
+        x = self.batch_norm_3(x)
         x = self.activ_3(x)
 
         x = self.dense_4(x)
