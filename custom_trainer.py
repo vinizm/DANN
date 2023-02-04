@@ -162,25 +162,17 @@ class Trainer():
         return empty_model
 
     @tf.function
-    def _training_step(self, x_true, y_true):
+    def _training_step(self, model, x_true, y_true, optimizer):
 
         with tf.GradientTape() as tape:
-            y_pred = self.model(x_true)
+            y_pred = model(x_true)
             loss = self.loss_function(y_true, y_pred)
         
-        gradients = tape.gradient(loss, self.model.trainable_weights)
-        self.optimizer_segmentation.apply_gradients(zip(gradients, self.model.trainable_weights))
-
-        self.acc_segmentation.update_state(y_true, y_pred)
-        
-        y_true = tf.math.argmax(y_true, axis = -1)
-        y_pred = tf.math.argmax(y_pred, axis = -1)
-        self.precision.update_state(y_true, y_pred)
-        self.recall.update_state(y_true, y_pred)
+        gradients = tape.gradient(loss, model.trainable_weights)
+        optimizer.apply_gradients(zip(gradients, model.trainable_weights))
         
         del tape
-        
-        return loss
+        return loss, y_pred
 
     @tf.function
     def _training_step_domain_adaptation(self, inputs, outputs, source_mask, target_mask, train_segmentation = True, train_discriminator = True):
@@ -306,6 +298,13 @@ class Trainer():
             mask = mask.reshape(-1)
         
         return mask
+    
+    def _calculate_precision_recall(self, y_true, y_pred):
+        y_true = tf.math.argmax(y_true, axis = -1)
+        y_pred = tf.math.argmax(y_pred, axis = -1)
+        
+        self.precision.update_state(y_true, y_pred)
+        self.recall.update_state(y_true, y_pred)        
 
     def reset_history(self):
         self.loss_discriminator_train_history = []
@@ -814,7 +813,10 @@ class Trainer():
                 x_train = batch_images[ :, :, :, : self.channels]
                 y_train = batch_images[ :, :, :, self.channels :]
 
-                loss_train = self._training_step(x_train, y_train)
+                loss_train, y_pred = self._training_step(self.model, x_train, y_train, self.optimizer_segmentation)
+                
+                self.acc_segmentation.update_state(y_train, y_pred)
+                self._calculate_precision_recall(y_train, y_pred)
                 loss_global_train += float(loss_train)
 
             # ===== LOSS =====
@@ -866,11 +868,7 @@ class Trainer():
                 loss_global_val += float(loss_val) # convert loss_val to float and sum
                 
                 self.acc_segmentation.update_state(y_val, y_pred)
-                
-                y_val = tf.math.argmax(y_val, axis = -1)
-                y_pred = tf.math.argmax(y_pred, axis = -1)
-                self.precision.update_state(y_val, y_pred)
-                self.recall.update_state(y_val, y_pred)
+                self._calculate_precision_recall(y_val, y_pred)
 
             # ===== LOSS =====
             self._persist_to_history(loss_global_val, lambda x: x / self.num_batches_val, self.loss_segmentation_val_history)
