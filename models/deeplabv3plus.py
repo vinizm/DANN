@@ -156,11 +156,9 @@ def DeepLabV3Plus(input_shape = (256, 256, 1), num_class = 2, output_stride: int
         print(f'Concatenate: {x.shape, skip_connect.shape}')
 
     x = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
-    x = BatchNormalization(epsilon = 1.e-6)(x)
     x = Activation('relu')(x)
 
     x = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
-    x = BatchNormalization(epsilon = 1.e-6)(x)
     x = Activation('relu')(x)
 
     x = Conv2D(filters = num_class, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
