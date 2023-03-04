@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Concatenate
@@ -18,7 +19,7 @@ from models.layers import ExpandDimensions
 from models.blocks import AtrousSeparableConv
 
 
-def deeplabv3plus(input_shape = (256, 256, 1), num_class = 2, output_stride: int = 8, skip_conn: bool = True, domain_adaptation: bool = False):
+def deeplabv3plus_encoder(input_shape = (256, 256, 1), output_stride: int = 8):
 
     if output_stride == 16:
         side_stride = 2
@@ -134,7 +135,16 @@ def deeplabv3plus(input_shape = (256, 256, 1), num_class = 2, output_stride: int
     x = Concatenate()([b0, b1, b2, b3, b4])
     features = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
     print(f'Bottleneck: {features.shape}')
+    
+    model = Model(inputs = input_img, outputs = [features, skip_connect])
+    return model
 
+
+def deeplabv3plus_decoder(input_shape: tuple = (256, 256, 1), features_shape: tuple = (32, 32, 256), num_class: int = 2, skip_connect_shape: tuple = ()):
+    
+    features = Input(shape = features_shape)
+    input_skip_connect = Input(shape = skip_connect_shape)
+    
     # ====== DECODER ======
 
     target_dim = input_shape[1] / 2
@@ -144,16 +154,19 @@ def deeplabv3plus(input_shape = (256, 256, 1), num_class = 2, output_stride: int
 
     x = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(features)
     
-    if skip_conn:
-        skip_connect = Conv2D(filters = 48, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(skip_connect)
+    # ====== SKIP CONNECTION ======
+    
+    skip_connect = Conv2D(filters = 48, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(input_skip_connect)
 
-        previous_shape = tuple(skip_connect.shape)
-        upsampling_factor = int(target_dim / previous_shape[1])
-        print(f'Upsampling Skip Conn: {upsampling_factor}')
+    previous_shape = tuple(skip_connect.shape)
+    upsampling_factor = int(target_dim / previous_shape[1])
+    print(f'Upsampling Skip Conn: {upsampling_factor}')
 
-        skip_connect = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(skip_connect)
-        x = Concatenate()([x, skip_connect])
-        print(f'Concatenate: {x.shape, skip_connect.shape}')
+    skip_connect = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(skip_connect)
+    x = Concatenate()([x, skip_connect])
+    print(f'Concatenate: {x.shape, skip_connect.shape}')
+    
+    # =============================
 
     x = Conv2D(filters = 256, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(x)
     x = Activation('relu')(x)
@@ -170,16 +183,40 @@ def deeplabv3plus(input_shape = (256, 256, 1), num_class = 2, output_stride: int
     x = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(x)
     output_proba = Activation('softmax')(x)
 
-    if domain_adaptation:
-        output_proba = [output_proba, features]
-
-    model = Model(inputs = input_img, outputs = output_proba)
+    model = Model(inputs = [features, input_skip_connect], outputs = output_proba)
     return model
 
 
-def deeplabv3plus_encoder():
-    pass
+class DeepLabV3Plus(Model):
+    
+    def __init__(self, input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8, **kwargs):
+        super(DeepLabV3Plus, self).__init__(**kwargs)
+        
+        self.encoder = deeplabv3plus_encoder(input_shape = input_shape, output_stride = output_stride)
+        
+        features_shape = self.encoder.outputs[0].shape
+        skip_connect_shape = self.encoder.outputs[1].shape
+        self.decoder = deeplabv3plus_decoder(input_shape = input_shape, features_shape = features_shape, num_class = num_class, skip_connect_shape = skip_connect_shape)
+        
+        self.inputs = Input(shape = input_shape)
+        self.outputs = self.call(self.inputs)
 
+        self.build()
 
-def deeplabv3plus_decoder():
-    pass
+    def call(self, x):
+
+        features, skip_connect = self.encoder(x)
+        output_proba = self.decoder([features, skip_connect])
+
+        return output_proba
+
+    def get_config(self):
+        config = super(DeepLabV3Plus, self).get_config()
+        return config
+
+    def from_config(cls, config):
+        return cls(**config)
+
+    def build(self):
+        super(DeepLabV3Plus, self).build(self.inputs.shape if tf.is_tensor(self.inputs) else self.inputs)
+        self.call(self.inputs)
