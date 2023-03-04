@@ -18,7 +18,7 @@ from models.layers import ExpandDimensions
 from models.blocks import AtrousSeparableConv
 
 
-def DeepLabV3Plus(input_shape = (256, 256, 1), num_class = 2, output_stride: int = 8, skip_conn: bool = True, domain_adaptation: bool = False):
+def deeplabv3plus(input_shape = (256, 256, 1), num_class = 2, output_stride: int = 8, skip_conn: bool = True, domain_adaptation: bool = False):
 
     if output_stride == 16:
         side_stride = 2
@@ -175,3 +175,11 @@ def DeepLabV3Plus(input_shape = (256, 256, 1), num_class = 2, output_stride: int
 
     model = Model(inputs = input_img, outputs = output_proba)
     return model
+
+
+def deeplabv3plus_encoder():
+    pass
+
+
+def deeplabv3plus_decoder():
+    pass
