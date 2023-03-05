@@ -194,8 +194,8 @@ class DeepLabV3Plus(Model):
         
         self.encoder = deeplabv3plus_encoder(input_shape = input_shape, output_stride = output_stride)
         
-        features_shape = tuple(self.encoder.outputs[0].shape[1 :])
-        skip_connect_shape = tuple(self.encoder.outputs[1].shape[1 :])
+        features_shape = tuple(self.encoder.outputs[0].shape[1:])
+        skip_connect_shape = tuple(self.encoder.outputs[1].shape[1:])
         self.decoder = deeplabv3plus_decoder(input_shape = input_shape, features_shape = features_shape, num_class = num_class, skip_connect_shape = skip_connect_shape)
         
         self.inputs = Input(shape = input_shape)
