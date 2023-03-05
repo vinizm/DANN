@@ -156,8 +156,7 @@ class Trainer():
             empty_model = DomainAdaptationModel(input_shape = (self.patch_size, self.patch_size, self.channels), output_stride = self.output_stride,
                                                 num_class = self.num_class, skip_conn = self.skip_conn)
         else:
-            empty_model = deeplabv3plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
-                                        output_stride = self.output_stride, skip_conn = self.skip_conn, domain_adaptation = False)
+            empty_model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class, output_stride = self.output_stride)
         
         return empty_model
 
