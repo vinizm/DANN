@@ -15,7 +15,7 @@ from utils.hyperparameters import LambdaGradientReversalLayer
 from utils.learning_rate_functions import LearningRateFactory
 from utils.metrics import f1, AveragePrecision
 from models.builder import DomainAdaptationModel
-from models.deeplabv3plus import deeplabv3plus
+from models.deeplabv3plus import DeepLabV3Plus
 from logger import TensorBoardLogger
 
 from config import LOGS_FOLDER
