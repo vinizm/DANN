@@ -3,7 +3,7 @@ from config import TEST_INDEX
 
 
 RESAMPLE = False
-ONE_CHANNEL = True
+ONE_CHANNEL = False
 NUM_CLASS = 2
 PATCH_SIZE = 256
 STRIDE_TEST = PATCH_SIZE
@@ -34,5 +34,4 @@ def create_all_patches():
 
 
 if __name__ == '__main__':
-    
     create_all_patches()

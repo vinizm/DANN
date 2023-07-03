@@ -27,4 +27,4 @@ NO_DOMAIN_ADAPTATION_CONFIG = [
 
 NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 1, 'num_class': 2,'max_epochs': 120, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 200,
                                       'patience': 25, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'alpha': 2.25, 'beta': 0.75, 'lr0': 5.e-4,
-                                      'lr_warmup': 0., 'lr_name': 'log', 'output_stride': 16, 'lr_log_start': np.log10(5.e-4), 'lr_log_stop': np.log10(1.e-5)}
+                                      'lr_warmup': 0., 'lr_name': 'log', 'output_stride': 8, 'lr_log_start': np.log10(5.e-4), 'lr_log_stop': np.log10(1.e-5)}
