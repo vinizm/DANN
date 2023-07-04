@@ -72,8 +72,8 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
     
     else:
         conversor = cv2.COLOR_BGR2RGB
-        patches_rlm_train = [cv2.cvtColor(img, conversor) for img in patches_rlm_train]
-        patches_rlm_test = [cv2.cvtColor(img, conversor) for img in patches_rlm_test]
+        patches_rlm_train = np.asarray([cv2.cvtColor(img, conversor) for img in patches_rlm_train])
+        patches_rlm_test = np.asarray([cv2.cvtColor(img, conversor) for img in patches_rlm_test])
 
     # normalize images
     patches_rlm_train = patches_rlm_train / 255.
