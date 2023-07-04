@@ -12,7 +12,7 @@ from config import *
 from utils.plot import compare_images
 
 
-def load_images(path_to_folder: str, normalize: bool = False, one_channel: bool = False, conversor = cv2.COLOR_BGR2GRAY):
+def load_images(path_to_folder: str, normalize: bool = False, gray_scale: bool = False):
     files = os.listdir(path_to_folder)
     files.sort()
     images = []
@@ -20,8 +20,8 @@ def load_images(path_to_folder: str, normalize: bool = False, one_channel: bool 
     for file_name in files:
         img = cv2.imread(os.path.join(path_to_folder, file_name))
 
-        if one_channel:
-            img = cv2.cvtColor(img, conversor)
+        if gray_scale:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             shape = img.shape
             img = img.reshape([*shape, 1])
 

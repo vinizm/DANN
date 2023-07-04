@@ -11,7 +11,6 @@ _STRIDE_TRAIN = _PATCH_SIZE // 2
 _STRIDE_TEST = _PATCH_SIZE
 _NUM_CLASS = 2
 
-
 def switch_binary(array: np.ndarray):
     switched = np.where(array == 1, 0, 1)
     return switched
@@ -27,14 +26,14 @@ def remove_augmented_images(directory: str):
             os.remove(augmented_file)
 
 
-def create_patches(dataset: str, test_index: list = None, resample: bool = False, one_channel: bool = True,
+def create_patches(dataset: str, test_index: list = None, resample: bool = False, gray_scale: bool = True,
                    stride_train: int = _STRIDE_TRAIN, stride_test: int = _STRIDE_TEST, patch_size: int = _PATCH_SIZE):
 
     path_to_dataset_rlm = PATH_TO_FOLDER.get(dataset).get('RLM')
     path_to_dataset_mask = PATH_TO_FOLDER.get(dataset).get('MASK')
 
-    images_rlm = load_images(path_to_folder = path_to_dataset_rlm, normalize = False, one_channel = False)
-    images_ref = load_images(path_to_folder = path_to_dataset_mask, normalize = True, one_channel = one_channel)
+    images_rlm = load_images(path_to_folder = path_to_dataset_rlm, normalize = False, gray_scale = False)
+    images_ref = load_images(path_to_folder = path_to_dataset_mask, normalize = True, gray_scale = True)
 
     images_ref = [switch_binary(img) for img in images_ref]
 
@@ -63,12 +62,18 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
                 suffix = '', ext = '.tif', clean_all = True)
     
     # convert 3 channels to 1 channel if needed
-    if one_channel:
-        patches_rlm_train = [cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) for img in patches_rlm_train]
-        patches_rlm_test = [cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) for img in patches_rlm_test]
+    if gray_scale:
+        conversor = cv2.COLOR_BGR2GRAY
+        patches_rlm_train = [cv2.cvtColor(img, conversor) for img in patches_rlm_train]
+        patches_rlm_test = [cv2.cvtColor(img, conversor) for img in patches_rlm_test]
 
         patches_rlm_train = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_train])
         patches_rlm_test = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_test])
+    
+    else:
+        conversor = cv2.COLOR_BGR2RGB
+        patches_rlm_train = [cv2.cvtColor(img, conversor) for img in patches_rlm_train]
+        patches_rlm_test = [cv2.cvtColor(img, conversor) for img in patches_rlm_test]
 
     # normalize images
     patches_rlm_train = patches_rlm_train / 255.
