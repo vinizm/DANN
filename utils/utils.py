@@ -12,11 +12,12 @@ from config import *
 from utils.plot import compare_images
 
 
-def load_images(path_to_folder: str, normalize: bool = False, gray_scale: bool = False):
-    files = os.listdir(path_to_folder)
-    files.sort()
+def load_images(path_to_folder: str = None, files: list = None, normalize: bool = False, gray_scale: bool = False):
+    if files is None:
+        files = os.listdir(path_to_folder)
+        files.sort()
+        
     images = []
-
     for file_name in files:
         img = cv2.imread(os.path.join(path_to_folder, file_name))
 
@@ -108,7 +109,7 @@ def save_image(file_name: str, array: np.ndarray):
     return status
 
 
-def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.npy', clean_all: bool = True):
+def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.npy', start_num: int = 0, clean_all: bool = True):
     _saviors = {'.npy': save_np_array, '.tif': save_image}
 
     if not os.path.exists(path_to_folder):
@@ -121,7 +122,7 @@ def save_arrays(images: np.ndarray, path_to_folder: str, suffix = '', ext = '.np
     count = 0
     for i in range(images.shape[0]):
         img = images[i, :, :, :]
-        file_name = f'{i + 1:06}{suffix}{ext}'
+        file_name = f'{start_num + i + 1:06}{suffix}{ext}'
         full_file_name = os.path.join(path_to_folder, file_name)
         
         savior = _saviors.get(ext)
