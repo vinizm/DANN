@@ -55,6 +55,8 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
     for batch in range(num_batches):
         print(f'batch {batch + 1} of {num_batches}')
         
+        clean_all = True if batch == 0 else False
+        
         images_rlm_train, images_ref_train = [], []
         images_rlm_test, images_ref_test = [], []
         
@@ -89,7 +91,7 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
             
             print(f'train patches: {patches_train.shape}')
             save_arrays(patches_train, f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_train}_Train/',
-                        suffix = '', ext = '.npy', clean_all = False, start_num = global_num_train)
+                        suffix = '', ext = '.npy', clean_all = clean_all, start_num = global_num_train)
             global_num_train += len(patches_train)
 
         if len(images_rlm_test) > 0:
@@ -98,7 +100,7 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
             patches_ref_test = extract_patches_from_images(images = images_ref_test, patch_size = patch_size, stride = stride_test)
 
             save_arrays(patches_rlm_test, f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_test}_RGB_Test/',
-                        suffix = '', ext = '.tif', clean_all = False, start_num = global_num_test)
+                        suffix = '', ext = '.tif', clean_all = clean_all, start_num = global_num_test)
             
             patches_rlm_test = [cv2.cvtColor(img, conversor) for img in patches_rlm_test]
             patches_rlm_test = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_test]) if gray_scale else np.asarray(patches_rlm_test)
@@ -110,5 +112,5 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
 
             print(f'test patches: {patches_test.shape}')
             save_arrays(patches_test, f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_test}_Test/',
-                        suffix = '', ext = '.npy', clean_all = False, start_num = global_num_test)
+                        suffix = '', ext = '.npy', clean_all = clean_all, start_num = global_num_test)
             global_num_test += len(patches_test)
