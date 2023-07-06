@@ -32,6 +32,8 @@ def remove_augmented_images(directory: str):
 def create_patches(dataset: str, test_index: list = None, resample: bool = False, gray_scale: bool = True, batch_size: int = _BATCH_SIZE,
                    stride_train: int = _STRIDE_TRAIN, stride_test: int = _STRIDE_TEST, patch_size: int = _PATCH_SIZE):
 
+    conversor = cv2.COLOR_BGR2GRAY if gray_scale else cv2.COLOR_BGR2RGB
+
     path_to_dataset_rlm = PATH_TO_FOLDER.get(dataset).get('RLM')
     path_to_dataset_mask = PATH_TO_FOLDER.get(dataset).get('MASK')
 
@@ -69,45 +71,41 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
                 
             elif idx_global in test_index:
                 images_rlm_test.extend(image_rlm)
-                images_ref_test.extend(image_ref)                
+                images_ref_test.extend(image_ref)
+                
+        if len(images_rlm_train) > 0:
 
             patches_rlm_train = extract_patches_from_images(images = images_rlm_train, patch_size = patch_size, stride = stride_train)
             patches_ref_train = extract_patches_from_images(images = images_ref_train, patch_size = patch_size, stride = stride_train)
+            
+            patches_rlm_train = [cv2.cvtColor(img, conversor) for img in patches_rlm_train]
+            patches_rlm_train = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_train]) if gray_scale else patches_rlm_train
+            
+            patches_rlm_train = patches_rlm_train / 255.
+            
+            patches_ref_train_onehot = convert_to_onehot_tensor(tensor = patches_ref_train, num_class = _NUM_CLASS)
+            patches_train = np.concatenate((patches_rlm_train, patches_ref_train_onehot), axis = 3)
+            
+            print(f'train patches: {patches_train.shape}')
+            save_arrays(patches_train, f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_train}_Train/',
+                        suffix = '', ext = '.npy', clean_all = False, start_num = batch * batch_size)
+
+        if len(images_rlm_test) > 0:
 
             patches_rlm_test = extract_patches_from_images(images = images_rlm_test, patch_size = patch_size, stride = stride_test)
             patches_ref_test = extract_patches_from_images(images = images_ref_test, patch_size = patch_size, stride = stride_test)
 
             save_arrays(patches_rlm_test, f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_test}_RGB_Test/',
-                        suffix = '', ext = '.tif', clean_all = True, start_num = batch * batch_size)
-    
-            # convert 3 channels to 1 channel if needed
-            if gray_scale:
-                conversor = cv2.COLOR_BGR2GRAY
-                patches_rlm_train = [cv2.cvtColor(img, conversor) for img in patches_rlm_train]
-                patches_rlm_test = [cv2.cvtColor(img, conversor) for img in patches_rlm_test]
-
-                patches_rlm_train = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_train])
-                patches_rlm_test = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_test])
+                        suffix = '', ext = '.tif', clean_all = False, start_num = batch * batch_size)
             
-            else:
-                conversor = cv2.COLOR_BGR2RGB
-                patches_rlm_train = np.asarray([cv2.cvtColor(img, conversor) for img in patches_rlm_train])
-                patches_rlm_test = np.asarray([cv2.cvtColor(img, conversor) for img in patches_rlm_test])
-
-            # normalize images
-            patches_rlm_train = patches_rlm_train / 255.
+            patches_rlm_test = [cv2.cvtColor(img, conversor) for img in patches_rlm_test]
+            patches_rlm_test = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_test]) if gray_scale else patches_rlm_test
+            
             patches_rlm_test = patches_rlm_test / 255.
-
-            patches_ref_train_onehot = convert_to_onehot_tensor(tensor = patches_ref_train, num_class = _NUM_CLASS)
-            patches_train = np.concatenate((patches_rlm_train, patches_ref_train_onehot), axis = 3)
 
             patches_ref_test_onehot = convert_to_onehot_tensor(tensor = patches_ref_test, num_class = _NUM_CLASS)
             patches_test = np.concatenate((patches_rlm_test, patches_ref_test_onehot), axis = 3)
 
-            print(f'train patches: {patches_train.shape}')
             print(f'test patches: {patches_test.shape}')
-
-            save_arrays(patches_train, f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_train}_Train/',
-                        suffix = '', ext = '.npy', clean_all = True, start_num = batch * batch_size)
             save_arrays(patches_test, f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_test}_Test/',
-                        suffix = '', ext = '.npy', clean_all = True, start_num = batch * batch_size)
+                        suffix = '', ext = '.npy', clean_all = False, start_num = batch * batch_size)

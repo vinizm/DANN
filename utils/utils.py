@@ -19,7 +19,13 @@ def load_images(path_to_folder: str = None, files: list = None, normalize: bool 
         
     images = []
     for file_name in files:
-        img = cv2.imread(os.path.join(path_to_folder, file_name))
+        
+        if path_to_folder is None:
+            full_path = file_name
+        else:
+            full_path = os.path.join(path_to_folder, file_name)
+        
+        img = cv2.imread(full_path)
 
         if gray_scale:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
