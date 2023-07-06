@@ -28,9 +28,9 @@ def create_patches_Cu(IMAGES_FOR_TEST: list = TEST_INDEX.get('Cu')):
 
 def create_all_patches():
     create_patches_Fe19()
-    create_patches_Fe120()
-    create_patches_FeM()
-    create_patches_Cu() 
+    # create_patches_Fe120()
+    # create_patches_FeM()
+    # create_patches_Cu() 
 
 
 if __name__ == '__main__':

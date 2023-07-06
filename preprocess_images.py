@@ -50,6 +50,7 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
     else:
         train_index = [i for i in range(num_files) if i not in test_index]
     
+    global_num_train, global_num_test = 0, 0
     num_batches = math.ceil(num_files / batch_size)
     for batch in range(num_batches):
         print(f'batch {batch + 1} of {num_batches}')
@@ -79,7 +80,7 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
             patches_ref_train = extract_patches_from_images(images = images_ref_train, patch_size = patch_size, stride = stride_train)
             
             patches_rlm_train = [cv2.cvtColor(img, conversor) for img in patches_rlm_train]
-            patches_rlm_train = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_train]) if gray_scale else patches_rlm_train
+            patches_rlm_train = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_train]) if gray_scale else np.asarray(patches_rlm_train)
             
             patches_rlm_train = patches_rlm_train / 255.
             
@@ -88,7 +89,8 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
             
             print(f'train patches: {patches_train.shape}')
             save_arrays(patches_train, f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_train}_Train/',
-                        suffix = '', ext = '.npy', clean_all = False, start_num = batch * batch_size)
+                        suffix = '', ext = '.npy', clean_all = False, start_num = global_num_train)
+            global_num_train += len(patches_train)
 
         if len(images_rlm_test) > 0:
 
@@ -96,10 +98,10 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
             patches_ref_test = extract_patches_from_images(images = images_ref_test, patch_size = patch_size, stride = stride_test)
 
             save_arrays(patches_rlm_test, f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_test}_RGB_Test/',
-                        suffix = '', ext = '.tif', clean_all = False, start_num = batch * batch_size)
+                        suffix = '', ext = '.tif', clean_all = False, start_num = global_num_test)
             
             patches_rlm_test = [cv2.cvtColor(img, conversor) for img in patches_rlm_test]
-            patches_rlm_test = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_test]) if gray_scale else patches_rlm_test
+            patches_rlm_test = np.asarray([img.reshape((patch_size, patch_size, 1)) for img in patches_rlm_test]) if gray_scale else np.asarray(patches_rlm_test)
             
             patches_rlm_test = patches_rlm_test / 255.
 
@@ -108,4 +110,5 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
 
             print(f'test patches: {patches_test.shape}')
             save_arrays(patches_test, f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_test}_Test/',
-                        suffix = '', ext = '.npy', clean_all = False, start_num = batch * batch_size)
+                        suffix = '', ext = '.npy', clean_all = False, start_num = global_num_test)
+            global_num_test += len(patches_test)
