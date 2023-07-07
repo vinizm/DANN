@@ -1047,6 +1047,7 @@ class Trainer():
                 'skip_conn': self.skip_conn,
                 'val_fraction': self.val_fraction,
                 'batch_size': self.batch_size,
+                'channels': self.channels,
                 'num_images': self.num_images,
                 'epochs': self.epochs,
                 'wait': self.wait,
