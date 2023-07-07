@@ -38,7 +38,10 @@ def create_patches(dataset: str, test_index: list = None, resample: bool = False
     path_to_dataset_mask = PATH_TO_FOLDER.get(dataset).get('MASK')
 
     rlm_files = glob.glob(path_to_dataset_rlm + '/*.tif')
+    rlm_files.sort()
+    
     mask_files = glob.glob(path_to_dataset_mask + '/*.tif')
+    mask_files.sort()
     num_files = len(rlm_files)
 
     if test_index is None:

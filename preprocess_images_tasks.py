@@ -3,7 +3,7 @@ from config import TEST_INDEX
 
 
 RESAMPLE = False
-GRAY_SCALE = True
+GRAY_SCALE = False
 NUM_CLASS = 2
 PATCH_SIZE = 256
 STRIDE_TEST = PATCH_SIZE
