@@ -6,7 +6,7 @@ from utils.metrics import compute_metrics
 from utils.hyperparameters import *
 from config import *
 from models.builder import DomainAdaptationModel
-from models.deeplabv3plus import deeplabv3plus
+from models.deeplabv3plus import DeepLabV3Plus
 
 
 class Predictor():
@@ -31,8 +31,8 @@ class Predictor():
             empty_model = DomainAdaptationModel(input_shape = (self.patch_size, self.patch_size, self.channels), output_stride = self.output_stride,
                                                 num_class = self.num_class)
         else:
-            empty_model = deeplabv3plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
-                                        output_stride = self.output_stride, domain_adaptation = False)
+            empty_model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
+                                        output_stride = self.output_stride)
         
         return empty_model
 
