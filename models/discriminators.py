@@ -12,43 +12,31 @@ from models.constraints import ZeroMeanFilter
 
 class DomainDiscriminatorFullyConnected(Model):
 
-    def __init__(self, **kwargs):
+    def __init__(self, units: int, **kwargs):
         super(DomainDiscriminatorFullyConnected, self).__init__(**kwargs)
 
-        self.max_pool = MaxPooling2D(pool_size = 2, strides = 2)
         self.flat = Flatten()
         
-        self.dense_1 = Dense(units = 256)
-        self.batch_norm_1 = BatchNormalization(epsilon = 1.e-6)
+        self.dense_1 = Dense(units = units)
         self.activ_1 = Activation('relu')
         
-        self.dense_2 = Dense(units = 256)
+        self.dense_2 = Dense(units = units)
         self.activ_2 = Activation('relu')
-        
-        self.dense_3 = Dense(units = 64)
-        self.batch_norm_3 = BatchNormalization(epsilon = 1.e-6)
-        self.activ_3 = Activation('relu')
-        
-        self.dense_4 = Dense(units = 1)
-        self.proba = Activation('sigmoid')               
+                
+        self.dense_3 = Dense(units = 2)
+        self.proba = Activation('softmax')               
         
     def call(self, x):
 
-        x = self.max_pool(x)
         x = self.flat(x)
         
         x = self.dense_1(x)
-        x = self.batch_norm_1(x)
         x = self.activ_1(x)
 
         x = self.dense_2(x)
         x = self.activ_2(x)
 
         x = self.dense_3(x)
-        x = self.batch_norm_3(x)
-        x = self.activ_3(x)
-
-        x = self.dense_4(x)
         x = self.proba(x)
 
         return x
