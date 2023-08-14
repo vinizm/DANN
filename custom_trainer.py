@@ -1,11 +1,15 @@
 import time
 import numpy as np
 import glob
+from typing import List, Tuple, Sequence
 
 import tensorflow as tf
+from tensorflow.keras.optimizers import Optimizer
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import Loss
 from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy, BinaryAccuracy, Precision, Recall
+from tensorflow.keras.models import Model
 from tensorflow.keras.models import save_model
 from tensorflow.keras.backend import clear_session
 
@@ -153,7 +157,7 @@ class Trainer():
 
         if self.domain_adaptation:
             empty_model = DomainAdaptationModel(input_shape = (self.patch_size, self.patch_size, self.channels), output_stride = self.output_stride,
-                                                num_class = self.num_class, skip_conn = self.skip_conn)
+                                                num_class = self.num_class)
         else:
             empty_model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class, output_stride = self.output_stride)
         
@@ -173,50 +177,40 @@ class Trainer():
         return loss, y_pred
 
     @tf.function
-    def _training_step_domain_adaptation(self, inputs, outputs, source_mask, target_mask, train_segmentation = True, train_discriminator = True):
+    def _training_step_domain_adaptation(self, model: DomainAdaptationModel, inputs, outputs, optimizers: Sequence[Optimizer],
+                                         loss_functions, source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
+        optimizer_segmentation, optimizer_discriminator = optimizers
+        loss_function_segmentation, loss_function_discriminator = loss_functions
         y_true_segmentation, y_true_discriminator = outputs
         with tf.GradientTape(persistent = True) as tape:
                         
-            y_pred_segmentation, y_pred_discriminator = self.model(inputs)
+            y_pred_segmentation, y_pred_discriminator = model(inputs)
 
-            loss_segmentation_source = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
-            loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
+            loss_segmentation_source = loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
+            loss_discriminator = loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
             loss_global = loss_segmentation_source + loss_discriminator
             
-        loss_segmentation_target = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
+        loss_segmentation_target = loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
 
         if train_segmentation:
-            gradients_segmentation = tape.gradient(loss_global, self.model.main_network.trainable_weights)
-            self.optimizer_segmentation.apply_gradients(zip(gradients_segmentation, self.model.main_network.trainable_weights))
 
-            # ===== [SOURCE] ACCURACY =====
-            self.acc_segmentation.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
-
-            # ===== [TARGET] ACCURACY =====
-            self.acc_segmentation_target.update_state(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
-
-            y_true_segmentation = tf.math.argmax(y_true_segmentation, axis = -1)
-            y_pred_segmentation_max = tf.math.argmax(y_pred_segmentation, axis = -1)
-
-            # ===== [SOURCE] PRECISION/RECALL =====
-            self.precision.update_state(y_true_segmentation, y_pred_segmentation_max, sample_weight = source_mask)
-            self.recall.update_state(y_true_segmentation, y_pred_segmentation_max, sample_weight = source_mask)
-
-            # ===== [TARGET] PRECISION/RECALL =====
-            self.precision_target.update_state(y_true_segmentation, y_pred_segmentation_max, sample_weight = target_mask)
-            self.recall_target.update_state(y_true_segmentation, y_pred_segmentation_max, sample_weight = target_mask)            
+            # update feature extractor
+            gradients_encoder = tape.gradient(loss_global, model.main_network.encoder.trainable_weights)
+            optimizer_segmentation.apply_gradients(zip(gradients_encoder, model.main_network.encoder.trainable_weights))        
+            
+            # update label predictor
+            gradients_decoder = tape.gradient(loss_segmentation_source, model.main_network.decoder.trainable_weights)
+            optimizer_segmentation.apply_gradients(zip(gradients_decoder, model.main_network.decoder.trainable_weights))     
 
         if train_discriminator:
-            # ===== DISCRIMINATOR =====
-            gradients_discriminator = tape.gradient(loss_discriminator, self.model.domain_discriminator.trainable_weights)
-            self.optimizer_discriminator.apply_gradients(zip(gradients_discriminator, self.model.domain_discriminator.trainable_weights))
-
-            self.acc_function_discriminator.update_state(y_true_discriminator, y_pred_discriminator)
+            
+            # update discriminator
+            gradients_discriminator = tape.gradient(loss_discriminator, model.domain_discriminator.trainable_weights)
+            optimizer_discriminator.apply_gradients(zip(gradients_discriminator, model.domain_discriminator.trainable_weights))
 
         del tape
-
-        return loss_segmentation_source, loss_segmentation_target, loss_discriminator, y_pred_segmentation
+        return loss_segmentation_source, loss_segmentation_target, loss_discriminator, y_pred_segmentation, y_pred_discriminator
 
     def _augment_images(self, data_dirs: list):
         if self.rotate or self.flip:
@@ -506,9 +500,37 @@ class Trainer():
                 # source_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
                 # target_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
 
-                step_output = self._training_step_domain_adaptation([x_train, l_vector], [y_segmentation_train, y_discriminator_train], source_mask, target_mask,
-                                                                    train_segmentation = True, train_discriminator = True)
-                loss_segmentation_source, loss_segmentation_target, loss_discriminator, y_segmentation_pred = step_output
+                step_output = self._training_step_domain_adaptation(
+                    model = self.model,
+                    inputs = [x_train, l_vector],
+                    outputs = [y_segmentation_train, y_discriminator_train],
+                    loss_functions = (self.loss_function_segmentation, self.loss_function_discriminator),
+                    source_mask = source_mask,
+                    target_mask = target_mask,
+                    train_segmentation = True,
+                    train_discriminator = True
+                    )
+                loss_segmentation_source, loss_segmentation_target, loss_discriminator, y_segmentation_pred, y_discriminator_pred = step_output
+
+                # ===== [SOURCE] ACCURACY =====
+                self.acc_segmentation.update_state(y_segmentation_train, y_segmentation_pred, sample_weight = source_mask)
+                
+                # ===== [TARGET] ACCURACY =====
+                self.acc_segmentation_target.update_state(y_segmentation_train, y_segmentation_pred, sample_weight = target_mask)
+                
+                y_segmentation_train_max = tf.math.argmax(y_segmentation_train, axis = -1)
+                y_segmentation_pred_max = tf.math.argmax(y_segmentation_pred, axis = -1)
+
+                # ===== [SOURCE] PRECISION/RECALL =====
+                self.precision.update_state(y_segmentation_train_max, y_segmentation_pred_max, sample_weight = source_mask)
+                self.recall.update_state(y_segmentation_train_max, y_segmentation_pred_max, sample_weight = source_mask)   
+                
+                # ===== [TARGET] PRECISION/RECALL =====
+                self.precision_target.update_state(y_segmentation_train_max, y_segmentation_pred_max, sample_weight = target_mask)
+                self.recall_target.update_state(y_segmentation_train_max, y_segmentation_pred_max, sample_weight = target_mask)                     
+
+                # ===== DISCRIMINATOR =====
+                self.acc_function_discriminator.update_state(y_discriminator_train, y_discriminator_pred)
 
                 total_loss_segmentation_source += float(loss_segmentation_source)
                 total_loss_segmentation_target += float(loss_segmentation_target)
