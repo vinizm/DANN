@@ -12,7 +12,7 @@ from models.constraints import ZeroMeanFilter
 
 class DomainDiscriminatorFullyConnected(Model):
 
-    def __init__(self, units: int, **kwargs):
+    def __init__(self, units: int = 1024, **kwargs):
         super(DomainDiscriminatorFullyConnected, self).__init__(**kwargs)
 
         self.flat = Flatten()
