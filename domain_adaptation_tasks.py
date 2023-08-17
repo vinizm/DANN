@@ -73,7 +73,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
             output_stride = output_stride,
             domain_adaptation = True,
             skip_conn = skip_conn,
-            units = units
+            units = units,
             name = f'{now}_{source_set}_{target_set}_v{i + 1:02}'
             )
         trainer.set_test_index(test_index_source = TEST_INDEX.get(source_set), test_index_target = TEST_INDEX.get(target_set))
