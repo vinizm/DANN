@@ -32,6 +32,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     num_class = CASE.get('num_class', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_class'))
     output_stride = CASE.get('output_stride', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
     skip_conn = CASE.get('skip_conn', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('skip_conn'))
+    units = CASE.get('units', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('units'))
     num_runs = CASE.get('num_runs', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_runs'))
     
     batch_size = CASE.get('batch_size', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('batch_size'))
@@ -65,14 +66,27 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
         remove_augmented_images(source_dir)
         remove_augmented_images(target_dir)
         
-        trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, output_stride = output_stride,
-                          domain_adaptation = True, skip_conn = skip_conn, name = f'{now}_{source_set}_{target_set}_v{i + 1:02}')
+        trainer = Trainer(
+            patch_size = patch_size,
+            channels = channels,
+            num_class = num_class,
+            output_stride = output_stride,
+            domain_adaptation = True,
+            skip_conn = skip_conn,
+            units = units
+            name = f'{now}_{source_set}_{target_set}_v{i + 1:02}'
+            )
         trainer.set_test_index(test_index_source = TEST_INDEX.get(source_set), test_index_target = TEST_INDEX.get(target_set))
         trainer.compile_model()
         time.sleep(5) # Sleep for 5 seconds
-        trainer.preprocess_images_domain_adaptation(patches_dir = [source_dir, target_dir], batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
-                                                    rotate = rotate, flip = flip)
-        
+        trainer.preprocess_images_domain_adaptation(
+            patches_dir = [source_dir, target_dir],
+            batch_size = batch_size,
+            val_fraction = val_fraction,
+            num_images = num_images_train,
+            rotate = rotate,
+            flip = flip
+            )
         config_segmentation = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup, 'start': lr_log_start, 'stop': lr_log_stop}
         config_discriminator = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup, 'start': lr_log_start, 'stop': lr_log_stop}
         trainer.set_learning_rate(**{'segmentation': config_segmentation, 'discriminator': config_discriminator})
