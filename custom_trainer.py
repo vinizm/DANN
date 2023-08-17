@@ -5,7 +5,7 @@ from typing import List, Tuple, Sequence
 
 import tensorflow as tf
 from tensorflow.keras.optimizers import Optimizer
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.losses import Loss
 from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy, BinaryAccuracy, Precision, Recall
@@ -40,8 +40,8 @@ class Trainer():
 
         self.model = self.assembly_empty_model()
         
-        self.optimizer_segmentation = Adam()
-        self.optimizer_discriminator = Adam()
+        self.optimizer_segmentation = SGD()
+        self.optimizer_discriminator = SGD()
         
         self.lr_function_segmentation = LearningRateFactory('exp_decay', lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA)
         self.lr_function_discriminator = LearningRateFactory('exp_decay', lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA)
@@ -481,24 +481,28 @@ class Trainer():
 
                 print(f'Batch {batch + 1} of {self.num_batches_train}')
                 batch_train_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
-
+                
+                shuffled_idx = list(range(len(batch_train_files)))
+                np.random.shuffle(shuffled_idx)
+                                
                 # load images for training
                 batch_images = np.asarray([load_array(batch_train_file, verbose = False) for batch_train_file in batch_train_files])
                 batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-                x_train = batch_images[ :, :, :, : self.channels]
-                y_segmentation_train = batch_images[ :, :, :, self.channels :]
+                x_train = batch_images[[shuffled_idx], :, :, : self.channels]
+                y_segmentation_train = batch_images[[shuffled_idx], :, :, self.channels :]
                 
-                encoded_domain = self._encode_domain(batch_train_files, self.train_data_dirs_source)
-                y_discriminator_train = self._explode_domain(encoded_domain)
+                encoded_domain = self._encode_domain(batch_train_files, self.train_data_dirs_source)[shuffled_idx]
+                # y_discriminator_train = self._explode_domain(encoded_domain)
                 # y_discriminator_train = np.asarray(encoded_domain).reshape((self.batch_size, 1))
+                y_discriminator_train = tf.one_hot(encoded_domain, 2)
                 print(f'Domain: {encoded_domain}')
 
-                source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
-                target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
+                # source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
+                # target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
                 
-                # source_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
-                # target_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
+                source_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
+                target_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
 
                 step_output = self._training_step_domain_adaptation(
                     model = self.model,
