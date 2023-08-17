@@ -482,6 +482,7 @@ class Trainer():
                 print(f'Batch {batch + 1} of {self.num_batches_train}')
                 batch_train_files = self.train_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
                 
+                # shuffle indices
                 shuffled_idx = list(range(len(batch_train_files)))
                 np.random.shuffle(shuffled_idx)
                                 
@@ -623,25 +624,30 @@ class Trainer():
                 print(f'Batch {batch + 1} of {self.num_batches_val}')
                 batch_val_files = self.val_data_dirs[batch * self.batch_size : (batch + 1) * self.batch_size]
 
+                # shuffle indices
+                shuffled_idx = list(range(len(batch_val_files)))
+                np.random.shuffle(shuffled_idx)
+
                 # load images for testing
                 batch_val_images = np.asarray([load_array(batch_val_file, verbose = False) for batch_val_file in batch_val_files])
                 batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-                x_val = batch_val_images[:, :, :, : self.channels]
-                y_segmentation_val = batch_val_images[:, :, :, self.channels :]
+                x_val = batch_val_images[[shuffled_idx], :, :, : self.channels]
+                y_segmentation_val = batch_val_images[[shuffled_idx], :, :, self.channels :]
                 
-                encoded_domain = self._encode_domain(batch_val_files, self.val_data_dirs_source)
-                y_discriminator_val = self._explode_domain(encoded_domain)
+                encoded_domain = self._encode_domain(batch_val_files, self.val_data_dirs_source)[shuffled_idx]
+                # y_discriminator_val = self._explode_domain(encoded_domain)
                 # y_discriminator_val = np.asarray(encoded_domain).reshape((self.batch_size, 1))
+                y_discriminator_val = tf.one_hot(encoded_domain, 2)
                 print(f'Domain: {encoded_domain}')
 
                 y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
 
-                source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
-                target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
+                # source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
+                # target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
                 
-                # source_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
-                # target_domain_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
+                source_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
+                target_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
 
                 loss_segmentation_source = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
                 loss_segmentation_target = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
