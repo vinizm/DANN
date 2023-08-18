@@ -179,20 +179,19 @@ class Trainer():
 
     @tf.function
     def _training_step_domain_adaptation(self, model: DomainAdaptationModel, inputs, outputs, optimizers: Sequence[Optimizer],
-                                         loss_functions, source_mask, target_mask, train_segmentation = True, train_discriminator = True):
+                                         source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
         optimizer_segmentation, optimizer_discriminator = optimizers
-        loss_function_segmentation, loss_function_discriminator = loss_functions
         y_true_segmentation, y_true_discriminator = outputs
         with tf.GradientTape(persistent = True) as tape:
                         
             y_pred_segmentation, y_pred_discriminator = model(inputs)
 
-            loss_segmentation_source = loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
-            loss_discriminator = loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
+            loss_segmentation_source = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
+            loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
             loss_global = loss_segmentation_source + loss_discriminator
             
-        loss_segmentation_target = loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
+        loss_segmentation_target = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
 
         if train_segmentation:
 
@@ -510,7 +509,6 @@ class Trainer():
                     model = self.model,
                     inputs = [x_train, l_vector],
                     outputs = [y_segmentation_train, y_discriminator_train],
-                    loss_functions = (self.loss_function_segmentation, self.loss_function_discriminator),
                     source_mask = source_mask,
                     target_mask = target_mask,
                     train_segmentation = True,
