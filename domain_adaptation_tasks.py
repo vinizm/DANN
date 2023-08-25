@@ -44,13 +44,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     patience = CASE.get('patience', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('patience'))
     progress_threshold = CASE.get('progress_threshold', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('progress_threshold'))
     
-    lr_name = CASE.get('lr_name', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_name'))
-    alpha = CASE.get('alpha', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('alpha'))
-    beta = CASE.get('beta', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('beta'))
-    lr0 = CASE.get('lr0', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr0'))
-    lr_log_start = CASE.get('lr_log_start', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_log_start'))
-    lr_log_stop = CASE.get('lr_log_stop', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_log_stop'))
-    lr_warmup = CASE.get('lr_warmup', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_warmup'))
+    lr_config = CASE.get('lr_config', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_config'))
     
     gamma = CASE.get('gamma', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('gamma'))
     lambda_scale = CASE.get('lambda_scale', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lambda_scale'))
@@ -87,9 +81,8 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
             rotate = rotate,
             flip = flip
             )
-        config_segmentation = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup, 'start': lr_log_start, 'stop': lr_log_stop}
-        config_discriminator = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup, 'start': lr_log_start, 'stop': lr_log_stop}
-        trainer.set_learning_rate(**{'segmentation': config_segmentation, 'discriminator': config_discriminator})
+        
+        trainer.set_learning_rate(**{'segmentation': lr_config, 'discriminator': lr_config})
         
         config_lambda = {'warmup': lambda_warmup, 'gamma': gamma, 'lambda_scale': lambda_scale}
         trainer.set_lambda(**config_lambda)
