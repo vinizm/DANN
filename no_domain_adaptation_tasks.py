@@ -43,13 +43,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     patience = CASE.get('patience', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('patience'))
     progress_threshold = CASE.get('progress_threshold', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('progress_threshold'))
     
-    lr_name = CASE.get('lr_name', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_name'))
-    alpha = CASE.get('alpha', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('alpha'))
-    beta = CASE.get('beta', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('beta'))
-    lr0 = CASE.get('lr0', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr0'))
-    lr_log_start = CASE.get('lr_log_start', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_log_start'))
-    lr_log_stop = CASE.get('lr_log_stop', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_log_stop'))
-    lr_warmup = CASE.get('lr_warmup', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_warmup'))
+    lr_config = CASE.get('lr_config', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_config'))
     
     PREFIX = f'DL_patch{patch_size}_os{output_stride}_{dataset}'
 
@@ -66,8 +60,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
         trainer.preprocess_images(patches_dir = patches_dir, batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
                                   rotate = rotate, flip = flip)
         
-        config_segmentation = {'name': lr_name, 'alpha': alpha, 'beta': beta, 'lr0': lr0, 'warmup': lr_warmup, 'start': lr_log_start, 'stop': lr_log_stop}
-        trainer.set_learning_rate(**{'segmentation': config_segmentation})
+        trainer.set_learning_rate(**{'segmentation': lr_config})
         
         trainer.train(epochs = max_epochs, wait = patience, persist_best_model = True, progress_threshold = progress_threshold)
         

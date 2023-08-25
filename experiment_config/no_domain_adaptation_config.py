@@ -1,4 +1,5 @@
 import numpy as np
+from utils.hyperparameters import *
 
 
 NO_DOMAIN_ADAPTATION_CONFIG = [
@@ -24,7 +25,42 @@ NO_DOMAIN_ADAPTATION_CONFIG = [
     }
 ]
 
+LR_CONSTANT_CONFIG = {
+    'name': 'constant',
+    'const': LR0,
+    'warmup': LR_WARMUP
+}
+
+LR_EXP_CONFIG = {
+    'name': 'exp',
+    'lr0': LR0,
+    'alpha': ALPHA,
+    'beta': BETA,
+    'warmup': LR_WARMUP
+}
+
+LR_STEP_CONFIG = {
+    'name': 'step',
+    'lr0': LR0,
+    'step_decay': STEP_DECAY,
+    'num_steps': NUM_STEPS,
+    'warmup': LR_WARMUP
+}
+
+LR_LINEAR_CONFIG = {
+    'name': 'linear',
+    'start': LR_START_LINEAR,
+    'stop': LR_STOP_LINEAR,
+    'lr_warmup': LR_WARMUP
+}
+
+LR_LOG_CONFIG = {
+    'name': 'log',
+    'start': np.log10(5.e-4),
+    'stop': np.log10(1.e-5),
+    'warmup': 0
+}
 
 NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 3, 'num_class': 2,'max_epochs': 120, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 200,
                                       'patience': 25, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'alpha': 2.25, 'beta': 0.75, 'lr0': 5.e-4,
-                                      'lr_warmup': 0., 'lr_name': 'log', 'output_stride': 16, 'lr_log_start': np.log10(5.e-4), 'lr_log_stop': np.log10(1.e-5)}
+                                      'lr_warmup': 0., 'output_stride': 16, 'lr_config': LR_LOG_CONFIG}
