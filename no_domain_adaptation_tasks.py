@@ -44,6 +44,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     progress_threshold = CASE.get('progress_threshold', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('progress_threshold'))
     
     lr_config = CASE.get('lr_config', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_config'))
+    optimizer = CASE.get('optimizer', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('optimizer'))
     
     PREFIX = f'DL_patch{patch_size}_os{output_stride}_{dataset}'
 
@@ -52,13 +53,26 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
         patches_dir = f'{PROCESSED_FOLDER}/{dataset}_patch{patch_size}_stride{stride_train}_Train'
         remove_augmented_images(patches_dir)
         
-        trainer = Trainer(patch_size = patch_size, channels = channels, num_class = num_class, output_stride = output_stride,
-                          domain_adaptation = False, name = f'{now}_{dataset}_v{i + 1:02}')
+        trainer = Trainer(
+            patch_size = patch_size,
+            channels = channels,
+            num_class = num_class,
+            output_stride = output_stride,
+            domain_adaptation = False,
+            name = f'{now}_{dataset}_v{i + 1:02}',
+            optimizer = optimizer
+            )
         trainer.set_test_index(test_index_source = TEST_INDEX.get(dataset), test_index_target = [])
         trainer.compile_model()
         time.sleep(5) # Sleep for 5 seconds
-        trainer.preprocess_images(patches_dir = patches_dir, batch_size = batch_size, val_fraction = val_fraction, num_images = num_images_train,
-                                  rotate = rotate, flip = flip)
+        trainer.preprocess_images(
+            patches_dir = patches_dir,
+            batch_size = batch_size,
+            val_fraction = val_fraction,
+            num_images = num_images_train,
+            rotate = rotate,
+            flip = flip
+            )
         
         trainer.set_learning_rate(**{'segmentation': lr_config})
         

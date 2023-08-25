@@ -45,6 +45,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     progress_threshold = CASE.get('progress_threshold', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('progress_threshold'))
     
     lr_config = CASE.get('lr_config', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_config'))
+    optimizer = CASE.get('optimizer', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('optimizer'))
     
     gamma = CASE.get('gamma', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('gamma'))
     lambda_scale = CASE.get('lambda_scale', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lambda_scale'))
@@ -68,7 +69,8 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
             domain_adaptation = True,
             skip_conn = skip_conn,
             units = units,
-            name = f'{now}_{source_set}_{target_set}_v{i + 1:02}'
+            name = f'{now}_{source_set}_{target_set}_v{i + 1:02}',
+            optimizer = optimizer
             )
         trainer.set_test_index(test_index_source = TEST_INDEX.get(source_set), test_index_target = TEST_INDEX.get(target_set))
         trainer.compile_model()
