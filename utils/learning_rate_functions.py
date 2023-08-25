@@ -158,10 +158,10 @@ def LearningRateFactory(name: str, **kwargs):
     if name == 'constant':
         return LearningRateConstant(**kwargs)
 
-    elif name == 'exp_decay':
+    elif name == 'exp':
         return LearningRateExpDecay(**kwargs)
 
-    elif name == 'step_decay':
+    elif name == 'step':
         return LearningRateStepDecay(**kwargs)
 
     elif name == 'linear':
