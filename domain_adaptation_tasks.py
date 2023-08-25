@@ -45,7 +45,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     progress_threshold = CASE.get('progress_threshold', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('progress_threshold'))
     
     lr_config = CASE.get('lr_config', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_config'))
-    optimizer = CASE.get('optimizer', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('optimizer'))
+    optimizer_config = CASE.get('optimizer_config', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('optimizer_config'))
     
     gamma = CASE.get('gamma', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('gamma'))
     lambda_scale = CASE.get('lambda_scale', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lambda_scale'))
@@ -69,8 +69,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
             domain_adaptation = True,
             skip_conn = skip_conn,
             units = units,
-            name = f'{now}_{source_set}_{target_set}_v{i + 1:02}',
-            optimizer = optimizer
+            name = f'{now}_{source_set}_{target_set}_v{i + 1:02}'
             )
         trainer.set_test_index(test_index_source = TEST_INDEX.get(source_set), test_index_target = TEST_INDEX.get(target_set))
         trainer.compile_model()
@@ -84,6 +83,7 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
             flip = flip
             )
         
+        trainer.set_optimizer(optimizer_config)
         trainer.set_learning_rate(**{'segmentation': lr_config, 'discriminator': lr_config})
         
         config_lambda = {'warmup': lambda_warmup, 'gamma': gamma, 'lambda_scale': lambda_scale}

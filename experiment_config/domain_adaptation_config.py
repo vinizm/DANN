@@ -117,6 +117,15 @@ LR_LOG_CONFIG = {
     'warmup': 0.
 }
 
+ADAM_OPTIMIZER_CONFIG = {
+    'name': 'adam'
+}
+
+SGD_OPTIMIZER_CONFIG = {
+    'name': 'sgd',
+    'momentum': 0.9
+}
+
 DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 1, 'num_class': 2, 'max_epochs': 50, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 200,
                                    'patience': None, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'output_stride': 16, 'lambda_scale': 0.,
-                                   'gamma': 10., 'lambda_warmup': 0., 'skip_conn': True, 'units': 1024, 'optimizer': 'adam', 'lr_config': LR_LOG_CONFIG}
+                                   'gamma': 10., 'lambda_warmup': 0., 'skip_conn': True, 'units': 1024, 'optimizer_config': ADAM_OPTIMIZER_CONFIG, 'lr_config': LR_LOG_CONFIG}

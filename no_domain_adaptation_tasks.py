@@ -44,7 +44,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     progress_threshold = CASE.get('progress_threshold', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('progress_threshold'))
     
     lr_config = CASE.get('lr_config', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_config'))
-    optimizer = CASE.get('optimizer', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('optimizer'))
+    optimizer_config = CASE.get('optimizer_config', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('optimizer_config'))
     
     PREFIX = f'DL_patch{patch_size}_os{output_stride}_{dataset}'
 
@@ -59,8 +59,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
             num_class = num_class,
             output_stride = output_stride,
             domain_adaptation = False,
-            name = f'{now}_{dataset}_v{i + 1:02}',
-            optimizer = optimizer
+            name = f'{now}_{dataset}_v{i + 1:02}'
             )
         trainer.set_test_index(test_index_source = TEST_INDEX.get(dataset), test_index_target = [])
         trainer.compile_model()
@@ -74,6 +73,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
             flip = flip
             )
         
+        trainer.set_optimizer(optimizer_config)
         trainer.set_learning_rate(**{'segmentation': lr_config})
         
         trainer.train(epochs = max_epochs, wait = patience, persist_best_model = True, progress_threshold = progress_threshold)

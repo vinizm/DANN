@@ -28,7 +28,7 @@ from config import LOGS_FOLDER
 class Trainer():
 
     def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride = 8, skip_conn: bool = True, domain_adaptation: bool = False,
-                 units: int = 1024, name: str = '', optimizer: str = 'adam'):
+                 units: int = 1024, name: str = ''):
 
         self.name = name if name == '' else f'_{name}'
         self.patch_size = patch_size
@@ -41,14 +41,9 @@ class Trainer():
 
         self.model = self.assembly_empty_model()
         
-        if optimizer == 'adam':
-            self.optimizer_segmentation = Adam()
-            self.optimizer_discriminator = Adam()
-        
-        elif optimizer == 'sgd':
-            self.optimizer_segmentation = SGD()
-            self.optimizer_discriminator = SGD()
-        
+        self.optimizer_segmentation = Adam()
+        self.optimizer_discriminator = Adam()
+
         self.lr_function_segmentation = LearningRateFactory('exp', lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA)
         self.lr_function_discriminator = LearningRateFactory('exp', lr0 = LR0, warmup = LR_WARMUP, alpha = ALPHA, beta = BETA)
 
@@ -970,6 +965,16 @@ class Trainer():
 
         self.test_index_source = test_index_source
         self.test_index_target = test_index_target
+
+    def set_optimizer(self, optimizer_config: dict):
+        name = optimizer_config.pop('name')
+        if name == 'adam':
+            self.optimizer_segmentation = Adam(**optimizer_config)
+            self.optimizer_discriminator = Adam(**optimizer_config)
+        
+        elif name == 'sgd':
+            self.optimizer_segmentation = SGD(**optimizer_config)
+            self.optimizer_discriminator = SGD(**optimizer_config)
 
     def set_learning_rate(self, **kwargs):
         segmentation_params = kwargs.get('segmentation')
