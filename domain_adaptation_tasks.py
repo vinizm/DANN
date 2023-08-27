@@ -4,10 +4,13 @@ from preprocess_images import remove_augmented_images
 from custom_trainer import Trainer
 
 from datetime import datetime
-import tensorflow as tf
 import time
 import os
 import gc
+import copy
+
+import tensorflow as tf
+
 
 physical_devices = tf.config.list_physical_devices('GPU')
 try:
@@ -84,7 +87,12 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
             )
         
         trainer.set_optimizer(optimizer_config)
-        trainer.set_learning_rate(**{'segmentation': lr_config, 'discriminator': lr_config})
+        trainer.set_learning_rate(
+            **{
+                'segmentation': copy.deepcopy(lr_config),
+                'discriminator': copy.deepcopy(lr_config),
+                }
+            )
         
         config_lambda = {'warmup': lambda_warmup, 'gamma': gamma, 'lambda_scale': lambda_scale}
         trainer.set_lambda(**config_lambda)

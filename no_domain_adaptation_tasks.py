@@ -4,11 +4,12 @@ from preprocess_images import remove_augmented_images
 from custom_trainer import Trainer
 
 from datetime import datetime
-import tensorflow as tf
 import time
 import os
 import gc
 import time
+
+import tensorflow as tf
 
 
 physical_devices = tf.config.list_physical_devices('GPU')
