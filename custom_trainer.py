@@ -177,7 +177,7 @@ class Trainer():
         del tape
         return loss, y_pred
 
-    # @tf.function
+    @tf.function
     def _training_step_domain_adaptation(self, model: DomainAdaptationModel, inputs, outputs, optimizers: Sequence[Optimizer],
                                          source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
@@ -740,7 +740,7 @@ class Trainer():
             print(f'[SOURCE] Segmentation F1: {self.f1_val_history[-1]}')
 
             # ===== [TARGET] =====
-            print(f'[SOURCE] Segmentation Loss: {self.loss_segmentation_target_val_history[-1]}')
+            print(f'[TARGET] Segmentation Loss: {self.loss_segmentation_target_val_history[-1]}')
             print(f'[TARGET] Segmentation Accuracy: {self.acc_segmentation_target_val_history[-1]}')
             print(f'[TARGET] Segmentation Precision: {self.precision_target_val_history[-1]}')
             print(f'[TARGET] Segmentation Recall: {self.recall_target_val_history[-1]}')
