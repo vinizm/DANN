@@ -177,7 +177,7 @@ class Trainer():
         del tape
         return loss, y_pred
 
-    @tf.function
+    # @tf.function
     def _training_step_domain_adaptation(self, model: DomainAdaptationModel, inputs, outputs, optimizers: Sequence[Optimizer],
                                          source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
@@ -186,7 +186,7 @@ class Trainer():
         with tf.GradientTape(persistent = True) as tape:
                         
             y_pred_segmentation, y_pred_discriminator = model(inputs)
-
+            
             loss_segmentation_source = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
             loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
             loss_global = loss_segmentation_source + loss_discriminator
@@ -265,7 +265,7 @@ class Trainer():
     
     @staticmethod
     def _encode_domain(file_names: list, source_files: list):
-        return [0 if file_name in source_files else 1 for file_name in file_names]
+        return np.asarray([0 if file_name in source_files else 1 for file_name in file_names])
     
     @staticmethod            
     def _persist_to_history(inputs, operator, history: list):
@@ -490,8 +490,8 @@ class Trainer():
                 batch_images = np.asarray([load_array(batch_train_file, verbose = False) for batch_train_file in batch_train_files])
                 batch_images = batch_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-                x_train = batch_images[[shuffled_idx], :, :, : self.channels]
-                y_segmentation_train = batch_images[[shuffled_idx], :, :, self.channels :]
+                x_train = batch_images[shuffled_idx, :, :, : self.channels]
+                y_segmentation_train = batch_images[shuffled_idx, :, :, self.channels :]
                 
                 encoded_domain = self._encode_domain(batch_train_files, self.train_data_dirs_source)[shuffled_idx]
                 # y_discriminator_train = self._explode_domain(encoded_domain)
@@ -499,16 +499,17 @@ class Trainer():
                 y_discriminator_train = tf.one_hot(encoded_domain, 2)
                 print(f'Domain: {encoded_domain}')
 
-                # source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
-                # target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
+                source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
+                target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
                 
-                source_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
-                target_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
-
+                # source_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
+                # target_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
+                
                 step_output = self._training_step_domain_adaptation(
                     model = self.model,
                     inputs = [x_train, l_vector],
                     outputs = [y_segmentation_train, y_discriminator_train],
+                    optimizers = (self.optimizer_segmentation, self.optimizer_discriminator),
                     source_mask = source_mask,
                     target_mask = target_mask,
                     train_segmentation = True,
@@ -631,8 +632,8 @@ class Trainer():
                 batch_val_images = np.asarray([load_array(batch_val_file, verbose = False) for batch_val_file in batch_val_files])
                 batch_val_images = batch_val_images.astype(np.float32) # set np.float32 to reduce memory usage
 
-                x_val = batch_val_images[[shuffled_idx], :, :, : self.channels]
-                y_segmentation_val = batch_val_images[[shuffled_idx], :, :, self.channels :]
+                x_val = batch_val_images[shuffled_idx, :, :, : self.channels]
+                y_segmentation_val = batch_val_images[shuffled_idx, :, :, self.channels :]
                 
                 encoded_domain = self._encode_domain(batch_val_files, self.val_data_dirs_source)[shuffled_idx]
                 # y_discriminator_val = self._explode_domain(encoded_domain)
@@ -642,11 +643,11 @@ class Trainer():
 
                 y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
 
-                # source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
-                # target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
+                source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
+                target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
                 
-                source_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
-                target_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
+                # source_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
+                # target_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
 
                 loss_segmentation_source = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = source_mask)
                 loss_segmentation_target = self.loss_function_segmentation(y_segmentation_val, y_segmentation_pred, sample_weight = target_mask)
