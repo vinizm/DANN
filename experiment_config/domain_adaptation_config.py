@@ -14,7 +14,7 @@ DOMAIN_ADAPTATION_CONFIG = [
         'source': 'Fe19',
         'target': 'FeM',
         'num_runs': 1,
-        'run_training': True
+        'run_training': False
     },
     {
         'source': 'Fe19',
@@ -77,7 +77,7 @@ DOMAIN_ADAPTATION_CONFIG = [
         'source': 'Cu',
         'target': 'FeM',
         'num_runs': 1,
-        'run_training': False
+        'run_training': True
     }
 ]
 
@@ -89,11 +89,12 @@ LR_CONSTANT_CONFIG = {
 
 LR_EXP_CONFIG = {
     'name': 'exp',
-    'lr0': LR0,
-    'alpha': ALPHA,
-    'beta': BETA,
-    'warmup': LR_WARMUP
+    'lr0': 0.01,
+    'alpha': 10.,
+    'beta': 0.75,
+    'warmup': 0.
 }
+
 
 LR_STEP_CONFIG = {
     'name': 'step',
@@ -126,6 +127,6 @@ SGD_OPTIMIZER_CONFIG = {
     'momentum': 0.9
 }
 
-DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 3, 'num_class': 2, 'max_epochs': 100, 'batch_size': 8, 'val_fraction': 0.1, 'num_images_train': 500,
-                                   'patience': None, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'output_stride': 16, 'lambda_scale': 0.,
+DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 3, 'num_class': 2, 'max_epochs': 100, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 1800,
+                                   'patience': None, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'output_stride': 16, 'lambda_scale': 1.e-6,
                                    'gamma': 10., 'lambda_warmup': 0., 'skip_conn': True, 'units': 1024, 'optimizer_config': ADAM_OPTIMIZER_CONFIG, 'lr_config': LR_LOG_CONFIG}
