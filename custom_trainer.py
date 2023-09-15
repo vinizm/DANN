@@ -2,6 +2,7 @@ import time
 import numpy as np
 import glob
 from typing import List, Tuple, Sequence
+import shutil
 
 import tensorflow as tf
 from tensorflow.keras.optimizers import Optimizer
@@ -22,7 +23,7 @@ from models.builder import DomainAdaptationModel
 from models.deeplabv3plus import DeepLabV3Plus
 from logger import TensorBoardLogger
 
-from config import LOGS_FOLDER
+from config import LOGS_FOLDER, TRAINING_FOLDER
 
 
 class Trainer():
@@ -30,7 +31,7 @@ class Trainer():
     def __init__(self, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride = 8, skip_conn: bool = True, domain_adaptation: bool = False,
                  units: int = 1024, name: str = ''):
 
-        self.name = name if name == '' else f'_{name}'
+        self.name = name
         self.patch_size = patch_size
         self.channels = channels
         self.num_class = num_class
@@ -117,10 +118,10 @@ class Trainer():
         self.lambdas = []
 
         self.logger = TensorBoardLogger()
-        self.logger.create_writer('train_writer', f'{LOGS_FOLDER}/train{self.name}/')
-        self.logger.create_writer('val_writer', f'{LOGS_FOLDER}/validation{self.name}/')
-        self.logger.create_writer('segmentation_writer', f'{LOGS_FOLDER}/segmentation{self.name}/')
-        self.logger.create_writer('discriminator_writer', f'{LOGS_FOLDER}/discriminator{self.name}/')
+        self.logger.create_writer('train_writer', f'{LOGS_FOLDER}/train_{self.name}/')
+        self.logger.create_writer('val_writer', f'{LOGS_FOLDER}/validation_{self.name}/')
+        self.logger.create_writer('segmentation_writer', f'{LOGS_FOLDER}/segmentation_{self.name}/')
+        self.logger.create_writer('discriminator_writer', f'{LOGS_FOLDER}/discriminator_{self.name}/')
 
         self.no_improvement_count = 0
         self.best_val_loss = 1.e8
@@ -393,6 +394,18 @@ class Trainer():
         self.train_data_dirs_target = self._augment_images(train_data_dirs_target)
         self.val_data_dirs_target = self._augment_images(val_data_dirs_target)
         
+        # create folders
+        source_folder = f'{TRAINING_FOLDER}/{self.patches_dir[0].split("/")[-1]}'
+        target_folder = f'{TRAINING_FOLDER}/{self.patches_dir[1].split("/")[-1]}'
+        
+        os.makedirs(source_folder)
+        os.makedirs(target_folder)
+        
+        self.train_data_dirs_source = self.move_files(filenames = self.train_data_dirs_source, to_path = source_folder)
+        self.train_data_dirs_source = self.move_files(filenames = self.val_data_dirs_source, to_path = source_folder)
+        self.train_data_dirs_source = self.move_files(filenames = self.train_data_dirs_target, to_path = target_folder)
+        self.train_data_dirs_source = self.move_files(filenames = self.val_data_dirs_target, to_path = target_folder)
+        
         # intercalate elements
         self.train_data_dirs = self._intercalate_lists(self.train_data_dirs_source, self.train_data_dirs_target)
         self.val_data_dirs = self._intercalate_lists(self.val_data_dirs_source, self.val_data_dirs_target)
@@ -403,6 +416,17 @@ class Trainer():
 
         print(f'num. of batches for training: {self.num_batches_train}')
         print(f'num. of batches for validation: {self.num_batches_val}')
+        
+    @staticmethod        
+    def move_files(filenames: List, to_path: str):
+        
+        moved_filenames = []
+        for from_file in filenames:
+            to_file = f'{to_path}/{from_file.split("/")[-1]}'
+            shutil.copyfile(from_file, to_file)
+            moved_filenames.append(to_file)
+            
+        return moved_filenames
 
     def preprocess_images(self, patches_dir: str, batch_size: int = 2, val_fraction: float = 0.1,
         num_images: int = 60, rotate: bool = True, flip: bool = True):

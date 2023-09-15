@@ -4,6 +4,7 @@ CURRENT_PATH = os.path.realpath(__file__)
 BASE_FOLDER = '/'.join(CURRENT_PATH.split('/')[: -2])
 
 PROCESSED_FOLDER = f'{BASE_FOLDER}/DANN/processed_images'
+TRAINING_FOLDER = f'{BASE_FOLDER}/DANN/training_images'
 RESULTS_FOLDER = f'{BASE_FOLDER}/DANN/results'
 LOGS_FOLDER = f'{BASE_FOLDER}/DANN/logs'
 
