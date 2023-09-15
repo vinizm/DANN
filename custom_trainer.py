@@ -402,9 +402,9 @@ class Trainer():
         os.makedirs(target_folder)
         
         self.train_data_dirs_source = self.move_files(filenames = self.train_data_dirs_source, to_path = source_folder)
-        self.train_data_dirs_source = self.move_files(filenames = self.val_data_dirs_source, to_path = source_folder)
-        self.train_data_dirs_source = self.move_files(filenames = self.train_data_dirs_target, to_path = target_folder)
-        self.train_data_dirs_source = self.move_files(filenames = self.val_data_dirs_target, to_path = target_folder)
+        self.val_data_dirs_source = self.move_files(filenames = self.val_data_dirs_source, to_path = source_folder)
+        self.train_data_dirs_target = self.move_files(filenames = self.train_data_dirs_target, to_path = target_folder)
+        self.val_data_dirs_target = self.move_files(filenames = self.val_data_dirs_target, to_path = target_folder)
         
         # intercalate elements
         self.train_data_dirs = self._intercalate_lists(self.train_data_dirs_source, self.train_data_dirs_target)
