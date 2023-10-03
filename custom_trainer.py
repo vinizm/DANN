@@ -157,10 +157,20 @@ class Trainer():
     def assembly_empty_model(self):
 
         if self.domain_adaptation:
-            empty_model = DomainAdaptationModel(input_shape = (self.patch_size, self.patch_size, self.channels), output_stride = self.output_stride,
-                                                num_class = self.num_class, units = self.units)
+            empty_model = DomainAdaptationModel(
+                input_shape = (self.patch_size, self.patch_size, self.channels),
+                output_stride = self.output_stride,
+                num_class = self.num_class,
+                units = self.units,
+                skip_conn = self.skip_conn
+                )
         else:
-            empty_model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class, output_stride = self.output_stride)
+            empty_model = DeepLabV3Plus(
+                input_shape = (self.patch_size, self.patch_size, self.channels),
+                num_class = self.num_class,
+                output_stride = self.output_stride,
+                skip_conn = self.skip_conn
+                )
         
         return empty_model
 

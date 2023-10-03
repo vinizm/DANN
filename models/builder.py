@@ -9,10 +9,10 @@ from models.discriminators import DomainDiscriminatorFullyConnected
 
 class DomainAdaptationModel(Model):
 
-    def __init__(self, input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8, units: int = 1024, **kwargs):
+    def __init__(self, input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8, units: int = 1024, skip_conn: bool = True, **kwargs):
         super(DomainAdaptationModel, self).__init__(**kwargs)
 
-        self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride)
+        self.main_network = DeepLabV3Plus(input_shape = input_shape, num_class = num_class, output_stride = output_stride, skip_conn = skip_conn)
         self.gradient_reversal_layer = GradientReversalLayer()
         self.domain_discriminator = DomainDiscriminatorFullyConnected(units = units)
 

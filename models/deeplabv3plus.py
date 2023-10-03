@@ -156,15 +156,17 @@ def deeplabv3plus_decoder(input_shape: tuple = (256, 256, 1), features_shape: tu
     
     # ====== SKIP CONNECTION ======
     
-    skip_connect = Conv2D(filters = 48, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(input_skip_connect)
+    if skip_connect_shape:
+        
+        skip_connect = Conv2D(filters = 48, kernel_size = 1, strides = 1, dilation_rate = 1, padding = 'valid')(input_skip_connect)
 
-    previous_shape = tuple(skip_connect.shape)
-    upsampling_factor = int(target_dim / previous_shape[1])
-    print(f'Upsampling Skip Conn: {upsampling_factor}')
+        previous_shape = tuple(skip_connect.shape)
+        upsampling_factor = int(target_dim / previous_shape[1])
+        print(f'Upsampling Skip Conn: {upsampling_factor}')
 
-    skip_connect = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(skip_connect)
-    x = Concatenate()([x, skip_connect])
-    print(f'Concatenate: {x.shape, skip_connect.shape}')
+        skip_connect = UpSampling2D(size = upsampling_factor, interpolation = 'bilinear')(skip_connect)
+        x = Concatenate()([x, skip_connect])
+        print(f'Concatenate: {x.shape, skip_connect.shape}')
     
     # =============================
 
@@ -189,13 +191,13 @@ def deeplabv3plus_decoder(input_shape: tuple = (256, 256, 1), features_shape: tu
 
 class DeepLabV3Plus(Model):
     
-    def __init__(self, input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8, **kwargs):
+    def __init__(self, input_shape: tuple = (256, 256, 1), num_class: int = 2, output_stride: int = 8, skip_conn: bool = True, **kwargs):
         super(DeepLabV3Plus, self).__init__(**kwargs)
         
         self.encoder = deeplabv3plus_encoder(input_shape = input_shape, output_stride = output_stride)
         
         features_shape = tuple(self.encoder.outputs[0].shape[1:])
-        skip_connect_shape = tuple(self.encoder.outputs[1].shape[1:])
+        skip_connect_shape = tuple(self.encoder.outputs[1].shape[1:]) if skip_conn else False
         self.decoder = deeplabv3plus_decoder(input_shape = input_shape, features_shape = features_shape, num_class = num_class, skip_connect_shape = skip_connect_shape)
         
         self.inputs = [Input(shape = input_shape)]
