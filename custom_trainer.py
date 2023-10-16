@@ -188,7 +188,7 @@ class Trainer():
         return loss, y_pred
 
     @tf.function
-    def _training_step_domain_adaptation(self, model: DomainAdaptationModel, inputs, outputs, optimizers: Sequence[Optimizer],
+    def _training_step_domain_adaptation(self, model: DomainAdaptationModel, inputs, outputs, lambda_value, optimizers: Sequence[Optimizer],
                                          source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
         optimizer_segmentation, optimizer_discriminator = optimizers
@@ -199,14 +199,14 @@ class Trainer():
             
             loss_segmentation_source = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
             loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
-            loss_global = loss_segmentation_source + 0. * loss_discriminator
+            loss_global_fake = loss_segmentation_source - lambda_value * loss_discriminator
             
         loss_segmentation_target = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
 
         if train_segmentation:
 
             # update feature extractor
-            gradients_encoder = tape.gradient(loss_global, model.main_network.encoder.trainable_weights)
+            gradients_encoder = tape.gradient(loss_global_fake, model.main_network.encoder.trainable_weights)
             optimizer_segmentation.apply_gradients(zip(gradients_encoder, model.main_network.encoder.trainable_weights))        
             
             # update label predictor
@@ -479,8 +479,7 @@ class Trainer():
             # set lambda value
             l = np.float32(self.lambda_function.calculate(p))
             print(f'Lambda: {l}')
-            self.lambdas.append(l)
-            l_vector = np.full(shape = (self.batch_size, 1), fill_value = l, dtype = 'float32')
+            self.lambdas.append(float(l))
 
             self.logger.write_scalar('segmentation_writer', 'learning_rate', lr_1, epoch + 1)
             self.logger.write_scalar('discriminator_writer', 'learning_rate', lr_2, epoch + 1)
@@ -511,14 +510,15 @@ class Trainer():
 
                 source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
                 target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
-                
+
                 # source_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
                 # target_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
                 
                 step_output = self._training_step_domain_adaptation(
                     model = self.model,
-                    inputs = [x_train, l_vector],
+                    inputs = x_train,
                     outputs = [y_segmentation_train, y_discriminator_train],
+                    lambda_value = l,
                     optimizers = (self.optimizer_segmentation, self.optimizer_discriminator),
                     source_mask = source_mask,
                     target_mask = target_mask,
@@ -651,7 +651,7 @@ class Trainer():
                 y_discriminator_val = tf.one_hot(encoded_domain, 2)
                 print(f'Domain: {encoded_domain}')
 
-                y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
+                y_segmentation_pred, y_discriminator_pred = self.model(x_val)
 
                 source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
                 target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
