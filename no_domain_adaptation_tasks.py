@@ -33,6 +33,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
     channels = CASE.get('channels', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('channels'))
     num_class = CASE.get('num_class', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_class'))
     output_stride = CASE.get('output_stride', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('output_stride'))
+    skip_conn = CASE.get('skip_conn', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('skip_conn'))
     num_runs = CASE.get('num_runs', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('num_runs'))
     
     batch_size = CASE.get('batch_size', NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('batch_size'))
@@ -60,6 +61,7 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
             num_class = num_class,
             output_stride = output_stride,
             domain_adaptation = False,
+            skip_conn = skip_conn,
             name = f'{now}_{dataset}_v{i + 1:02}'
             )
         trainer.set_test_index(test_index_source = TEST_INDEX.get(dataset), test_index_target = [])

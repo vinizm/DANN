@@ -158,10 +158,20 @@ class Trainer():
     def assembly_empty_model(self):
 
         if self.domain_adaptation:
-            empty_model = DomainAdaptationModel(input_shape = (self.patch_size, self.patch_size, self.channels), output_stride = self.output_stride,
-                                                num_class = self.num_class, units = self.units)
+            empty_model = DomainAdaptationModel(
+                input_shape = (self.patch_size, self.patch_size, self.channels),
+                output_stride = self.output_stride,
+                num_class = self.num_class,
+                units = self.units,
+                skip_conn = self.skip_conn
+                )
         else:
-            empty_model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class, output_stride = self.output_stride)
+            empty_model = DeepLabV3Plus(
+                input_shape = (self.patch_size, self.patch_size, self.channels),
+                num_class = self.num_class,
+                output_stride = self.output_stride,
+                skip_conn = self.skip_conn
+                )
         
         return empty_model
 
@@ -179,7 +189,7 @@ class Trainer():
         return loss, y_pred
 
     @tf.function
-    def _training_step_domain_adaptation(self, model: DomainAdaptationModel, inputs, outputs, optimizers: Sequence[Optimizer],
+    def _training_step_domain_adaptation(self, model: DomainAdaptationModel, inputs, outputs, lambda_value, optimizers: Sequence[Optimizer],
                                          source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
         optimizer_segmentation, optimizer_discriminator = optimizers
@@ -190,14 +200,14 @@ class Trainer():
             
             loss_segmentation_source = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
             loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
-            loss_global = loss_segmentation_source + loss_discriminator
+            loss_global_fake = loss_segmentation_source - lambda_value * loss_discriminator
             
         loss_segmentation_target = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
 
         if train_segmentation:
 
             # update feature extractor
-            gradients_encoder = tape.gradient(loss_global, model.main_network.encoder.trainable_weights)
+            gradients_encoder = tape.gradient(loss_global_fake, model.main_network.encoder.trainable_weights)
             optimizer_segmentation.apply_gradients(zip(gradients_encoder, model.main_network.encoder.trainable_weights))        
             
             # update label predictor
@@ -215,8 +225,13 @@ class Trainer():
 
     def _augment_images(self, data_dirs: list):
         if self.rotate or self.flip:
-            augmented_dirs = augment_images(image_files = data_dirs, angles = [90, 180, 270],
-                                             rotate = self.rotate, flip = self.flip, verbose = False)
+            augmented_dirs = augment_images(
+                image_files = data_dirs,
+                angles = [90, 180, 270],
+                rotate = self.rotate,
+                flip = self.flip,
+                verbose = False
+                )
             data_dirs += augmented_dirs
             np.random.shuffle(data_dirs)
 
@@ -395,8 +410,8 @@ class Trainer():
         self.val_data_dirs_target = self._augment_images(val_data_dirs_target)
         
         # create folders
-        source_folder = f'{TRAINING_FOLDER}/{self.patches_dir[0].split("/")[-1]}'
-        target_folder = f'{TRAINING_FOLDER}/{self.patches_dir[1].split("/")[-1]}'
+        source_folder = f'{TRAINING_FOLDER}/{self.name}/{self.patches_dir[0].split("/")[-1]}'
+        target_folder = f'{TRAINING_FOLDER}/{self.name}/{self.patches_dir[1].split("/")[-1]}'
         
         os.makedirs(source_folder)
         os.makedirs(target_folder)
@@ -491,10 +506,9 @@ class Trainer():
             self.lr_discriminator_history.append(lr_2)
 
             # set lambda value
-            l = self.lambda_function.calculate(p)
+            l = np.float32(self.lambda_function.calculate(p))
             print(f'Lambda: {l}')
-            self.lambdas.append(l)
-            l_vector = np.full(shape = (self.batch_size, 1), fill_value = l, dtype = 'float32')
+            self.lambdas.append(float(l))
 
             self.logger.write_scalar('segmentation_writer', 'learning_rate', lr_1, epoch + 1)
             self.logger.write_scalar('discriminator_writer', 'learning_rate', lr_2, epoch + 1)
@@ -525,14 +539,15 @@ class Trainer():
 
                 source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
                 target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
-                
+
                 # source_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
                 # target_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
                 
                 step_output = self._training_step_domain_adaptation(
                     model = self.model,
-                    inputs = [x_train, l_vector],
+                    inputs = x_train,
                     outputs = [y_segmentation_train, y_discriminator_train],
+                    lambda_value = l,
                     optimizers = (self.optimizer_segmentation, self.optimizer_discriminator),
                     source_mask = source_mask,
                     target_mask = target_mask,
@@ -665,7 +680,7 @@ class Trainer():
                 y_discriminator_val = tf.one_hot(encoded_domain, 2)
                 print(f'Domain: {encoded_domain}')
 
-                y_segmentation_pred, y_discriminator_pred = self.model([x_val, l_vector])
+                y_segmentation_pred, y_discriminator_pred = self.model(x_val)
 
                 source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
                 target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
@@ -837,7 +852,12 @@ class Trainer():
                 x_train = batch_images[ :, :, :, : self.channels]
                 y_train = batch_images[ :, :, :, self.channels :]
 
-                loss_train, y_pred = self._training_step(self.model, x_train, y_train, self.optimizer_segmentation)
+                loss_train, y_pred = self._training_step(
+                    model = self.model,
+                    x_true = x_train,
+                    y_true = y_train,
+                    optimizer = self.optimizer_segmentation
+                    )
                 
                 self.acc_segmentation.update_state(y_train, y_pred)
                 self._calculate_precision_recall(y_train, y_pred)
