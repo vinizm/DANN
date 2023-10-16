@@ -72,4 +72,4 @@ SGD_OPTIMIZER_CONFIG = {
 
 NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 3, 'num_class': 2,'max_epochs': 120, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 200,
                                       'patience': 25, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'output_stride': 16, 'optimizer_config': ADAM_OPTIMIZER_CONFIG,
-                                      'lr_config': LR_LOG_CONFIG}
+                                      'lr_config': LR_LOG_CONFIG, 'skip_conn': False}

@@ -199,7 +199,7 @@ class Trainer():
             
             loss_segmentation_source = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = source_mask)
             loss_discriminator = self.loss_function_discriminator(y_true_discriminator, y_pred_discriminator)
-            loss_global = loss_segmentation_source + loss_discriminator
+            loss_global = loss_segmentation_source + 0. * loss_discriminator
             
         loss_segmentation_target = self.loss_function_segmentation(y_true_segmentation, y_pred_segmentation, sample_weight = target_mask)
 
@@ -823,7 +823,12 @@ class Trainer():
                 x_train = batch_images[ :, :, :, : self.channels]
                 y_train = batch_images[ :, :, :, self.channels :]
 
-                loss_train, y_pred = self._training_step(self.model, x_train, y_train, self.optimizer_segmentation)
+                loss_train, y_pred = self._training_step(
+                    model = self.model,
+                    x_true = x_train,
+                    y_true = y_train,
+                    optimizer = self.optimizer_segmentation
+                    )
                 
                 self.acc_segmentation.update_state(y_train, y_pred)
                 self._calculate_precision_recall(y_train, y_pred)
