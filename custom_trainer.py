@@ -479,7 +479,7 @@ class Trainer():
             # set lambda value
             l = np.float32(self.lambda_function.calculate(p))
             print(f'Lambda: {l}')
-            self.lambdas.append(l)
+            self.lambdas.append(float(l))
 
             self.logger.write_scalar('segmentation_writer', 'learning_rate', lr_1, epoch + 1)
             self.logger.write_scalar('discriminator_writer', 'learning_rate', lr_2, epoch + 1)
@@ -510,7 +510,7 @@ class Trainer():
 
                 source_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = True)
                 target_mask = self._generate_domain_mask(encoded_domain, shape = (self.patch_size, self.patch_size), activate_source = False)
-                
+
                 # source_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = True)
                 # target_mask = self._generate_domain_mask(encoded_domain, shape = -1, activate_source = False)
                 
