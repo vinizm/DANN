@@ -477,7 +477,7 @@ class Trainer():
             self.lr_discriminator_history.append(lr_2)
 
             # set lambda value
-            l = self.lambda_function.calculate(p)
+            l = np.float32(self.lambda_function.calculate(p))
             print(f'Lambda: {l}')
             self.lambdas.append(l)
 
