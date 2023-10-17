@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import glob
+from copy import deepcopy
 from typing import List, Tuple, Sequence
 
 import tensorflow as tf
@@ -430,7 +431,7 @@ class Trainer():
         # define files for validation
         self.train_data_dirs, self.val_data_dirs = self._split_file_list(data_dirs)
 
-        # data augmentation
+        # data augmentation_s
         self.train_data_dirs = self._augment_images(self.train_data_dirs)
         self.val_data_dirs = self._augment_images(self.val_data_dirs)
 
@@ -983,22 +984,23 @@ class Trainer():
         self.test_index_target = test_index_target
 
     def set_optimizer(self, optimizer_config: dict):
-        name = optimizer_config.pop('name')
+        config_obj = deepcopy(optimizer_config)
+        name = config_obj.pop('name')
         if name == 'adam':
-            self.optimizer_segmentation = Adam(**optimizer_config)
-            self.optimizer_discriminator = Adam(**optimizer_config)
+            self.optimizer_segmentation = Adam(**config_obj)
+            self.optimizer_discriminator = Adam(**config_obj)
         
         elif name == 'sgd':
-            self.optimizer_segmentation = SGD(**optimizer_config)
-            self.optimizer_discriminator = SGD(**optimizer_config)
+            self.optimizer_segmentation = SGD(**config_obj)
+            self.optimizer_discriminator = SGD(**config_obj)
 
     def set_learning_rate(self, **kwargs):
-        segmentation_params = kwargs.get('segmentation')
+        segmentation_params = deepcopy(kwargs.get('segmentation'))
         if segmentation_params is not None:
             name = segmentation_params.pop('name')
             self.lr_function_segmentation = LearningRateFactory(name, **segmentation_params)
 
-        discriminator_params = kwargs.get('discriminator')
+        discriminator_params = deepcopy(kwargs.get('discriminator'))
         if discriminator_params is not None:
             name = discriminator_params.pop('name')
             self.lr_function_discriminator = LearningRateFactory(name, **discriminator_params)

@@ -6,6 +6,7 @@ from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import Dropout
 
 from models.constraints import ZeroMeanFilter
 
@@ -19,11 +20,11 @@ class DomainDiscriminatorFullyConnected(Model):
         
         self.dense_1 = Dense(units = units)
         self.activ_1 = Activation('relu')
-        # self.batch_norm_1 = BatchNormalization(epsilon = 1.e-6)
+        self.batch_norm_1 = BatchNormalization(epsilon = 1.e-6)
         
         self.dense_2 = Dense(units = units)
         self.activ_2 = Activation('relu')
-        # self.batch_norm_2 = BatchNormalization(epsilon = 1.e-6)
+        self.batch_norm_2 = BatchNormalization(epsilon = 1.e-6)
                 
         self.dense_3 = Dense(units = 2)
         self.proba = Activation('softmax')               
@@ -34,16 +35,16 @@ class DomainDiscriminatorFullyConnected(Model):
         
         x = self.dense_1(x)
         x = self.activ_1(x)
-        # x = self.batch_norm_1(x)
+        x = self.batch_norm_1(x)
 
         x = self.dense_2(x)
         x = self.activ_2(x)
-        # x = self.batch_norm_2(x)
+        x = self.batch_norm_2(x)
 
         x = self.dense_3(x)
         x = self.proba(x)
 
-        return x
+        return 
 
     def get_config(self):
         config = super(DomainDiscriminatorFullyConnected, self).get_config()
