@@ -44,7 +44,7 @@ class DomainDiscriminatorFullyConnected(Model):
         x = self.dense_3(x)
         x = self.proba(x)
 
-        return 
+        return x
 
     def get_config(self):
         config = super(DomainDiscriminatorFullyConnected, self).get_config()

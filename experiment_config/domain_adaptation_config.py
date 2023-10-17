@@ -13,7 +13,7 @@ DOMAIN_ADAPTATION_CONFIG = [
     {
         'source': 'Fe19',
         'target': 'FeM',
-        'num_runs': 1,
+        'num_runs': 3,
         'run_training': True
     },
     {

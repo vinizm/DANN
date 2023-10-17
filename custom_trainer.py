@@ -188,7 +188,7 @@ class Trainer():
         del tape
         return loss, y_pred
 
-    @tf.function
+    # @tf.function
     def _training_step_domain_adaptation(self, model: DomainAdaptationModel, inputs, outputs, lambda_value, optimizers: Sequence[Optimizer],
                                          source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
@@ -985,6 +985,7 @@ class Trainer():
 
     def set_optimizer(self, optimizer_config: dict):
         config_obj = deepcopy(optimizer_config)
+        print(f'opt: {config_obj}')
         name = config_obj.pop('name')
         if name == 'adam':
             self.optimizer_segmentation = Adam(**config_obj)
@@ -996,16 +997,19 @@ class Trainer():
 
     def set_learning_rate(self, **kwargs):
         segmentation_params = deepcopy(kwargs.get('segmentation'))
+        print(f'lr_seg: {segmentation_params}')
         if segmentation_params is not None:
             name = segmentation_params.pop('name')
             self.lr_function_segmentation = LearningRateFactory(name, **segmentation_params)
 
         discriminator_params = deepcopy(kwargs.get('discriminator'))
+        print(f'lr_disc: {discriminator_params}')
         if discriminator_params is not None:
             name = discriminator_params.pop('name')
             self.lr_function_discriminator = LearningRateFactory(name, **discriminator_params)
 
     def set_lambda(self, **kwargs):
+        print(f'lambda: {kwargs}')
         self.lambda_function = LambdaGradientReversalLayer(**kwargs)
 
     def _split_original_augmented(self, data_dirs: list):
