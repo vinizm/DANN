@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 import os
 import gc
-import copy
+from copy import deepcopy
 
 import tensorflow as tf
 
@@ -47,7 +47,8 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
     patience = CASE.get('patience', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('patience'))
     progress_threshold = CASE.get('progress_threshold', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('progress_threshold'))
     
-    lr_config = CASE.get('lr_config', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_config'))
+    lr_config_main = CASE.get('lr_config_main', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_config_main'))
+    lr_config_extra = CASE.get('lr_config_extra', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('lr_config_extra'))
     optimizer_config = CASE.get('optimizer_config', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('optimizer_config'))
     
     gamma = CASE.get('gamma', DOMAIN_ADAPTATION_GLOBAL_PARAMS.get('gamma'))
@@ -86,11 +87,11 @@ for CASE in DOMAIN_ADAPTATION_CONFIG:
             flip = flip
             )
         
-        trainer.set_optimizer(optimizer_config)
+        trainer.set_optimizer(deepcopy(optimizer_config))
         trainer.set_learning_rate(
             **{
-                'segmentation': copy.deepcopy(lr_config),
-                'discriminator': copy.deepcopy(lr_config),
+                'segmentation': deepcopy(lr_config_main),
+                'discriminator': deepcopy(lr_config_extra),
                 }
             )
         

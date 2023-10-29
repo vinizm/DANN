@@ -1,7 +1,6 @@
 import time
 import numpy as np
 import glob
-from copy import deepcopy
 from typing import List, Tuple, Sequence
 
 import tensorflow as tf
@@ -188,7 +187,7 @@ class Trainer():
         del tape
         return loss, y_pred
 
-    # @tf.function
+    @tf.function
     def _training_step_domain_adaptation(self, model: DomainAdaptationModel, inputs, outputs, lambda_value, optimizers: Sequence[Optimizer],
                                          source_mask, target_mask, train_segmentation = True, train_discriminator = True):
 
@@ -984,32 +983,27 @@ class Trainer():
         self.test_index_target = test_index_target
 
     def set_optimizer(self, optimizer_config: dict):
-        config_obj = deepcopy(optimizer_config)
-        print(f'opt: {config_obj}')
-        name = config_obj.pop('name')
+        name = optimizer_config.pop('name')
         if name == 'adam':
-            self.optimizer_segmentation = Adam(**config_obj)
-            self.optimizer_discriminator = Adam(**config_obj)
+            self.optimizer_segmentation = Adam(**optimizer_config)
+            self.optimizer_discriminator = Adam(**optimizer_config)
         
         elif name == 'sgd':
-            self.optimizer_segmentation = SGD(**config_obj)
-            self.optimizer_discriminator = SGD(**config_obj)
+            self.optimizer_segmentation = SGD(**optimizer_config)
+            self.optimizer_discriminator = SGD(**optimizer_config)
 
     def set_learning_rate(self, **kwargs):
-        segmentation_params = deepcopy(kwargs.get('segmentation'))
-        print(f'lr_seg: {segmentation_params}')
+        segmentation_params = kwargs.get('segmentation')
         if segmentation_params is not None:
             name = segmentation_params.pop('name')
             self.lr_function_segmentation = LearningRateFactory(name, **segmentation_params)
 
-        discriminator_params = deepcopy(kwargs.get('discriminator'))
-        print(f'lr_disc: {discriminator_params}')
+        discriminator_params = kwargs.get('discriminator')
         if discriminator_params is not None:
             name = discriminator_params.pop('name')
             self.lr_function_discriminator = LearningRateFactory(name, **discriminator_params)
 
     def set_lambda(self, **kwargs):
-        print(f'lambda: {kwargs}')
         self.lambda_function = LambdaGradientReversalLayer(**kwargs)
 
     def _split_original_augmented(self, data_dirs: list):

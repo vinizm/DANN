@@ -13,7 +13,7 @@ DOMAIN_ADAPTATION_CONFIG = [
     {
         'source': 'Fe19',
         'target': 'FeM',
-        'num_runs': 3,
+        'num_runs': 1,
         'run_training': True
     },
     {
@@ -111,7 +111,14 @@ LR_LINEAR_CONFIG = {
     'lr_warmup': LR_WARMUP
 }
 
-LR_LOG_CONFIG = {
+LR_LOG_CONFIG_1 = {
+    'name': 'log',
+    'start': np.log10(5.e-4),
+    'stop': np.log10(1.e-5),
+    'warmup': 0.
+}
+
+LR_LOG_CONFIG_2 = {
     'name': 'log',
     'start': np.log10(5.e-4),
     'stop': np.log10(1.e-5),
@@ -129,4 +136,5 @@ SGD_OPTIMIZER_CONFIG = {
 
 DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 3, 'num_class': 2, 'max_epochs': 100, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 500,
                                    'patience': 100, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'output_stride': 16, 'lambda_scale': 2.5e-5,
-                                   'gamma': 10., 'lambda_warmup': 0., 'skip_conn': False, 'units': 1024, 'optimizer_config': ADAM_OPTIMIZER_CONFIG, 'lr_config': LR_LOG_CONFIG}
+                                   'gamma': 10., 'lambda_warmup': 0., 'skip_conn': False, 'units': 1024, 'optimizer_config': ADAM_OPTIMIZER_CONFIG, 'lr_config_main': LR_LOG_CONFIG_1,
+                                   'lr_config_extra': LR_LOG_CONFIG_2}
