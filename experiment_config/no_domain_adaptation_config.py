@@ -5,23 +5,23 @@ from utils.hyperparameters import *
 NO_DOMAIN_ADAPTATION_CONFIG = [
     {
         'dataset': 'Fe19',
-        'num_runs': 1,
+        'num_runs': 5,
         'run_training': True
     },
     {
         'dataset': 'Fe120',
         'num_runs': 5,
-        'run_training': False
+        'run_training': True
     },
     {
         'dataset': 'FeM',
         'num_runs': 5,
-        'run_training': False
+        'run_training': True
     },
     {
         'dataset': 'Cu',
         'num_runs': 5,
-        'run_training': False
+        'run_training': True
     }
 ]
 
@@ -70,6 +70,6 @@ SGD_OPTIMIZER_CONFIG = {
     'momentum': 0.9
 }
 
-NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 3, 'num_class': 2,'max_epochs': 120, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 200,
+NO_DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 3, 'num_class': 2,'max_epochs': 100, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 500,
                                       'patience': 25, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'output_stride': 16, 'optimizer_config': ADAM_OPTIMIZER_CONFIG,
                                       'lr_config': LR_LOG_CONFIG, 'skip_conn': False}

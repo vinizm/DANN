@@ -8,6 +8,7 @@ import time
 import os
 import gc
 import time
+from copy import deepcopy
 
 import tensorflow as tf
 
@@ -76,8 +77,10 @@ for CASE in NO_DOMAIN_ADAPTATION_CONFIG:
             flip = flip
             )
         
-        trainer.set_optimizer(optimizer_config)
-        trainer.set_learning_rate(**{'segmentation': lr_config})
+        trainer.set_optimizer(deepcopy(optimizer_config))
+        trainer.set_learning_rate(
+            **{'segmentation': deepcopy(lr_config)}
+            )
         
         trainer.train(epochs = max_epochs, wait = patience, persist_best_model = True, progress_threshold = progress_threshold)
         
