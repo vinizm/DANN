@@ -11,7 +11,15 @@ from models.deeplabv3plus import DeepLabV3Plus
 
 class Predictor():
 
-    def __init__(self, model = None, patch_size: int = 512, channels: int = 1, num_class: int = 2, output_stride: int = 8, domain_adaption: bool = False):
+    def __init__(self,
+                 model = None,
+                 patch_size: int = 512,
+                 channels: int = 1,
+                 num_class: int = 2,
+                 output_stride: int = 8,
+                 domain_adaption: bool = False,
+                 skip_conn: bool = True
+                 ):
         
         self.model = model
         self.patch_size = patch_size
@@ -19,6 +27,7 @@ class Predictor():
         self.num_class = num_class
         self.output_stride = output_stride
         self.domain_adaptation = domain_adaption
+        self.skip_conn = skip_conn
 
         self.model = self.assembly_empty_model()
 
@@ -28,11 +37,22 @@ class Predictor():
     def assembly_empty_model(self):
 
         if self.domain_adaptation:
-            empty_model = DomainAdaptationModel(input_shape = (self.patch_size, self.patch_size, self.channels), output_stride = self.output_stride,
-                                                num_class = self.num_class)
+            pass
+            # empty_model = DomainAdaptationModel(
+            #     input_shape = (self.patch_size, self.patch_size, self.channels),
+            #     output_stride = self.output_stride,
+            #     num_class = self.num_class,
+            #     units = self.units,
+            #     skip_conn = self.skip_conn
+            #     )
+        
         else:
-            empty_model = DeepLabV3Plus(input_shape = (self.patch_size, self.patch_size, self.channels), num_class = self.num_class,
-                                        output_stride = self.output_stride)
+            empty_model = DeepLabV3Plus(
+                input_shape = (self.patch_size, self.patch_size, self.channels),
+                num_class = self.num_class,
+                output_stride = self.output_stride,
+                skip_conn = self.skip_conn
+                )
         
         return empty_model
 
