@@ -773,7 +773,7 @@ class Trainer():
                     self.logger.write_scalar('val_writer', 'best/epoch', self.best_epoch, epoch + 1)
                     self.logger.write_scalar('val_writer', 'best/loss', self.best_val_loss, epoch + 1)
 
-                else:
+                elif self.loss_segmentation_val_history[-1] > self.best_val_loss or self.f1_target_val_history[-1] <= 0.01:
                     self.no_improvement_count += 1
                     if  self.no_improvement_count > self.wait:
                         print('[!] Performing early stopping.')

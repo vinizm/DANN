@@ -18,7 +18,8 @@ class Predictor():
                  num_class: int = 2,
                  output_stride: int = 8,
                  domain_adaption: bool = False,
-                 skip_conn: bool = True
+                 skip_conn: bool = True,
+                 units: int = 1024
                  ):
         
         self.model = model
@@ -28,6 +29,7 @@ class Predictor():
         self.output_stride = output_stride
         self.domain_adaptation = domain_adaption
         self.skip_conn = skip_conn
+        self.units = units
 
         self.model = self.assembly_empty_model()
 
@@ -37,14 +39,13 @@ class Predictor():
     def assembly_empty_model(self):
 
         if self.domain_adaptation:
-            pass
-            # empty_model = DomainAdaptationModel(
-            #     input_shape = (self.patch_size, self.patch_size, self.channels),
-            #     output_stride = self.output_stride,
-            #     num_class = self.num_class,
-            #     units = self.units,
-            #     skip_conn = self.skip_conn
-            #     )
+            empty_model = DomainAdaptationModel(
+                input_shape = (self.patch_size, self.patch_size, self.channels),
+                output_stride = self.output_stride,
+                num_class = self.num_class,
+                units = self.units,
+                skip_conn = self.skip_conn
+                )
         
         else:
             empty_model = DeepLabV3Plus(
@@ -98,7 +99,7 @@ class Predictor():
 
             print('Predicting...')
             if self.domain_adaptation:
-                y_pred_total, _ = self.model.main_network.predict(x_test_total)
+                y_pred_total = self.model.main_network.predict(x_test_total)
             else:
                 y_pred_total = self.model.predict(x_test_total)
 
