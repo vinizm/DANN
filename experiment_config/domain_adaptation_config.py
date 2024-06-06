@@ -19,8 +19,8 @@ DOMAIN_ADAPTATION_CONFIG = [
     {
         'source': 'Fe19',
         'target': 'Cu',
-        'num_runs': 1,
-        'run_training': True
+        'num_runs': 5,
+        'run_training': False
     },
     # Fe120
     {
@@ -57,8 +57,8 @@ DOMAIN_ADAPTATION_CONFIG = [
     {
         'source': 'FeM',
         'target': 'Cu',
-        'num_runs': 5,
-        'run_training': False
+        'num_runs': 10,
+        'run_training': True
     },
     # Cu
     {
@@ -76,7 +76,7 @@ DOMAIN_ADAPTATION_CONFIG = [
     {
         'source': 'Cu',
         'target': 'FeM',
-        'num_runs': 1,
+        'num_runs': 5,
         'run_training': False
     }
 ]
@@ -135,6 +135,6 @@ SGD_OPTIMIZER_CONFIG = {
 }
 
 DOMAIN_ADAPTATION_GLOBAL_PARAMS = {'patch_size': 256, 'channels': 3, 'num_class': 2, 'max_epochs': 100, 'batch_size': 4, 'val_fraction': 0.1, 'num_images_train': 500,
-                                   'patience': 100, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'output_stride': 16, 'lambda_scale': 1.e-6,
+                                   'patience': 50, 'flip': True, 'rotate': True, 'progress_threshold': 0., 'num_runs': 5, 'output_stride': 8, 'lambda_scale': 2.e-6,
                                    'gamma': 10., 'lambda_warmup': 0., 'skip_conn': False, 'units': 1024, 'optimizer_config': ADAM_OPTIMIZER_CONFIG, 'lr_config_main': LR_LOG_CONFIG_1,
                                    'lr_config_extra': LR_LOG_CONFIG_2}
